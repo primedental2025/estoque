@@ -62,6 +62,12 @@
             background-color: #2980b9;
             transform: scale(1.02);
         }
+        .logout-btn {
+            background-color: #e74c3c;
+        }
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
         .material-list {
             background-color: #fff;
             border-radius: 8px;
@@ -82,7 +88,7 @@
         }
         .material-item {
             display: flex;
-            align-items: center;
+            flex-direction: column;
             padding: 10px;
             border-bottom: 1px solid #eee;
             background-color: #fafafa;
@@ -99,13 +105,19 @@
         .material-item.abaixo-minimo:hover {
             background-color: #ffcdd2;
         }
+        .material-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
         .material-item img {
-            max-width: 60px;
+            max-width: 50px;
             border-radius: 5px;
-            margin-right: 10px;
+            margin-left: 8px; /* Espaço entre o botão Tick e a imagem */
         }
         .material-info {
             flex-grow: 1;
+            margin-bottom: 8px;
         }
         .material-info strong {
             color: #2c3e50;
@@ -164,12 +176,11 @@
             font-size: 16px;
             font-weight: bold;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 25px;
+            height: 25px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 10px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
         }
@@ -269,10 +280,13 @@
                 align-items: flex-start;
                 padding: 8px;
             }
+            .material-header {
+                margin-bottom: 8px;
+            }
             .material-item img {
                 max-width: 50px;
-                margin-right: 0;
-                margin-bottom: 8px;
+                margin-left: 8px;
+                margin-bottom: 0;
             }
             .material-info {
                 margin-bottom: 8px;
@@ -313,7 +327,6 @@
                 width: 25px;
                 height: 25px;
                 font-size: 14px;
-                margin-right: 8px;
             }
             .category-title {
                 font-size: 14px;
@@ -371,6 +384,7 @@
             <button id="btnGerarRelatorio">Gerar Relatório Excel</button>
             <button id="btnExportarDados">Exportar Dados</button>
             <button id="btnImportarDados">Importar Dados</button>
+            <button id="btnLogout" class="logout-btn">Sair</button>
             <input type="file" id="importInput" accept=".json" style="display: none;">
         </div>
 
@@ -564,12 +578,16 @@
                             itemDiv.classList.add('abaixo-minimo');
                         }
 
+                        // Criar um contêiner para o botão Tick e a imagem
+                        const headerDiv = document.createElement('div');
+                        headerDiv.className = 'material-header';
+
                         const btnTick = document.createElement('button');
                         btnTick.textContent = '✓';
                         btnTick.className = 'tick-btn';
                         btnTick.classList.toggle('active', material.comprar);
                         btnTick.onclick = () => toggleComprar(material.nome);
-                        itemDiv.appendChild(btnTick);
+                        headerDiv.appendChild(btnTick);
 
                         if (material.imagem) {
                             const img = document.createElement('img');
@@ -578,8 +596,10 @@
                                 console.error('Erro ao carregar imagem:', material.imagem);
                                 img.style.display = 'none';
                             };
-                            itemDiv.appendChild(img);
+                            headerDiv.appendChild(img);
                         }
+
+                        itemDiv.appendChild(headerDiv);
 
                         const info = document.createElement('div');
                         info.className = 'material-info';
@@ -649,6 +669,19 @@
                 document.getElementById('editarForm').reset();
             }
 
+            // Função de Logout
+            function logout() {
+                auth.signOut()
+                    .then(() => {
+                        console.log('Usuário desconectado com sucesso.');
+                        // A tela de login será mostrada automaticamente pelo onAuthStateChanged
+                    })
+                    .catch(error => {
+                        console.error('Erro ao desconectar:', error);
+                        alert('Falha ao desconectar: ' + error.message);
+                    });
+            }
+
             // Adicionar Event Listeners para os botões
             document.getElementById('btnAbrirModal').addEventListener('click', abrirModal);
             document.getElementById('btnFecharModal').addEventListener('click', fecharModal);
@@ -659,6 +692,7 @@
             document.getElementById('btnImportarDados').addEventListener('click', () => {
                 document.getElementById('importInput').click();
             });
+            document.getElementById('btnLogout').addEventListener('click', logout);
             document.getElementById('importInput').addEventListener('change', importarDados);
 
             // Cadastro de novo material
