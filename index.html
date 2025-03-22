@@ -13,49 +13,49 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f7fa;
             margin: 0;
-            padding: 10px;
+            padding: 20px;
             color: #333;
         }
         .container {
-            max-width: 900px;
+            max-width: 1200px;
             margin: 0 auto;
             background-color: #fff;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 15px;
+            padding: 20px;
         }
         h1 {
             color: #2c3e50;
             text-align: center;
-            margin-bottom: 20px;
-            font-size: 24px;
+            margin-bottom: 25px;
+            font-size: 28px;
         }
         .search-container {
             background-color: #ecf0f1;
-            padding: 15px;
+            padding: 20px;
             border-radius: 8px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 15px;
         }
         input[type="text"], input[type="number"], input[type="email"], input[type="password"], select, input[type="file"] {
             width: 100%;
-            padding: 8px;
+            padding: 10px;
             margin: 5px 0;
             border: 1px solid #ddd;
             border-radius: 5px;
-            font-size: 14px;
+            font-size: 16px;
             box-sizing: border-box;
         }
         button {
             background-color: #3498db;
             color: white;
             border: none;
-            padding: 8px 12px;
+            padding: 10px 15px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 16px;
             transition: background-color 0.3s ease, transform 0.1s ease;
         }
         button:hover {
@@ -71,29 +71,29 @@
         .material-list {
             background-color: #fff;
             border-radius: 8px;
-            padding: 15px;
+            padding: 20px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
         .category-section {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         .category-title {
             background-color: #3498db;
             color: white;
-            padding: 8px;
+            padding: 10px;
             border-radius: 5px;
-            margin-bottom: 10px;
-            font-size: 16px;
+            margin-bottom: 15px;
+            font-size: 18px;
             text-transform: uppercase;
         }
         .material-item {
             display: flex;
-            flex-direction: column;
-            padding: 10px;
+            align-items: center;
+            padding: 15px;
             border-bottom: 1px solid #eee;
             background-color: #fafafa;
             border-radius: 5px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             transition: background-color 0.2s;
         }
         .material-item:hover {
@@ -105,46 +105,45 @@
         .material-item.abaixo-minimo:hover {
             background-color: #ffcdd2;
         }
-        .material-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-        }
         .material-item img {
-            max-width: 50px;
+            max-width: 100px;
             border-radius: 5px;
-            margin-left: 8px; /* Espaço entre o botão Tick e a imagem */
+            margin-right: 15px;
         }
         .material-info {
             flex-grow: 1;
-            margin-bottom: 8px;
         }
         .material-info strong {
             color: #2c3e50;
-            font-size: 16px;
+            font-size: 18px;
         }
         .material-info .quantidade {
-            font-size: 14px;
+            font-size: 16px;
             color: #34495e;
-            margin-left: 8px;
+            margin-left: 10px;
         }
         .material-info .detalhes {
             font-size: 12px;
-            color: #7f8c8d;
-            margin-top: 3px;
+            color: #95a5a6;
+            margin-top: 5px;
         }
         .controls {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
         .controls .quantidade-btns {
             display: flex;
-            gap: 8px;
+            gap: 10px;
         }
         .controls .quantidade-btns button {
-            padding: 8px 12px;
-            font-size: 14px;
+            background-color: #3498db;
+            padding: 10px 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .controls .quantidade-btns button:hover {
+            background-color: #2980b9;
         }
         .controls .acao-btns {
             display: flex;
@@ -152,35 +151,36 @@
             gap: 5px;
         }
         .controls .acao-btns button {
-            padding: 6px 10px;
+            padding: 5px 8px;
             font-size: 12px;
-            width: 70px;
+            width: 60px;
         }
         .controls button.edit-btn {
-            background-color: #f39c12;
+            background-color: #f7c948;
         }
         .controls button.edit-btn:hover {
-            background-color: #e67e22;
+            background-color: #e4b73e;
         }
         .controls button.delete-btn {
-            background-color: #e74c3c;
+            background-color: #ff8787;
         }
         .controls button.delete-btn:hover {
-            background-color: #c0392b;
+            background-color: #e57373;
         }
         .tick-btn {
             background-color: transparent;
-            border: 2px solid #27ae60;
+            border: 3px solid #27ae60;
             color: #27ae60;
             padding: 0;
-            font-size: 16px;
+            font-size: 20px;
             font-weight: bold;
             border-radius: 50%;
-            width: 25px;
-            height: 25px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
+            margin-right: 15px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
         }
@@ -212,64 +212,64 @@
         }
         .modal-content {
             background-color: #fff;
-            padding: 15px;
+            padding: 20px;
             border-radius: 8px;
             width: 90%;
-            max-width: 400px;
+            max-width: 500px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         .modal-content h3 {
             margin-top: 0;
             color: #34495e;
-            font-size: 18px;
+            font-size: 20px;
         }
         .modal-content button[type="submit"] {
-            margin-top: 10px;
+            margin-top: 15px;
             width: 100%;
         }
         .close-btn {
             background-color: #e74c3c;
             float: right;
             padding: 5px 10px;
-            font-size: 12px;
+            font-size: 14px;
         }
         .close-btn:hover {
             background-color: #c0392b;
         }
         .login-container {
-            max-width: 400px;
+            max-width: 500px;
             margin: 50px auto;
             background-color: #fff;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 15px;
+            padding: 20px;
             text-align: center;
         }
         .login-container h2 {
             color: #2c3e50;
-            margin-bottom: 15px;
-            font-size: 20px;
+            margin-bottom: 20px;
+            font-size: 24px;
         }
         .hidden {
             display: none;
         }
 
         /* Media Queries para Responsividade */
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
             body {
-                padding: 5px;
+                padding: 10px;
             }
             .container {
                 max-width: 100%;
-                padding: 10px;
+                padding: 15px;
             }
             h1 {
-                font-size: 20px;
-                margin-bottom: 15px;
+                font-size: 24px;
+                margin-bottom: 20px;
             }
             .search-container {
-                padding: 10px;
-                gap: 8px;
+                padding: 15px;
+                gap: 10px;
             }
             .search-container button, .search-container input[type="text"] {
                 width: 100%;
@@ -278,24 +278,21 @@
             .material-item {
                 flex-direction: column;
                 align-items: flex-start;
-                padding: 8px;
-            }
-            .material-header {
-                margin-bottom: 8px;
+                padding: 10px;
             }
             .material-item img {
-                max-width: 50px;
-                margin-left: 8px;
-                margin-bottom: 0;
+                max-width: 80px;
+                margin-right: 0;
+                margin-bottom: 10px;
             }
             .material-info {
-                margin-bottom: 8px;
+                margin-bottom: 10px;
             }
             .material-info strong {
-                font-size: 14px;
+                font-size: 16px;
             }
             .material-info .quantidade {
-                font-size: 12px;
+                font-size: 14px;
                 margin-left: 5px;
             }
             .material-info .detalhes {
@@ -311,8 +308,8 @@
                 gap: 5px;
             }
             .controls .quantidade-btns button {
-                padding: 6px 10px;
-                font-size: 12px;
+                padding: 8px 12px;
+                font-size: 16px;
             }
             .controls .acao-btns {
                 flex-direction: row;
@@ -320,8 +317,76 @@
             }
             .controls .acao-btns button {
                 width: auto;
-                padding: 5px 8px;
-                font-size: 11px;
+                padding: 4px 6px;
+                font-size: 10px;
+            }
+            .tick-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 16px;
+                margin-right: 10px;
+            }
+            .category-title {
+                font-size: 16px;
+                padding: 8px;
+            }
+            .modal-content {
+                padding: 15px;
+                width: 95%;
+            }
+            .modal-content h3 {
+                font-size: 18px;
+            }
+            .modal-content input, .modal-content select {
+                font-size: 14px;
+            }
+            .modal-content button {
+                font-size: 14px;
+            }
+            .close-btn {
+                font-size: 12px;
+                padding: 4px 8px;
+            }
+            .login-container {
+                margin: 30px auto;
+                padding: 15px;
+            }
+            .login-container h2 {
+                font-size: 20px;
+            }
+            .login-container input, .login-container button {
+                font-size: 14px;
+                padding: 8px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 5px;
+            }
+            .container {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 20px;
+                margin-bottom: 15px;
+            }
+            .search-container {
+                padding: 10px;
+                gap: 8px;
+            }
+            .material-item img {
+                max-width: 60px;
+            }
+            .material-info strong {
+                font-size: 14px;
+            }
+            .material-info .quantidade {
+                font-size: 12px;
+            }
+            .controls .quantidade-btns button {
+                padding: 6px 10px;
+                font-size: 14px;
             }
             .tick-btn {
                 width: 25px;
@@ -330,34 +395,6 @@
             }
             .category-title {
                 font-size: 14px;
-                padding: 6px;
-            }
-            .modal-content {
-                padding: 10px;
-                width: 95%;
-            }
-            .modal-content h3 {
-                font-size: 16px;
-            }
-            .modal-content input, .modal-content select {
-                font-size: 12px;
-            }
-            .modal-content button {
-                font-size: 12px;
-            }
-            .close-btn {
-                font-size: 10px;
-                padding: 3px 8px;
-            }
-            .login-container {
-                margin: 20px auto;
-                padding: 10px;
-            }
-            .login-container h2 {
-                font-size: 18px;
-            }
-            .login-container input, .login-container button {
-                font-size: 12px;
                 padding: 6px;
             }
         }
@@ -578,16 +615,12 @@
                             itemDiv.classList.add('abaixo-minimo');
                         }
 
-                        // Criar um contêiner para o botão Tick e a imagem
-                        const headerDiv = document.createElement('div');
-                        headerDiv.className = 'material-header';
-
                         const btnTick = document.createElement('button');
                         btnTick.textContent = '✓';
                         btnTick.className = 'tick-btn';
                         btnTick.classList.toggle('active', material.comprar);
                         btnTick.onclick = () => toggleComprar(material.nome);
-                        headerDiv.appendChild(btnTick);
+                        itemDiv.appendChild(btnTick);
 
                         if (material.imagem) {
                             const img = document.createElement('img');
@@ -596,10 +629,8 @@
                                 console.error('Erro ao carregar imagem:', material.imagem);
                                 img.style.display = 'none';
                             };
-                            headerDiv.appendChild(img);
+                            itemDiv.appendChild(img);
                         }
-
-                        itemDiv.appendChild(headerDiv);
 
                         const info = document.createElement('div');
                         info.className = 'material-info';
