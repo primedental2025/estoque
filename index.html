@@ -68,10 +68,10 @@
         .logout-btn:hover {
             background-color: #c0392b;
         }
-        .enviar-lista-btn {
+        .copiar-lista-btn {
             background-color: #27ae60;
         }
-        .enviar-lista-btn:hover {
+        .copiar-lista-btn:hover {
             background-color: #219653;
         }
         .material-list {
@@ -427,7 +427,7 @@
             <button id="btnGerarRelatorio">Gerar Relatório Excel</button>
             <button id="btnExportarDados">Exportar Dados</button>
             <button id="btnImportarDados">Importar Dados</button>
-            <button id="btnEnviarLista" class="enviar-lista-btn">Enviar Lista de Compras</button>
+            <button id="btnCopiarLista" class="copiar-lista-btn">Copiar Lista de Compras</button>
             <button id="btnLogout" class="logout-btn">Sair</button>
             <input type="file" id="importInput" accept=".json" style="display: none;">
         </div>
@@ -623,7 +623,7 @@
                         }
 
                         const btnTick = document.createElement('button');
-                        btnTick.textContent = '$'; // Alterado de '✓' para '$'
+                        btnTick.textContent = '$';
                         btnTick.className = 'tick-btn';
                         btnTick.classList.toggle('active', material.comprar);
                         btnTick.onclick = () => toggleComprar(material.nome);
@@ -720,27 +720,26 @@
                     });
             }
 
-            // Função para enviar a lista de compras por email
-            function enviarListaCompras() {
+            // Função para copiar a lista de compras para a área de transferência
+            function copiarListaCompras() {
                 const itensParaComprar = materiais.filter(material => material.comprar);
                 if (itensParaComprar.length === 0) {
                     alert('Nenhum item marcado para compra.');
                     return;
                 }
 
-                const usuario = auth.currentUser;
-                if (!usuario || !usuario.email) {
-                    alert('Usuário não está logado ou email não encontrado.');
-                    return;
-                }
+                const listaItens = itensParaComprar
+                    .map(material => `${material.nome} (${material.quantidade})`)
+                    .join('\n');
 
-                const email = usuario.email;
-                const assunto = encodeURIComponent('Lista de Compras - Controle de Estoque Odontológico');
-                const listaItens = itensParaComprar.map(material => `- ${material.nome}`).join('\n');
-                const corpoEmail = encodeURIComponent(`Olá,\n\nSegue a lista de itens que precisam ser comprados:\n\n${listaItens}\n\nAtenciosamente,\nControle de Estoque Odontológico`);
-
-                const mailtoLink = `mailto:${email}?subject=${assunto}&body=${corpoEmail}`;
-                window.location.href = mailtoLink;
+                navigator.clipboard.writeText(listaItens)
+                    .then(() => {
+                        alert('Lista de compras copiada com sucesso!\n\n' + listaItens);
+                    })
+                    .catch(error => {
+                        console.error('Erro ao copiar a lista:', error);
+                        alert('Falha ao copiar a lista: ' + error.message);
+                    });
             }
 
             // Adicionar Event Listeners para os botões
@@ -753,7 +752,7 @@
             document.getElementById('btnImportarDados').addEventListener('click', () => {
                 document.getElementById('importInput').click();
             });
-            document.getElementById('btnEnviarLista').addEventListener('click', enviarListaCompras);
+            document.getElementById('btnCopiarLista').addEventListener('click', copiarListaCompras);
             document.getElementById('btnLogout').addEventListener('click', logout);
             document.getElementById('importInput').addEventListener('change', importarDados);
 
