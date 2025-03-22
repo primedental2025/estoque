@@ -56,10 +56,11 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 14px;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s ease, transform 0.1s ease;
         }
         button:hover {
             background-color: #2980b9;
+            transform: scale(1.02);
         }
         .material-list {
             background-color: #fff;
@@ -77,6 +78,7 @@
             border-radius: 5px;
             margin-bottom: 10px;
             font-size: 16px;
+            text-transform: uppercase;
         }
         .material-item {
             display: flex;
@@ -169,7 +171,7 @@
             justify-content: center;
             margin-right: 10px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s;
+            transition: all 0.3s ease;
         }
         .tick-btn:hover {
             border-color: #219653;
@@ -212,11 +214,13 @@
         }
         .modal-content button[type="submit"] {
             margin-top: 10px;
+            width: 100%;
         }
         .close-btn {
             background-color: #e74c3c;
             float: right;
             padding: 5px 10px;
+            font-size: 12px;
         }
         .close-btn:hover {
             background-color: #c0392b;
@@ -322,12 +326,26 @@
             .modal-content h3 {
                 font-size: 16px;
             }
+            .modal-content input, .modal-content select {
+                font-size: 12px;
+            }
+            .modal-content button {
+                font-size: 12px;
+            }
+            .close-btn {
+                font-size: 10px;
+                padding: 3px 8px;
+            }
             .login-container {
                 margin: 20px auto;
                 padding: 10px;
             }
             .login-container h2 {
                 font-size: 18px;
+            }
+            .login-container input, .login-container button {
+                font-size: 12px;
+                padding: 6px;
             }
         }
     </style>
