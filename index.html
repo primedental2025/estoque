@@ -13,7 +13,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f7fa;
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             color: #333;
         }
         .container {
@@ -22,36 +22,37 @@
             background-color: #fff;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
+            padding: 15px;
         }
         h1 {
             color: #2c3e50;
             text-align: center;
-            margin-bottom: 30px;
-            font-size: 28px;
+            margin-bottom: 20px;
+            font-size: 24px;
         }
         .search-container {
             background-color: #ecf0f1;
-            padding: 20px;
+            padding: 15px;
             border-radius: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             display: flex;
-            gap: 10px;
             flex-wrap: wrap;
+            gap: 10px;
         }
         input[type="text"], input[type="number"], input[type="email"], input[type="password"], select, input[type="file"] {
-            width: calc(100% - 20px);
-            padding: 10px;
-            margin: 10px 0;
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 14px;
+            box-sizing: border-box;
         }
         button {
             background-color: #3498db;
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 8px 12px;
             border-radius: 5px;
             cursor: pointer;
             font-size: 14px;
@@ -63,28 +64,28 @@
         .material-list {
             background-color: #fff;
             border-radius: 8px;
-            padding: 20px;
+            padding: 15px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
         .category-section {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         .category-title {
             background-color: #3498db;
             color: white;
-            padding: 10px;
+            padding: 8px;
             border-radius: 5px;
-            margin-bottom: 15px;
-            font-size: 18px;
+            margin-bottom: 10px;
+            font-size: 16px;
         }
         .material-item {
             display: flex;
             align-items: center;
-            padding: 15px;
+            padding: 10px;
             border-bottom: 1px solid #eee;
             background-color: #fafafa;
             border-radius: 5px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             transition: background-color 0.2s;
         }
         .material-item:hover {
@@ -97,39 +98,39 @@
             background-color: #ffcdd2;
         }
         .material-item img {
-            max-width: 80px;
+            max-width: 60px;
             border-radius: 5px;
-            margin-right: 15px;
+            margin-right: 10px;
         }
         .material-info {
             flex-grow: 1;
         }
         .material-info strong {
             color: #2c3e50;
-            font-size: 18px;
+            font-size: 16px;
         }
         .material-info .quantidade {
-            font-size: 16px;
+            font-size: 14px;
             color: #34495e;
-            margin-left: 10px;
+            margin-left: 8px;
         }
         .material-info .detalhes {
             font-size: 12px;
             color: #7f8c8d;
-            margin-top: 5px;
+            margin-top: 3px;
         }
         .controls {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 8px;
         }
         .controls .quantidade-btns {
             display: flex;
-            gap: 15px;
+            gap: 8px;
         }
         .controls .quantidade-btns button {
-            padding: 12px 18px;
-            font-size: 16px;
+            padding: 8px 12px;
+            font-size: 14px;
         }
         .controls .acao-btns {
             display: flex;
@@ -137,9 +138,9 @@
             gap: 5px;
         }
         .controls .acao-btns button {
-            padding: 8px 12px;
+            padding: 6px 10px;
             font-size: 12px;
-            width: 80px;
+            width: 70px;
         }
         .controls button.edit-btn {
             background-color: #f39c12;
@@ -158,15 +159,15 @@
             border: 2px solid #27ae60;
             color: #27ae60;
             padding: 0;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             border-radius: 50%;
-            width: 35px;
-            height: 35px;
+            width: 30px;
+            height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 15px;
+            margin-right: 10px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             transition: all 0.3s;
         }
@@ -198,15 +199,16 @@
         }
         .modal-content {
             background-color: #fff;
-            padding: 20px;
+            padding: 15px;
             border-radius: 8px;
-            width: 400px;
-            max-width: 90%;
+            width: 90%;
+            max-width: 400px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         .modal-content h3 {
             margin-top: 0;
             color: #34495e;
+            font-size: 18px;
         }
         .modal-content button[type="submit"] {
             margin-top: 10px;
@@ -221,19 +223,112 @@
         }
         .login-container {
             max-width: 400px;
-            margin: 100px auto;
+            margin: 50px auto;
             background-color: #fff;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
+            padding: 15px;
             text-align: center;
         }
         .login-container h2 {
             color: #2c3e50;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            font-size: 20px;
         }
         .hidden {
             display: none;
+        }
+
+        /* Media Queries para Responsividade */
+        @media (max-width: 600px) {
+            body {
+                padding: 5px;
+            }
+            .container {
+                max-width: 100%;
+                padding: 10px;
+            }
+            h1 {
+                font-size: 20px;
+                margin-bottom: 15px;
+            }
+            .search-container {
+                padding: 10px;
+                gap: 8px;
+            }
+            .search-container button, .search-container input[type="text"] {
+                width: 100%;
+                margin: 5px 0;
+            }
+            .material-item {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 8px;
+            }
+            .material-item img {
+                max-width: 50px;
+                margin-right: 0;
+                margin-bottom: 8px;
+            }
+            .material-info {
+                margin-bottom: 8px;
+            }
+            .material-info strong {
+                font-size: 14px;
+            }
+            .material-info .quantidade {
+                font-size: 12px;
+                margin-left: 5px;
+            }
+            .material-info .detalhes {
+                font-size: 10px;
+            }
+            .controls {
+                flex-direction: row;
+                flex-wrap: wrap;
+                width: 100%;
+                justify-content: space-between;
+            }
+            .controls .quantidade-btns {
+                gap: 5px;
+            }
+            .controls .quantidade-btns button {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+            .controls .acao-btns {
+                flex-direction: row;
+                gap: 5px;
+            }
+            .controls .acao-btns button {
+                width: auto;
+                padding: 5px 8px;
+                font-size: 11px;
+            }
+            .tick-btn {
+                width: 25px;
+                height: 25px;
+                font-size: 14px;
+                margin-right: 8px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px;
+            }
+            .modal-content {
+                padding: 10px;
+                width: 95%;
+            }
+            .modal-content h3 {
+                font-size: 16px;
+            }
+            .login-container {
+                margin: 20px auto;
+                padding: 10px;
+            }
+            .login-container h2 {
+                font-size: 18px;
+            }
         }
     </style>
 </head>
