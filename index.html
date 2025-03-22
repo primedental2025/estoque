@@ -68,6 +68,12 @@
         .logout-btn:hover {
             background-color: #c0392b;
         }
+        .enviar-lista-btn {
+            background-color: #27ae60;
+        }
+        .enviar-lista-btn:hover {
+            background-color: #219653;
+        }
         .material-list {
             background-color: #fff;
             border-radius: 8px;
@@ -421,6 +427,7 @@
             <button id="btnGerarRelatorio">Gerar Relatório Excel</button>
             <button id="btnExportarDados">Exportar Dados</button>
             <button id="btnImportarDados">Importar Dados</button>
+            <button id="btnEnviarLista" class="enviar-lista-btn">Enviar Lista de Compras</button>
             <button id="btnLogout" class="logout-btn">Sair</button>
             <input type="file" id="importInput" accept=".json" style="display: none;">
         </div>
@@ -616,7 +623,7 @@
                         }
 
                         const btnTick = document.createElement('button');
-                        btnTick.textContent = '✓';
+                        btnTick.textContent = '$'; // Alterado de '✓' para '$'
                         btnTick.className = 'tick-btn';
                         btnTick.classList.toggle('active', material.comprar);
                         btnTick.onclick = () => toggleComprar(material.nome);
@@ -713,6 +720,29 @@
                     });
             }
 
+            // Função para enviar a lista de compras por email
+            function enviarListaCompras() {
+                const itensParaComprar = materiais.filter(material => material.comprar);
+                if (itensParaComprar.length === 0) {
+                    alert('Nenhum item marcado para compra.');
+                    return;
+                }
+
+                const usuario = auth.currentUser;
+                if (!usuario || !usuario.email) {
+                    alert('Usuário não está logado ou email não encontrado.');
+                    return;
+                }
+
+                const email = usuario.email;
+                const assunto = encodeURIComponent('Lista de Compras - Controle de Estoque Odontológico');
+                const listaItens = itensParaComprar.map(material => `- ${material.nome}`).join('\n');
+                const corpoEmail = encodeURIComponent(`Olá,\n\nSegue a lista de itens que precisam ser comprados:\n\n${listaItens}\n\nAtenciosamente,\nControle de Estoque Odontológico`);
+
+                const mailtoLink = `mailto:${email}?subject=${assunto}&body=${corpoEmail}`;
+                window.location.href = mailtoLink;
+            }
+
             // Adicionar Event Listeners para os botões
             document.getElementById('btnAbrirModal').addEventListener('click', abrirModal);
             document.getElementById('btnFecharModal').addEventListener('click', fecharModal);
@@ -723,6 +753,7 @@
             document.getElementById('btnImportarDados').addEventListener('click', () => {
                 document.getElementById('importInput').click();
             });
+            document.getElementById('btnEnviarLista').addEventListener('click', enviarListaCompras);
             document.getElementById('btnLogout').addEventListener('click', logout);
             document.getElementById('importInput').addEventListener('change', importarDados);
 
