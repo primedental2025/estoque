@@ -134,6 +134,12 @@
             color: #95a5a6;
             margin-top: 5px;
         }
+        .comprar-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            margin: 0 20px;
+        }
         .controls {
             display: flex;
             align-items: center;
@@ -293,6 +299,10 @@
             .material-info .detalhes {
                 font-size: 10px;
             }
+            .comprar-container {
+                margin: 10px 0;
+                justify-content: flex-start;
+            }
             .controls {
                 flex-direction: row;
                 flex-wrap: wrap;
@@ -318,7 +328,6 @@
             .comprar-btn {
                 padding: 8px 12px;
                 font-size: 14px;
-                margin-bottom: 10px;
             }
             .category-title {
                 font-size: 16px;
@@ -624,12 +633,15 @@
                         info.innerHTML = `<strong>${material.nome}</strong> <span class="quantidade">Quantidade: ${material.quantidade}</span><br><span class="detalhes">Mínimo: ${material.quantidadeMinima} | Última modificação: ${material.ultimaModificacao || 'N/A'}</span>`;
                         itemDiv.appendChild(info);
 
+                        const comprarContainer = document.createElement('div');
+                        comprarContainer.className = 'comprar-container';
                         const btnComprar = document.createElement('button');
                         btnComprar.textContent = 'Comprar';
                         btnComprar.className = 'comprar-btn';
                         btnComprar.classList.toggle('active', material.comprar);
                         btnComprar.onclick = () => toggleComprar(material.nome);
-                        itemDiv.appendChild(btnComprar);
+                        comprarContainer.appendChild(btnComprar);
+                        itemDiv.appendChild(comprarContainer);
 
                         const controls = document.createElement('div');
                         controls.className = 'controls';
