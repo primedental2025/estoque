@@ -74,6 +74,12 @@
         .copiar-lista-btn:hover {
             background-color: #219653;
         }
+        .limpar-marcacoes-btn {
+            background-color: #7f8c8d;
+        }
+        .limpar-marcacoes-btn:hover {
+            background-color: #6c757d;
+        }
         .material-list {
             background-color: #fff;
             border-radius: 8px;
@@ -134,12 +140,6 @@
             color: #95a5a6;
             margin-top: 5px;
         }
-        .comprar-container {
-            flex-grow: 1;
-            display: flex;
-            justify-content: center;
-            margin: 0 20px;
-        }
         .controls {
             display: flex;
             align-items: center;
@@ -180,24 +180,25 @@
         .controls button.delete-btn:hover {
             background-color: #e57373;
         }
-        .comprar-btn {
-            background-color: #27ae60;
+        .controls .comprar-btn {
+            background-color: #2c3e50;
             color: white;
             padding: 10px 15px;
             font-size: 16px;
             font-weight: bold;
             border-radius: 5px;
+            margin-left: 20px;
             transition: background-color 0.3s ease, transform 0.1s ease;
         }
-        .comprar-btn:hover {
-            background-color: #219653;
+        .controls .comprar-btn:hover {
+            background-color: #34495e;
             transform: scale(1.02);
         }
-        .comprar-btn.active {
-            background-color: #e74c3c;
+        .controls .comprar-btn.active {
+            background-color: #e67e22;
         }
-        .comprar-btn.active:hover {
-            background-color: #c0392b;
+        .controls .comprar-btn.active:hover {
+            background-color: #d35400;
         }
         .modal {
             display: none;
@@ -299,10 +300,6 @@
             .material-info .detalhes {
                 font-size: 10px;
             }
-            .comprar-container {
-                margin: 10px 0;
-                justify-content: flex-start;
-            }
             .controls {
                 flex-direction: row;
                 flex-wrap: wrap;
@@ -325,9 +322,11 @@
                 padding: 4px 6px;
                 font-size: 10px;
             }
-            .comprar-btn {
+            .controls .comprar-btn {
                 padding: 8px 12px;
                 font-size: 14px;
+                margin-left: 10px;
+                margin-top: 10px;
             }
             .category-title {
                 font-size: 16px;
@@ -391,7 +390,7 @@
                 padding: 6px 10px;
                 font-size: 14px;
             }
-            .comprar-btn {
+            .controls .comprar-btn {
                 padding: 6px 10px;
                 font-size: 12px;
             }
@@ -420,10 +419,11 @@
             <button id="btnAbrirModal">Adicionar Novo Item</button>
             <input type="text" id="searchInput" placeholder="Buscar material...">
             <button id="btnBuscar">Buscar</button>
-            <button id="btnGerarRelatorio">Gerar Relatório Excel</button>
-            <button id="btnExportarDados">Exportar Dados</button>
-            <button id="btnImportarDados">Importar Dados</button>
+            <button id="btnGerarRelatorio">Gerar Relatório</button>
+            <button id="btnExportarDados">Exportar</button>
+            <button id="btnImportarDados">Importar</button>
             <button id="btnCopiarLista" class="copiar-lista-btn">Copiar Lista de Compras</button>
+            <button id="btnLimparMarcacoes" class="limpar-marcacoes-btn">Limpar Marcações</button>
             <button id="btnLogout" class="logout-btn">Sair</button>
             <input type="file" id="importInput" accept=".json" style="display: none;">
         </div>
@@ -633,16 +633,6 @@
                         info.innerHTML = `<strong>${material.nome}</strong> <span class="quantidade">Quantidade: ${material.quantidade}</span><br><span class="detalhes">Mínimo: ${material.quantidadeMinima} | Última modificação: ${material.ultimaModificacao || 'N/A'}</span>`;
                         itemDiv.appendChild(info);
 
-                        const comprarContainer = document.createElement('div');
-                        comprarContainer.className = 'comprar-container';
-                        const btnComprar = document.createElement('button');
-                        btnComprar.textContent = 'Comprar';
-                        btnComprar.className = 'comprar-btn';
-                        btnComprar.classList.toggle('active', material.comprar);
-                        btnComprar.onclick = () => toggleComprar(material.nome);
-                        comprarContainer.appendChild(btnComprar);
-                        itemDiv.appendChild(comprarContainer);
-
                         const controls = document.createElement('div');
                         controls.className = 'controls';
 
@@ -673,6 +663,13 @@
                         btnDelete.onclick = () => confirmarExclusao(material.nome);
                         acaoBtns.appendChild(btnDelete);
                         controls.appendChild(acaoBtns);
+
+                        const btnComprar = document.createElement('button');
+                        btnComprar.textContent = 'Comprar';
+                        btnComprar.className = 'comprar-btn';
+                        btnComprar.classList.toggle('active', material.comprar);
+                        btnComprar.onclick = () => toggleComprar(material.nome);
+                        controls.appendChild(btnComprar);
 
                         itemDiv.appendChild(controls);
                         section.appendChild(itemDiv);
@@ -727,9 +724,23 @@
                     return;
                 }
 
-                const listaItens = itensParaComprar
-                    .map(material => `${material.nome} (${material.quantidade})`)
-                    .join('\n');
+                // Organizar por categoria e alfabeticamente
+                const itensPorCategoria = {};
+                itensParaComprar.forEach(material => {
+                    if (!itensPorCategoria[material.categoria]) {
+                        itensPorCategoria[material.categoria] = [];
+                    }
+                    itensPorCategoria[material.categoria].push(material);
+                });
+
+                const categoriasOrdenadas = Object.keys(itensPorCategoria).sort();
+                const listaItens = categoriasOrdenadas.map(categoria => {
+                    const itens = itensPorCategoria[categoria]
+                        .sort((a, b) => a.nome.localeCompare(b.nome))
+                        .map(material => `${material.nome} (${material.quantidade})`)
+                        .join('\n');
+                    return `${categorias[categoria] || categoria}\n${itens}`;
+                }).join('\n\n');
 
                 navigator.clipboard.writeText(listaItens)
                     .then(() => {
@@ -739,6 +750,16 @@
                         console.error('Erro ao copiar a lista:', error);
                         alert('Falha ao copiar a lista: ' + error.message);
                     });
+            }
+
+            // Função para limpar todas as marcações de compra
+            function limparMarcacoes() {
+                if (confirm('Deseja realmente limpar todas as marcações de compra?')) {
+                    materiais.forEach(material => {
+                        material.comprar = false;
+                    });
+                    salvarEAtualizar();
+                }
             }
 
             // Adicionar Event Listeners para os botões
@@ -752,6 +773,7 @@
                 document.getElementById('importInput').click();
             });
             document.getElementById('btnCopiarLista').addEventListener('click', copiarListaCompras);
+            document.getElementById('btnLimparMarcacoes').addEventListener('click', limparMarcacoes);
             document.getElementById('btnLogout').addEventListener('click', logout);
             document.getElementById('importInput').addEventListener('change', importarDados);
 
