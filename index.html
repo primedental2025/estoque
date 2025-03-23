@@ -118,6 +118,7 @@
         }
         .material-info {
             flex-grow: 1;
+            margin-right: 15px;
         }
         .material-info strong {
             color: #2c3e50;
@@ -173,37 +174,24 @@
         .controls button.delete-btn:hover {
             background-color: #e57373;
         }
-        .tick-btn {
-            background-color: transparent;
-            border: 3px solid #27ae60;
-            color: #27ae60;
-            padding: 0;
-            font-size: 20px;
-            font-weight: bold;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-        .tick-btn:hover {
-            border-color: #219653;
-            color: #219653;
-        }
-        .tick-btn.active {
-            background-color: #e74c3c;
-            border-color: #e74c3c;
+        .comprar-btn {
+            background-color: #27ae60;
             color: white;
-            transform: scale(1.1);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 10px 15px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, transform 0.1s ease;
         }
-        .tick-btn.active:hover {
+        .comprar-btn:hover {
+            background-color: #219653;
+            transform: scale(1.02);
+        }
+        .comprar-btn.active {
+            background-color: #e74c3c;
+        }
+        .comprar-btn.active:hover {
             background-color: #c0392b;
-            border-color: #c0392b;
         }
         .modal {
             display: none;
@@ -293,6 +281,7 @@
             }
             .material-info {
                 margin-bottom: 10px;
+                margin-right: 0;
             }
             .material-info strong {
                 font-size: 16px;
@@ -326,11 +315,10 @@
                 padding: 4px 6px;
                 font-size: 10px;
             }
-            .tick-btn {
-                width: 30px;
-                height: 30px;
-                font-size: 16px;
-                margin-right: 10px;
+            .comprar-btn {
+                padding: 8px 12px;
+                font-size: 14px;
+                margin-bottom: 10px;
             }
             .category-title {
                 font-size: 16px;
@@ -394,10 +382,9 @@
                 padding: 6px 10px;
                 font-size: 14px;
             }
-            .tick-btn {
-                width: 25px;
-                height: 25px;
-                font-size: 14px;
+            .comprar-btn {
+                padding: 6px 10px;
+                font-size: 12px;
             }
             .category-title {
                 font-size: 14px;
@@ -622,13 +609,6 @@
                             itemDiv.classList.add('abaixo-minimo');
                         }
 
-                        const btnTick = document.createElement('button');
-                        btnTick.textContent = '$';
-                        btnTick.className = 'tick-btn';
-                        btnTick.classList.toggle('active', material.comprar);
-                        btnTick.onclick = () => toggleComprar(material.nome);
-                        itemDiv.appendChild(btnTick);
-
                         if (material.imagem) {
                             const img = document.createElement('img');
                             img.src = material.imagem;
@@ -643,6 +623,13 @@
                         info.className = 'material-info';
                         info.innerHTML = `<strong>${material.nome}</strong> <span class="quantidade">Quantidade: ${material.quantidade}</span><br><span class="detalhes">Mínimo: ${material.quantidadeMinima} | Última modificação: ${material.ultimaModificacao || 'N/A'}</span>`;
                         itemDiv.appendChild(info);
+
+                        const btnComprar = document.createElement('button');
+                        btnComprar.textContent = 'Comprar';
+                        btnComprar.className = 'comprar-btn';
+                        btnComprar.classList.toggle('active', material.comprar);
+                        btnComprar.onclick = () => toggleComprar(material.nome);
+                        itemDiv.appendChild(btnComprar);
 
                         const controls = document.createElement('div');
                         controls.className = 'controls';
