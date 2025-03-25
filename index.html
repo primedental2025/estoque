@@ -538,19 +538,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Função para carregar materiais do Firestore
     async function carregarMateriais() {
-        try {
-            const snapshot = await db.collection('materiais').get();
-            const materiais = [];
-            snapshot.forEach(doc => materiais.push(doc.data()));
-            materiaisFiltrados = [...materiais];
-            atualizarLista();
-            return materiais;
-        } catch (error) {
-            console.error('Erro ao carregar materiais:', error);
-            alert('Erro ao carregar materiais: ' + error.message);
-            return [];
+    try {
+        let query = db.collection('materiais');
+
+        if (termoDeBusca !== "") {
+            query = query.where("nome", ">=", termoDeBusca).where("nome", "<=", termoDeBusca + "\uf8ff");
         }
+
+        const snapshot = await query.get();
+        let materiais = [];
+
+        snapshot.forEach(doc => materiais.push(doc.data()));
+
+        atualizarLista(materiais); // 🔹 Atualiza a lista sem perder a busca
+
+    } catch (error) {
+        console.error("Erro ao carregar materiais:", error);
+        alert("Erro ao carregar materiais: " + error.message);
     }
+}
+
 
     // Função para salvar material no Firestore
     async function salvarMaterial(material) {
@@ -776,7 +783,35 @@ async function copiarListaCompras() {
     }
 }
 
-    
+    //Funcao BuscarMaterial
+let termoDeBusca = ""; // 🔹 Variável global para armazenar a busca atual
+
+async function buscarMateriais() {
+    termoDeBusca = document.getElementById('searchInput').value.toLowerCase().trim();
+
+    try {
+        let query = db.collection('materiais');
+
+        if (termoDeBusca !== "") {
+            query = query.where("nome", ">=", termoDeBusca).where("nome", "<=", termoDeBusca + "\uf8ff");
+        }
+
+        const snapshot = await query.get();
+
+        if (snapshot.empty) {
+            alert("Nenhum material encontrado.");
+            return;
+        }
+
+        let materiaisFiltrados = [];
+        snapshot.forEach(doc => materiaisFiltrados.push(doc.data()));
+
+        atualizarLista(materiaisFiltrados); // 🔹 Atualiza a lista com os resultados filtrados
+    } catch (error) {
+        console.error("Erro ao buscar materiais:", error);
+        alert("Erro ao buscar materiais: " + error.message);
+    }
+}
     
     // Função de Logout
     function logout() {
@@ -892,6 +927,7 @@ async function copiarListaCompras() {
     document.getElementById('btnLogout').addEventListener('click', logout);
     document.getElementById('btnLimparMarcacoes').addEventListener('click', limparMarcacoes);
     document.getElementById('btnCopiarLista').addEventListener('click', copiarListaCompras);
+    document.getElementById('btnBuscar').addEventListener('click', buscarMateriais);
 
 
 });
