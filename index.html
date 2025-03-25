@@ -4,12 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Estoque - Consultório Odontológico</title>
-    <!-- Firebase SDK (versão compatível) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- Firebase Modular SDK -->
+    <script type="module">
+        // Importar o Firebase Modular SDK
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+        import { getFirestore, collection, doc, setDoc, getDocs, updateDoc, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCDxJW_o6y-hmisQHOHVYPVJ8cag6hrKv0",
+            authDomain: "estoque-prime.firebaseapp.com",
+            projectId: "estoque-prime",
+            storageBucket: "estoque-prime.firebasestorage.app",
+            messagingSenderId: "1092019247496",
+            appId: "1:1092019247496:web:92076afda68ccbc23d823d",
+            measurementId: "G-04D19CYTTQ"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Exportar para uso no script principal
+        window.firebaseApp = { app, db, auth, collection, doc, setDoc, getDocs, updateDoc, deleteDoc, serverTimestamp, signInWithEmailAndPassword, signOut, onAuthStateChanged };
+    </script>
     <style>
-        /* O CSS permanece exatamente o mesmo que no código original */
+        /* O CSS permanece idêntico ao original */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f7fa;
@@ -108,28 +130,14 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Verificar se o Firebase está disponível
-            if (typeof firebase === 'undefined') {
+            // Verificar se o Firebase foi carregado
+            if (!window.firebaseApp) {
                 console.error('Firebase SDK não foi carregado corretamente.');
                 alert('Erro: Firebase SDK não foi carregado. Verifique sua conexão ou tente novamente.');
                 return;
             }
 
-            // Configuração do Firebase
-            const firebaseConfig = {
-                apiKey: "Sua-API-Key",
-                authDomain: "seu-projeto.firebaseapp.com",
-                projectId: "seu-projeto",
-                storageBucket: "seu-projeto.appspot.com",
-                messagingSenderId: "Seu-Sender-ID",
-                appId: "Seu-App-ID",
-                measurementId: "Seu-Measurement-ID"
-            };
-
-            // Inicializar Firebase
-            const app = firebase.initializeApp(firebaseConfig);
-            const db = firebase.firestore();
-            const auth = firebase.auth();
+            const { db, auth, collection, doc, setDoc, getDocs, updateDoc, deleteDoc, serverTimestamp, signInWithEmailAndPassword, signOut, onAuthStateChanged } = window.firebaseApp;
 
             // Variáveis globais
             let materiais = [];
@@ -163,18 +171,19 @@
             // Função para salvar um material no Firestore
             async function salvarMaterial(material) {
                 try {
-                    const docRef = db.collection('estoque').doc('materiais').collection('itens').doc(material.id || null);
+                    const materiaisRef = collection(db, 'estoque', 'materiais', 'itens');
+                    const docRef = material.id ? doc(materiaisRef, material.id) : doc(materiaisRef);
                     const materialData = {
                         nome: material.nome,
                         quantidade: material.quantidade,
                         quantidadeMinima: material.quantidadeMinima,
                         categoria: material.categoria,
                         imagem: material.imagem || null,
-                        ultimaModificacao: firebase.firestore.FieldValue.serverTimestamp(),
+                        ultimaModificacao: serverTimestamp(),
                         comprar: material.comprar || false
                     };
-                    await docRef.set(materialData);
-                    if (!material.id) material.id = docRef.id; // Atribui o ID gerado automaticamente
+                    await setDoc(docRef, materialData);
+                    if (!material.id) material.id = docRef.id;
                     console.log('Material salvo com sucesso:', materialData);
                 } catch (error) {
                     console.error('Erro ao salvar material:', error);
@@ -185,7 +194,8 @@
             // Função para carregar materiais do Firestore
             async function carregarMateriais() {
                 try {
-                    const snapshot = await db.collection('estoque').doc('materiais').collection('itens').get();
+                    const materiaisRef = collection(db, 'estoque', 'materiais', 'itens');
+                    const snapshot = await getDocs(materiaisRef);
                     materiais = snapshot.docs.map(doc => ({
                         id: doc.id,
                         ...doc.data(),
@@ -314,7 +324,7 @@
 
             // Função de Logout
             function logout() {
-                auth.signOut()
+                signOut(auth)
                     .then(() => {
                         console.log('Usuário desconectado com sucesso.');
                     })
@@ -362,15 +372,15 @@
             // Função para limpar marcações de compra
             async function limparMarcacoes() {
                 if (confirm('Deseja realmente limpar todas as marcações de compra?')) {
-                    const batch = db.batch();
-                    materiais.forEach(material => {
-                        if (material.comprar) {
-                            const ref = db.collection('estoque').doc('materiais').collection('itens').doc(material.id);
-                            batch.update(ref, { comprar: false });
-                        }
-                    });
-                    await batch.commit();
-                    materiais.forEach(material => material.comprar = false);
+                    const materiaisRef = collection(db, 'estoque', 'materiais', 'itens');
+                    for (const material of materiais.filter(m => m.comprar)) {
+                        await updateDoc(doc(materiaisRef, material.id), {
+                            comprar: false,
+                            ultimaModificacao: serverTimestamp()
+                        });
+                        material.comprar = false;
+                        material.ultimaModificacao = new Date().toLocaleString('pt-BR');
+                    }
                     atualizarLista();
                 }
             }
@@ -465,8 +475,9 @@
                 }
 
                 if (Object.keys(updates).length > 0) {
-                    updates.ultimaModificacao = firebase.firestore.FieldValue.serverTimestamp();
-                    await db.collection('estoque').doc('materiais').collection('itens').doc(id).update(updates);
+                    updates.ultimaModificacao = serverTimestamp();
+                    const materiaisRef = collection(db, 'estoque', 'materiais', 'itens');
+                    await updateDoc(doc(materiaisRef, id), updates);
                     Object.assign(material, updates, { ultimaModificacao: new Date().toLocaleString('pt-BR') });
                     materiaisFiltrados = [...materiais];
                     atualizarLista();
@@ -480,9 +491,10 @@
                 if (materiais[idx].quantidade + valor >= 0) {
                     materiais[idx].quantidade += valor;
                     materiais[idx].ultimaModificacao = new Date().toLocaleString('pt-BR');
-                    await db.collection('estoque').doc('materiais').collection('itens').doc(id).update({
+                    const materiaisRef = collection(db, 'estoque', 'materiais', 'itens');
+                    await updateDoc(doc(materiaisRef, id), {
                         quantidade: materiais[idx].quantidade,
-                        ultimaModificacao: firebase.firestore.FieldValue.serverTimestamp()
+                        ultimaModificacao: serverTimestamp()
                     });
                     atualizarLista();
                 }
@@ -491,7 +503,8 @@
             // Excluir material
             async function confirmarExclusao(id) {
                 if (confirm(`Deseja realmente excluir ${materiais.find(m => m.id === id).nome}?`)) {
-                    await db.collection('estoque').doc('materiais').collection('itens').doc(id).delete();
+                    const materiaisRef = collection(db, 'estoque', 'materiais', 'itens');
+                    await deleteDoc(doc(materiaisRef, id));
                     materiais = materiais.filter(m => m.id !== id);
                     materiaisFiltrados = [...materiais];
                     atualizarLista();
@@ -502,9 +515,10 @@
             async function toggleComprar(id) {
                 const idx = materiais.findIndex(m => m.id === id);
                 materiais[idx].comprar = !materiais[idx].comprar;
-                await db.collection('estoque').doc('materiais').collection('itens').doc(id).update({
+                const materiaisRef = collection(db, 'estoque', 'materiais', 'itens');
+                await updateDoc(doc(materiaisRef, id), {
                     comprar: materiais[idx].comprar,
-                    ultimaModificacao: firebase.firestore.FieldValue.serverTimestamp()
+                    ultimaModificacao: serverTimestamp()
                 });
                 materiais[idx].ultimaModificacao = new Date().toLocaleString('pt-BR');
                 atualizarLista();
@@ -566,21 +580,20 @@
                     reader.onload = async function(e) {
                         try {
                             const dadosImportados = JSON.parse(e.target.result);
-                            const batch = db.batch();
+                            const materiaisRef = collection(db, 'estoque', 'materiais', 'itens');
                             for (const material of dadosImportados) {
-                                const ref = db.collection('estoque').doc('materiais').collection('itens').doc();
-                                material.id = ref.id;
-                                batch.set(ref, {
+                                const docRef = doc(materiaisRef);
+                                material.id = docRef.id;
+                                await setDoc(docRef, {
                                     nome: material.nome,
                                     quantidade: material.quantidade,
                                     quantidadeMinima: material.quantidadeMinima,
                                     categoria: material.categoria,
                                     imagem: material.imagem || null,
-                                    ultimaModificacao: firebase.firestore.FieldValue.serverTimestamp(),
+                                    ultimaModificacao: serverTimestamp(),
                                     comprar: material.comprar || false
                                 });
                             }
-                            await batch.commit();
                             await carregarMateriais();
                             alert("Dados importados com sucesso!");
                         } catch (error) {
@@ -597,7 +610,7 @@
                 const email = document.getElementById('email').value;
                 const password = document.getElementById('password').value;
 
-                auth.signInWithEmailAndPassword(email, password)
+                signInWithEmailAndPassword(auth, email, password)
                     .then(() => {
                         document.getElementById('loginContainer').classList.add('hidden');
                         document.getElementById('mainContainer').classList.remove('hidden');
@@ -610,7 +623,7 @@
             });
 
             // Verificar estado de autenticação
-            auth.onAuthStateChanged(user => {
+            onAuthStateChanged(auth, user => {
                 if (user) {
                     document.getElementById('loginContainer').classList.add('hidden');
                     document.getElementById('mainContainer').classList.remove('hidden');
