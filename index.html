@@ -736,6 +736,47 @@ async function limparMarcacoes() {
         }
     }
 }
+    //Funcao Copiar Lista de Compras
+    
+async function copiarListaCompras() {
+    try {
+        const snapshot = await db.collection('materiais').where("comprar", "==", true).get();
+        if (snapshot.empty) {
+            alert("Nenhum item marcado para compra.");
+            return;
+        }
+
+        let itensPorCategoria = {};
+
+        snapshot.forEach(doc => {
+            let material = doc.data();
+            let categoria = material.categoria || "Outros"; // Se não tiver categoria, agrupa em "Outros"
+            
+            if (!itensPorCategoria[categoria]) {
+                itensPorCategoria[categoria] = [];
+            }
+
+            itensPorCategoria[categoria].push(material.nome + " (" + material.quantidade + ")");
+        });
+
+        // Ordenar categorias e itens dentro de cada categoria
+        let listaTexto = Object.keys(itensPorCategoria).sort().map(categoria => {
+            let itensOrdenados = itensPorCategoria[categoria].sort(); // Ordena os materiais dentro da categoria
+            return `🔹 ${categoria.toUpperCase()}\n${itensOrdenados.join("\n")}`;
+        }).join("\n\n");
+
+        // Copiar para área de transferência
+        await navigator.clipboard.writeText(listaTexto);
+        alert("Lista de compras copiada com sucesso!\n\n" + listaTexto);
+
+        console.log("Lista de compras copiada:", listaTexto);
+    } catch (error) {
+        console.error("Erro ao copiar a lista:", error);
+        alert("Erro ao copiar a lista: " + error.message);
+    }
+}
+
+    
     
     // Função de Logout
     function logout() {
@@ -850,6 +891,8 @@ async function limparMarcacoes() {
     document.getElementById('btnFecharModalEditar').addEventListener('click', fecharModalEditar);
     document.getElementById('btnLogout').addEventListener('click', logout);
     document.getElementById('btnLimparMarcacoes').addEventListener('click', limparMarcacoes);
+    document.getElementById('btnCopiarLista').addEventListener('click', copiarListaCompras);
+
 
 });
 </script>
