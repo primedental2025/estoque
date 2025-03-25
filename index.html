@@ -674,6 +674,45 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('editarForm').reset();
     }
 
+    // Captura o evento de edição do formulário
+document.getElementById('editarForm').addEventListener('submit', async function(e) {
+    e.preventDefault();  // 🔹 Impede o recarregamento da página
+
+    const nome = document.getElementById('editNome').value;
+    const novaCategoria = document.getElementById('editCategoria').value;
+    const novaQuantidadeMinima = parseInt(document.getElementById('editQuantidadeMinima').value);
+    const arquivo = document.getElementById('editImagem').files[0];
+
+    // 🔹 Busca o material pelo nome no Firestore
+    const materialRef = db.collection('materiais').doc(nome);
+
+    try {
+        let updateData = { 
+            categoria: novaCategoria, 
+            quantidadeMinima: novaQuantidadeMinima 
+        };
+
+        // Se houver uma nova imagem, converte para Base64 antes de salvar
+        if (arquivo) {
+            const dataURL = await converterParaDataURL(arquivo);
+            updateData.imagem = dataURL;
+        }
+
+        // 🔹 Atualiza os dados no Firestore
+        await materialRef.update(updateData);
+
+        console.log("Material atualizado com sucesso!");
+
+        // Fecha o modal e recarrega a lista
+        fecharModalEditar();
+        carregarMateriais();
+
+    } catch (error) {
+        console.error("Erro ao atualizar material:", error);
+        alert("Erro ao atualizar material: " + error.message);
+    }
+});
+    
     // Função de Logout
     function logout() {
         auth.signOut().then(() => {
