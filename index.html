@@ -540,57 +540,6 @@
                 });
             }
 
-            // Função para salvar no Firestore
-            async function salvarNoServidor() {
-                console.log('Tentando salvar no Firestore:', materiais);
-                try {
-                    await db.collection('estoque').doc('materiais').set({
-                        dados: materiais,
-                        ultimaModificacao: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    console.log('Dados salvos com sucesso!');
-                } catch (error) {
-                    console.error('Erro ao salvar:', error);
-                    alert('Falha ao salvar os dados no servidor: ' + error.message);
-                }
-            }
-
-            // Função para carregar do Firestore
-            async function carregarDoServidor() {
-                console.log('Carregando dados do Firestore...');
-                try {
-                    const docRef = db.collection('estoque').doc('materiais');
-                    const doc = await docRef.get();
-                    if (doc.exists) {
-                        materiais = doc.data().dados || [];
-                        // Garantir que materiais seja um array de objetos
-                        if (!Array.isArray(materiais) || materiais.some(item => typeof item !== 'object')) {
-                            console.warn('Dados inválidos encontrados, inicializando com array vazio.');
-                            materiais = [];
-                            await docRef.set({
-                                dados: [],
-                                ultimaModificacao: firebase.firestore.FieldValue.serverTimestamp()
-                            });
-                        }
-                        materiaisFiltrados = [...materiais];
-                        atualizarLista();
-                        console.log('Dados carregados com sucesso:', materiais);
-                    } else {
-                        console.log('Nenhum dado encontrado, inicializando com lista vazia.');
-                        await docRef.set({
-                            dados: [],
-                            ultimaModificacao: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                        materiais = [];
-                        materiaisFiltrados = [];
-                        atualizarLista();
-                    }
-                } catch (error) {
-                    console.error('Erro ao carregar:', error);
-                    alert('Falha ao carregar os dados do servidor: ' + error.message);
-                }
-            }
-
             // Função para atualizar a lista
             function atualizarLista() {
                 const lista = document.getElementById('materialList');
@@ -989,7 +938,7 @@
                     console.log('Usuário já autenticado:', user);
                     document.getElementById('loginContainer').classList.add('hidden');
                     document.getElementById('mainContainer').classList.remove('hidden');
-                    carregarDoServidor();
+                    carregarMateriais();
                 } else {
                     console.log('Nenhum usuário autenticado.');
                     document.getElementById('loginContainer').classList.remove('hidden');
@@ -998,5 +947,68 @@
             });
         });
     </script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof firebase === 'undefined') {
+            console.error('Firebase SDK não foi carregado corretamente.');
+            alert('Erro: Firebase SDK não foi carregado. Verifique sua conexão ou tente novamente.');
+            return;
+        }
+
+
+        // Salvar material individualmente na coleção "materiais"
+        async function salvarMaterial(material) {
+            try {
+                await db.collection('materiais').doc(material.nome).set(material);
+                console.log('Material salvo com sucesso:', material);
+            } catch (error) {
+                console.error('Erro ao salvar material:', error);
+            }
+        }
+
+        // Carregar todos os materiais
+        async function carregarMateriais() {
+            try {
+                const snapshot = await db.collection('materiais').get();
+                let materiais = [];
+                snapshot.forEach(doc => materiais.push(doc.data()));
+                atualizarLista(materiais);
+            } catch (error) {
+                console.error('Erro ao carregar materiais:', error);
+            }
+        }
+
+        // Atualizar a lista de materiais
+        function atualizarLista(materiais) {
+            const lista = document.getElementById('materialList');
+            lista.innerHTML = '';
+            materiais.forEach(material => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'material-item';
+                itemDiv.innerHTML = `<strong>${material.nome}</strong> - Quantidade: ${material.quantidade}`;
+                lista.appendChild(itemDiv);
+            });
+        }
+
+        // Cadastro de novo material
+        document.getElementById('materialForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const nome = document.getElementById('nome').value;
+            const quantidade = parseInt(document.getElementById('quantidade').value);
+            const categoria = document.getElementById('categoria').value;
+            
+            const material = { nome, quantidade, categoria };
+            await salvarMaterial(material);
+            carregarMateriais();
+        });
+
+        // Inicializar carregamento
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                carregarMateriais();
+            }
+        });
+    });
+</script>
 </body>
 </html>
