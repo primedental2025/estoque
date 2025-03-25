@@ -537,26 +537,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Função para carregar materiais do Firestore
-    async function carregarMateriais() {
+   async function carregarMateriais() {
     try {
         let query = db.collection('materiais');
-
-        if (termoDeBusca !== "") {
-            query = query.where("nome", ">=", termoDeBusca).where("nome", "<=", termoDeBusca + "\uf8ff");
-        }
-
-        const snapshot = await query.get();
         let materiais = [];
 
+        const snapshot = await query.get();
         snapshot.forEach(doc => materiais.push(doc.data()));
 
-        atualizarLista(materiais); // 🔹 Atualiza a lista sem perder a busca
+        // 🔹 Se houver um termo de busca, filtra os materiais antes de exibir
+        if (termoDeBusca !== "") {
+            materiais = materiais.filter(m => m.nome.toLowerCase().includes(termoDeBusca));
+        }
+
+        atualizarLista(materiais); // 🔹 Atualiza a lista sem perder o filtro ativo
 
     } catch (error) {
         console.error("Erro ao carregar materiais:", error);
         alert("Erro ao carregar materiais: " + error.message);
     }
 }
+
 
 
     // Função para salvar material no Firestore
@@ -784,34 +785,41 @@ async function copiarListaCompras() {
 }
 
     //Funcao BuscarMaterial
-let termoDeBusca = ""; // 🔹 Variável global para armazenar a busca atual
+let termoDeBusca = ""; // 🔹 Variável global para armazenar o termo de busca atual
 
 async function buscarMateriais() {
     termoDeBusca = document.getElementById('searchInput').value.toLowerCase().trim();
 
     try {
         let query = db.collection('materiais');
+        let materiaisFiltrados = []; // 🔹 Declara a variável antes de usá-la
 
         if (termoDeBusca !== "") {
-            query = query.where("nome", ">=", termoDeBusca).where("nome", "<=", termoDeBusca + "\uf8ff");
+            const snapshot = await query.get();
+            
+            snapshot.forEach(doc => {
+                let material = doc.data();
+                if (material.nome.toLowerCase().includes(termoDeBusca)) {
+                    materiaisFiltrados.push(material);
+                }
+            });
+        } else {
+            const snapshot = await query.get();
+            snapshot.forEach(doc => materiaisFiltrados.push(doc.data()));
         }
 
-        const snapshot = await query.get();
-
-        if (snapshot.empty) {
+        if (materiaisFiltrados.length === 0) {
             alert("Nenhum material encontrado.");
-            return;
         }
 
-        let materiaisFiltrados = [];
-        snapshot.forEach(doc => materiaisFiltrados.push(doc.data()));
+        atualizarLista(materiaisFiltrados); // 🔹 Atualiza a lista sem perder o filtro
 
-        atualizarLista(materiaisFiltrados); // 🔹 Atualiza a lista com os resultados filtrados
     } catch (error) {
         console.error("Erro ao buscar materiais:", error);
         alert("Erro ao buscar materiais: " + error.message);
     }
 }
+
     
     // Função de Logout
     function logout() {
