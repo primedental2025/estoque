@@ -712,6 +712,30 @@ document.getElementById('editarForm').addEventListener('submit', async function(
         alert("Erro ao atualizar material: " + error.message);
     }
 });
+
+
+    //Funcão Limpar Marcacao
+
+async function limparMarcacoes() {
+    if (confirm("Tem certeza de que deseja limpar todas as marcações de compra?")) {
+        try {
+            const snapshot = await db.collection('materiais').get();
+            const batch = db.batch();
+
+            snapshot.forEach(doc => {
+                batch.update(doc.ref, { comprar: false });
+            });
+
+            await batch.commit(); // 🔹 Aplica as atualizações no Firestore
+            console.log("Marcações de compra limpas com sucesso!");
+
+            carregarMateriais(); // 🔹 Atualiza a interface
+        } catch (error) {
+            console.error("Erro ao limpar marcações:", error);
+            alert("Erro ao limpar marcações: " + error.message);
+        }
+    }
+}
     
     // Função de Logout
     function logout() {
@@ -825,6 +849,8 @@ document.getElementById('editarForm').addEventListener('submit', async function(
     document.getElementById('btnFecharModal').addEventListener('click', fecharModal);
     document.getElementById('btnFecharModalEditar').addEventListener('click', fecharModalEditar);
     document.getElementById('btnLogout').addEventListener('click', logout);
+    document.getElementById('btnLimparMarcacoes').addEventListener('click', limparMarcacoes);
+
 });
 </script>
 </body>
