@@ -730,7 +730,7 @@
                 });
                 let listaTexto = Object.keys(itensPorCategoria).sort().map(categoria => {
                     let itensOrdenados = itensPorCategoria[categoria].sort();
-                    return `🔹 ${categoria.toUpperCase()}\n${itensOrdenados.join("\n")}`;
+                    return ` ${categoria.toUpperCase()}\n${itensOrdenados.join("\n")}`;
                 }).join("\n\n");
                 await navigator.clipboard.writeText(listaTexto);
                 alert("Lista de compras copiada com sucesso!\n\n" + listaTexto);
