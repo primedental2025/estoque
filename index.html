@@ -486,459 +486,377 @@
         <div class="material-list" id="materialList"></div>
     </div>
 
- <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Verificar se o Firebase está disponível
-    if (typeof firebase === 'undefined') {
-        console.error('Firebase SDK não foi carregado corretamente.');
-        alert('Erro: Firebase SDK não foi carregado. Verifique sua conexão ou tente novamente.');
-        return;
-    }
-
-    // Configuração do Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyCDxJW_o6y-hmisQHOHVYPVJ8cag6hrKv0",
-        authDomain: "estoque-prime.firebaseapp.com",
-        projectId: "estoque-prime",
-        storageBucket: "estoque-prime.firebasestorage.app",
-        messagingSenderId: "1092019247496",
-        appId: "1:1092019247496:web:92076afda68ccbc23d823d",
-        measurementId: "G-04D19CYTTQ"
-    };
-
-    // Inicializar Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-
-    // Lista de categorias
-    const categorias = {
-        biosseguranca: "Biossegurança",
-        brocas: "Brocas",
-        cirurgia: "Cirurgia",
-        clinica_geral: "Clínica Geral",
-        dentistica: "Dentística",
-        endodontia: "Endodontia",
-        instrumental: "Instrumental",
-        material_limpeza: "Material de Limpeza",
-        ortodontia: "Ortodontia",
-        protese: "Prótese",
-        implantodontia: "Implantodontia"
-    };
-
-    // Função para converter arquivo em data URL
-    function converterParaDataURL(arquivo) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-            reader.readAsDataURL(arquivo);
-        });
-    }
-
-    // Função para carregar materiais do Firestore
-   async function carregarMateriais() {
-    try {
-        let query = db.collection('materiais');
-        let materiais = [];
-
-        const snapshot = await query.get();
-        snapshot.forEach(doc => materiais.push(doc.data()));
-
-        // 🔹 Se houver um termo de busca, filtra os materiais antes de exibir
-        if (termoDeBusca !== "") {
-            materiais = materiais.filter(m => m.nome.toLowerCase().includes(termoDeBusca));
-        }
-
-        atualizarLista(materiais); // 🔹 Atualiza a lista sem perder o filtro ativo
-
-    } catch (error) {
-        console.error("Erro ao carregar materiais:", error);
-        alert("Erro ao carregar materiais: " + error.message);
-    }
-}
-
-
-
-    // Função para salvar material no Firestore
-    async function salvarMaterial(material) {
-        try {
-            await db.collection('materiais').doc(material.nome).set(material);
-            console.log('Material salvo com sucesso:', material);
-        } catch (error) {
-            console.error('Erro ao salvar material:', error);
-            alert('Erro ao salvar material: ' + error.message);
-        }
-    }
-
-    // Função para atualizar a lista na interface
-    function atualizarLista() {
-        const lista = document.getElementById('materialList');
-        lista.innerHTML = '';
-        const materiaisPorCategoria = {};
-        materiaisFiltrados.forEach(material => {
-            if (!materiaisPorCategoria[material.categoria]) {
-                materiaisPorCategoria[material.categoria] = [];
-            }
-            materiaisPorCategoria[material.categoria].push(material);
-        });
-
-        Object.keys(materiaisPorCategoria).sort().forEach(categoria => {
-            const section = document.createElement('div');
-            section.className = 'category-section';
-            const title = document.createElement('h3');
-            title.className = 'category-title';
-            title.textContent = categorias[categoria] || categoria;
-            section.appendChild(title);
-
-            materiaisPorCategoria[categoria].sort((a, b) => a.nome.localeCompare(b.nome)).forEach(material => {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'material-item';
-                if (material.quantidade < material.quantidadeMinima) {
-                    itemDiv.classList.add('abaixo-minimo');
-                }
-
-                if (material.imagem) {
-                    const img = document.createElement('img');
-                    img.src = material.imagem;
-                    img.onerror = () => {
-                        console.error('Erro ao carregar imagem:', material.imagem);
-                        img.style.display = 'none';
-                    };
-                    itemDiv.appendChild(img);
-                }
-
-                const info = document.createElement('div');
-                info.className = 'material-info';
-                info.innerHTML = `<strong>${material.nome}</strong> <span class="quantidade">Quantidade: ${material.quantidade}</span><br><span class="detalhes">Mínimo: ${material.quantidadeMinima} | Última modificação: ${material.ultimaModificacao || 'N/A'}</span>`;
-                itemDiv.appendChild(info);
-
-                const controls = document.createElement('div');
-                controls.className = 'controls';
-
-                const quantidadeBtns = document.createElement('div');
-                quantidadeBtns.className = 'quantidade-btns';
-                const btnAdd = document.createElement('button');
-                btnAdd.textContent = '+';
-                btnAdd.onclick = () => alterarQuantidade(material.nome, 1);
-                quantidadeBtns.appendChild(btnAdd);
-
-                const btnRemove = document.createElement('button');
-                btnRemove.textContent = '-';
-                btnRemove.onclick = () => alterarQuantidade(material.nome, -1);
-                quantidadeBtns.appendChild(btnRemove);
-                controls.appendChild(quantidadeBtns);
-
-                const acaoBtns = document.createElement('div');
-                acaoBtns.className = 'acao-btns';
-                const btnEdit = document.createElement('button');
-                btnEdit.textContent = 'Editar';
-                btnEdit.className = 'edit-btn';
-                btnEdit.onclick = () => abrirModalEditar(material.nome);
-                acaoBtns.appendChild(btnEdit);
-
-                const btnDelete = document.createElement('button');
-                btnDelete.textContent = 'Excluir';
-                btnDelete.className = 'delete-btn';
-                btnDelete.onclick = () => confirmarExclusao(material.nome);
-                acaoBtns.appendChild(btnDelete);
-                controls.appendChild(acaoBtns);
-
-                const btnComprar = document.createElement('button');
-                btnComprar.textContent = 'Comprar';
-                btnComprar.className = 'comprar-btn';
-                btnComprar.classList.toggle('active', material.comprar);
-                btnComprar.onclick = () => toggleComprar(material.nome);
-                controls.appendChild(btnComprar);
-
-                itemDiv.appendChild(controls);
-                section.appendChild(itemDiv);
-            });
-
-            lista.appendChild(section);
-        });
-    }
-
-    // Funções de Modal
-    function abrirModal() {
-        document.getElementById('cadastroModal').style.display = 'flex';
-    }
-
-    function fecharModal() {
-        document.getElementById('cadastroModal').style.display = 'none';
-        document.getElementById('materialForm').reset();
-    }
-
-    function abrirModalEditar(nome) {
-        const material = materiaisFiltrados.find(m => m.nome === nome);
-        document.getElementById('editNome').value = material.nome;
-        document.getElementById('editCategoria').value = material.categoria;
-        document.getElementById('editQuantidadeMinima').value = material.quantidadeMinima;
-        document.getElementById('editarModal').style.display = 'flex';
-    }
-
-    function fecharModalEditar() {
-        document.getElementById('editarModal').style.display = 'none';
-        document.getElementById('editarForm').reset();
-    }
-
-    // Captura o evento de edição do formulário
-document.getElementById('editarForm').addEventListener('submit', async function(e) {
-    e.preventDefault();  // 🔹 Impede o recarregamento da página
-
-    const nome = document.getElementById('editNome').value;
-    const novaCategoria = document.getElementById('editCategoria').value;
-    const novaQuantidadeMinima = parseInt(document.getElementById('editQuantidadeMinima').value);
-    const arquivo = document.getElementById('editImagem').files[0];
-
-    // 🔹 Busca o material pelo nome no Firestore
-    const materialRef = db.collection('materiais').doc(nome);
-
-    try {
-        let updateData = { 
-            categoria: novaCategoria, 
-            quantidadeMinima: novaQuantidadeMinima 
-        };
-
-        // Se houver uma nova imagem, converte para Base64 antes de salvar
-        if (arquivo) {
-            const dataURL = await converterParaDataURL(arquivo);
-            updateData.imagem = dataURL;
-        }
-
-        // 🔹 Atualiza os dados no Firestore
-        await materialRef.update(updateData);
-
-        console.log("Material atualizado com sucesso!");
-
-        // Fecha o modal e recarrega a lista
-        fecharModalEditar();
-        carregarMateriais();
-
-    } catch (error) {
-        console.error("Erro ao atualizar material:", error);
-        alert("Erro ao atualizar material: " + error.message);
-    }
-});
-
-
-    //Funcão Limpar Marcacao
-
-async function limparMarcacoes() {
-    if (confirm("Tem certeza de que deseja limpar todas as marcações de compra?")) {
-        try {
-            const snapshot = await db.collection('materiais').get();
-            const batch = db.batch();
-
-            snapshot.forEach(doc => {
-                batch.update(doc.ref, { comprar: false });
-            });
-
-            await batch.commit(); // 🔹 Aplica as atualizações no Firestore
-            console.log("Marcações de compra limpas com sucesso!");
-
-            carregarMateriais(); // 🔹 Atualiza a interface
-        } catch (error) {
-            console.error("Erro ao limpar marcações:", error);
-            alert("Erro ao limpar marcações: " + error.message);
-        }
-    }
-}
-    //Funcao Copiar Lista de Compras
-    
-async function copiarListaCompras() {
-    try {
-        const snapshot = await db.collection('materiais').where("comprar", "==", true).get();
-        if (snapshot.empty) {
-            alert("Nenhum item marcado para compra.");
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof firebase === 'undefined') {
+            console.error('Firebase SDK não foi carregado corretamente.');
+            alert('Erro: Firebase SDK não foi carregado. Verifique sua conexão ou tente novamente.');
             return;
         }
 
-        let itensPorCategoria = {};
-
-        snapshot.forEach(doc => {
-            let material = doc.data();
-            let categoria = material.categoria || "Outros"; // Se não tiver categoria, agrupa em "Outros"
-            
-            if (!itensPorCategoria[categoria]) {
-                itensPorCategoria[categoria] = [];
-            }
-
-            itensPorCategoria[categoria].push(material.nome + " (" + material.quantidade + ")");
-        });
-
-        // Ordenar categorias e itens dentro de cada categoria
-        let listaTexto = Object.keys(itensPorCategoria).sort().map(categoria => {
-            let itensOrdenados = itensPorCategoria[categoria].sort(); // Ordena os materiais dentro da categoria
-            return `🔹 ${categoria.toUpperCase()}\n${itensOrdenados.join("\n")}`;
-        }).join("\n\n");
-
-        // Copiar para área de transferência
-        await navigator.clipboard.writeText(listaTexto);
-        alert("Lista de compras copiada com sucesso!\n\n" + listaTexto);
-
-        console.log("Lista de compras copiada:", listaTexto);
-    } catch (error) {
-        console.error("Erro ao copiar a lista:", error);
-        alert("Erro ao copiar a lista: " + error.message);
-    }
-}
-
-    //Funcao BuscarMaterial
-let termoDeBusca = ""; // 🔹 Variável global para armazenar o termo de busca atual
-
-async function buscarMateriais() {
-    termoDeBusca = document.getElementById('searchInput').value.toLowerCase().trim();
-
-    try {
-        let query = db.collection('materiais');
-        let materiaisFiltrados = []; // 🔹 Declara a variável antes de usá-la
-
-        if (termoDeBusca !== "") {
-            const snapshot = await query.get();
-            
-            snapshot.forEach(doc => {
-                let material = doc.data();
-                if (material.nome.toLowerCase().includes(termoDeBusca)) {
-                    materiaisFiltrados.push(material);
-                }
-            });
-        } else {
-            const snapshot = await query.get();
-            snapshot.forEach(doc => materiaisFiltrados.push(doc.data()));
-        }
-
-        if (materiaisFiltrados.length === 0) {
-            alert("Nenhum material encontrado.");
-        }
-
-        atualizarLista(materiaisFiltrados); // 🔹 Atualiza a lista sem perder o filtro
-
-    } catch (error) {
-        console.error("Erro ao buscar materiais:", error);
-        alert("Erro ao buscar materiais: " + error.message);
-    }
-}
-
-    
-    // Função de Logout
-    function logout() {
-        auth.signOut().then(() => {
-            console.log('Usuário desconectado com sucesso.');
-        }).catch(error => {
-            console.error('Erro ao desconectar:', error);
-            alert('Falha ao desconectar: ' + error.message);
-        });
-    }
-
-    // Cadastro de novo material
-    document.getElementById('materialForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const nome = document.getElementById('nome').value;
-        const quantidade = parseInt(document.getElementById('quantidade').value);
-        const quantidadeMinima = parseInt(document.getElementById('quantidadeMinima').value);
-        const categoria = document.getElementById('categoria').value;
-        const arquivo = document.getElementById('imagem').files[0];
-
-        const material = {
-            nome: nome,
-            quantidade: quantidade,
-            quantidadeMinima: quantidadeMinima,
-            categoria: categoria,
-            imagem: null,
-            ultimaModificacao: new Date().toLocaleString('pt-BR'),
-            comprar: false
+        const firebaseConfig = {
+            apiKey: "AIzaSyCDxJW_o6y-hmisQHOHVYPVJ8cag6hrKv0",
+            authDomain: "estoque-prime.firebaseapp.com",
+            projectId: "estoque-prime",
+            storageBucket: "estoque-prime.firebasestorage.app",
+            messagingSenderId: "1092019247496",
+            appId: "1:1092019247496:web:92076afda68ccbc23d823d",
+            measurementId: "G-04D19CYTTQ"
         };
 
-        if (arquivo) {
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        const categorias = {
+            biosseguranca: "Biossegurança",
+            brocas: "Brocas",
+            cirurgia: "Cirurgia",
+            clinica_geral: "Clínica Geral",
+            dentistica: "Dentística",
+            endodontia: "Endodontia",
+            instrumental: "Instrumental",
+            material_limpeza: "Material de Limpeza",
+            ortodontia: "Ortodontia",
+            protese: "Prótese",
+            implantodontia: "Implantodontia"
+        };
+
+        let materiaisFiltrados = []; // Variável global para armazenar os materiais
+        let termoDeBusca = ""; // Variável global para o termo de busca
+
+        function converterParaDataURL(arquivo) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(arquivo);
+            });
+        }
+
+        async function carregarMateriais() {
             try {
-                const dataURL = await converterParaDataURL(arquivo);
-                const tamanhoBytes = (dataURL.length * 3) / 4 - 2;
-                if (tamanhoBytes > 500000) {
-                    alert('A imagem é muito grande! Use uma imagem menor (menos de 500 KB).');
-                    return;
+                const snapshot = await db.collection('materiais').get();
+                materiaisFiltrados = [];
+                snapshot.forEach(doc => materiaisFiltrados.push(doc.data()));
+
+                if (termoDeBusca !== "") {
+                    materiaisFiltrados = materiaisFiltrados.filter(m => 
+                        m.nome.toLowerCase().includes(termoDeBusca)
+                    );
                 }
-                material.imagem = dataURL;
+
+                atualizarLista(materiaisFiltrados);
             } catch (error) {
-                console.error('Erro ao converter imagem:', error);
-                alert('Falha ao processar a imagem: ' + error.message);
-                return;
+                console.error("Erro ao carregar materiais:", error);
+                alert("Erro ao carregar materiais: " + error.message);
             }
         }
 
-        await salvarMaterial(material);
-        await carregarMateriais();
-        fecharModal();
-    });
+        async function salvarMaterial(material) {
+            try {
+                await db.collection('materiais').doc(material.nome).set(material);
+                console.log('Material salvo com sucesso:', material);
+            } catch (error) {
+                console.error('Erro ao salvar material:', error);
+                alert('Erro ao salvar material: ' + error.message);
+            }
+        }
 
-    // Alterar quantidade
-    async function alterarQuantidade(nome, valor) {
-        const material = materiaisFiltrados.find(m => m.nome === nome);
-        if (material.quantidade + valor >= 0) {
-            material.quantidade += valor;
-            material.ultimaModificacao = new Date().toLocaleString('pt-BR');
+        function atualizarLista(materiais) {
+            const lista = document.getElementById('materialList');
+            lista.innerHTML = '';
+            const materiaisPorCategoria = {};
+
+            materiais.forEach(material => {
+                if (!materiaisPorCategoria[material.categoria]) {
+                    materiaisPorCategoria[material.categoria] = [];
+                }
+                materiaisPorCategoria[material.categoria].push(material);
+            });
+
+            Object.keys(materiaisPorCategoria).sort().forEach(categoria => {
+                const section = document.createElement('div');
+                section.className = 'category-section';
+                const title = document.createElement('h3');
+                title.className = 'category-title';
+                title.textContent = categorias[categoria] || categoria;
+                section.appendChild(title);
+
+                materiaisPorCategoria[categoria].sort((a, b) => a.nome.localeCompare(b.nome)).forEach(material => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'material-item';
+                    if (material.quantidade < material.quantidadeMinima) {
+                        itemDiv.classList.add('abaixo-minimo');
+                    }
+
+                    if (material.imagem) {
+                        const img = document.createElement('img');
+                        img.src = material.imagem;
+                        img.onerror = () => {
+                            console.error('Erro ao carregar imagem:', material.imagem);
+                            img.style.display = 'none';
+                        };
+                        itemDiv.appendChild(img);
+                    }
+
+                    const info = document.createElement('div');
+                    info.className = 'material-info';
+                    info.innerHTML = `<strong>${material.nome}</strong> <span class="quantidade">Quantidade: ${material.quantidade}</span><br><span class="detalhes">Mínimo: ${material.quantidadeMinima} | Última modificação: ${material.ultimaModificacao || 'N/A'}</span>`;
+                    itemDiv.appendChild(info);
+
+                    const controls = document.createElement('div');
+                    controls.className = 'controls';
+
+                    const quantidadeBtns = document.createElement('div');
+                    quantidadeBtns.className = 'quantidade-btns';
+                    const btnAdd = document.createElement('button');
+                    btnAdd.textContent = '+';
+                    btnAdd.onclick = () => alterarQuantidade(material.nome, 1);
+                    quantidadeBtns.appendChild(btnAdd);
+
+                    const btnRemove = document.createElement('button');
+                    btnRemove.textContent = '-';
+                    btnRemove.onclick = () => alterarQuantidade(material.nome, -1);
+                    quantidadeBtns.appendChild(btnRemove);
+                    controls.appendChild(quantidadeBtns);
+
+                    const acaoBtns = document.createElement('div');
+                    acaoBtns.className = 'acao-btns';
+                    const btnEdit = document.createElement('button');
+                    btnEdit.textContent = 'Editar';
+                    btnEdit.className = 'edit-btn';
+                    btnEdit.onclick = () => abrirModalEditar(material.nome);
+                    acaoBtns.appendChild(btnEdit);
+
+                    const btnDelete = document.createElement('button');
+                    btnDelete.textContent = 'Excluir';
+                    btnDelete.className = 'delete-btn';
+                    btnDelete.onclick = () => confirmarExclusao(material.nome);
+                    acaoBtns.appendChild(btnDelete);
+                    controls.appendChild(acaoBtns);
+
+                    const btnComprar = document.createElement('button');
+                    btnComprar.textContent = 'Comprar';
+                    btnComprar.className = 'comprar-btn';
+                    btnComprar.classList.toggle('active', material.comprar);
+                    btnComprar.onclick = () => toggleComprar(material.nome);
+                    controls.appendChild(btnComprar);
+
+                    itemDiv.appendChild(controls);
+                    section.appendChild(itemDiv);
+                });
+
+                lista.appendChild(section);
+            });
+        }
+
+        function abrirModal() {
+            document.getElementById('cadastroModal').style.display = 'flex';
+        }
+
+        function fecharModal() {
+            document.getElementById('cadastroModal').style.display = 'none';
+            document.getElementById('materialForm').reset();
+        }
+
+        function abrirModalEditar(nome) {
+            const material = materiaisFiltrados.find(m => m.nome === nome);
+            document.getElementById('editNome').value = material.nome;
+            document.getElementById('editCategoria').value = material.categoria;
+            document.getElementById('editQuantidadeMinima').value = material.quantidadeMinima;
+            document.getElementById('editarModal').style.display = 'flex';
+        }
+
+        function fecharModalEditar() {
+            document.getElementById('editarModal').style.display = 'none';
+            document.getElementById('editarForm').reset();
+        }
+
+        document.getElementById('editarForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const nome = document.getElementById('editNome').value;
+            const novaCategoria = document.getElementById('editCategoria').value;
+            const novaQuantidadeMinima = parseInt(document.getElementById('editQuantidadeMinima').value);
+            const arquivo = document.getElementById('editImagem').files[0];
+
+            const materialRef = db.collection('materiais').doc(nome);
+            try {
+                let updateData = { 
+                    categoria: novaCategoria, 
+                    quantidadeMinima: novaQuantidadeMinima 
+                };
+                if (arquivo) {
+                    updateData.imagem = await converterParaDataURL(arquivo);
+                }
+                await materialRef.update(updateData);
+                console.log("Material atualizado com sucesso!");
+                fecharModalEditar();
+                carregarMateriais();
+            } catch (error) {
+                console.error("Erro ao atualizar material:", error);
+                alert("Erro ao atualizar material: " + error.message);
+            }
+        });
+
+        async function limparMarcacoes() {
+            if (confirm("Tem certeza de que deseja limpar todas as marcações de compra?")) {
+                try {
+                    const snapshot = await db.collection('materiais').get();
+                    const batch = db.batch();
+                    snapshot.forEach(doc => batch.update(doc.ref, { comprar: false }));
+                    await batch.commit();
+                    console.log("Marcações de compra limpas com sucesso!");
+                    carregarMateriais();
+                } catch (error) {
+                    console.error("Erro ao limpar marcações:", error);
+                    alert("Erro ao limpar marcações: " + error.message);
+                }
+            }
+        }
+
+        async function copiarListaCompras() {
+            try {
+                const snapshot = await db.collection('materiais').where("comprar", "==", true).get();
+                if (snapshot.empty) {
+                    alert("Nenhum item marcado para compra.");
+                    return;
+                }
+                let itensPorCategoria = {};
+                snapshot.forEach(doc => {
+                    let material = doc.data();
+                    let categoria = material.categoria || "Outros";
+                    if (!itensPorCategoria[categoria]) itensPorCategoria[categoria] = [];
+                    itensPorCategoria[categoria].push(material.nome + " (" + material.quantidade + ")");
+                });
+                let listaTexto = Object.keys(itensPorCategoria).sort().map(categoria => {
+                    let itensOrdenados = itensPorCategoria[categoria].sort();
+                    return `🔹 ${categoria.toUpperCase()}\n${itensOrdenados.join("\n")}`;
+                }).join("\n\n");
+                await navigator.clipboard.writeText(listaTexto);
+                alert("Lista de compras copiada com sucesso!\n\n" + listaTexto);
+                console.log("Lista de compras copiada:", listaTexto);
+            } catch (error) {
+                console.error("Erro ao copiar a lista:", error);
+                alert("Erro ao copiar a lista: " + error.message);
+            }
+        }
+
+        async function buscarMateriais() {
+            termoDeBusca = document.getElementById('searchInput').value.toLowerCase().trim();
+            carregarMateriais(); // Reutiliza a função carregarMateriais com o termo atualizado
+        }
+
+        function logout() {
+            auth.signOut().then(() => {
+                console.log('Usuário desconectado com sucesso.');
+            }).catch(error => {
+                console.error('Erro ao desconectar:', error);
+                alert('Falha ao desconectar: ' + error.message);
+            });
+        }
+
+        document.getElementById('materialForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const nome = document.getElementById('nome').value;
+            const quantidade = parseInt(document.getElementById('quantidade').value);
+            const quantidadeMinima = parseInt(document.getElementById('quantidadeMinima').value);
+            const categoria = document.getElementById('categoria').value;
+            const arquivo = document.getElementById('imagem').files[0];
+
+            const material = {
+                nome: nome,
+                quantidade: quantidade,
+                quantidadeMinima: quantidadeMinima,
+                categoria: categoria,
+                imagem: null,
+                ultimaModificacao: new Date().toLocaleString('pt-BR'),
+                comprar: false
+            };
+
+            if (arquivo) {
+                try {
+                    const dataURL = await converterParaDataURL(arquivo);
+                    const tamanhoBytes = (dataURL.length * 3) / 4 - 2;
+                    if (tamanhoBytes > 500000) {
+                        alert('A imagem é muito grande! Use uma imagem menor (menos de 500 KB).');
+                        return;
+                    }
+                    material.imagem = dataURL;
+                } catch (error) {
+                    console.error('Erro ao converter imagem:', error);
+                    alert('Falha ao processar a imagem: ' + error.message);
+                    return;
+                }
+            }
+
             await salvarMaterial(material);
             await carregarMateriais();
+            fecharModal();
+        });
+
+        async function alterarQuantidade(nome, valor) {
+            const material = materiaisFiltrados.find(m => m.nome === nome);
+            if (material && material.quantidade + valor >= 0) {
+                material.quantidade += valor;
+                material.ultimaModificacao = new Date().toLocaleString('pt-BR');
+                await salvarMaterial(material);
+                await carregarMateriais();
+            }
         }
-    }
 
-    // Excluir material
-    async function confirmarExclusao(nome) {
-        if (confirm(`Deseja realmente excluir ${nome}?`)) {
-            await db.collection('materiais').doc(nome).delete();
-            await carregarMateriais();
+        async function confirmarExclusao(nome) {
+            if (confirm(`Deseja realmente excluir ${nome}?`)) {
+                await db.collection('materiais').doc(nome).delete();
+                await carregarMateriais();
+            }
         }
-    }
 
-    // Marcar/desmarcar compra
-    async function toggleComprar(nome) {
-        const material = materiaisFiltrados.find(m => m.nome === nome);
-        material.comprar = !material.comprar;
-        await salvarMaterial(material);
-        await carregarMateriais();
-    }
+        async function toggleComprar(nome) {
+            const material = materiaisFiltrados.find(m => m.nome === nome);
+            if (material) {
+                material.comprar = !material.comprar;
+                await salvarMaterial(material);
+                await carregarMateriais();
+            }
+        }
 
-    // Autenticação
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
 
-        auth.signInWithEmailAndPassword(email, password)
-            .then(() => {
+            auth.signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    document.getElementById('loginContainer').classList.add('hidden');
+                    document.getElementById('mainContainer').classList.remove('hidden');
+                    carregarMateriais();
+                })
+                .catch(error => {
+                    console.error('Erro ao autenticar:', error);
+                    alert('Falha ao autenticar: ' + error.message);
+                });
+        });
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
                 document.getElementById('loginContainer').classList.add('hidden');
                 document.getElementById('mainContainer').classList.remove('hidden');
                 carregarMateriais();
-            })
-            .catch(error => {
-                console.error('Erro ao autenticar:', error);
-                alert('Falha ao autenticar: ' + error.message);
-            });
+            } else {
+                document.getElementById('loginContainer').classList.remove('hidden');
+                document.getElementById('mainContainer').classList.add('hidden');
+            }
+        });
+
+        document.getElementById('btnAbrirModal').addEventListener('click', abrirModal);
+        document.getElementById('btnFecharModal').addEventListener('click', fecharModal);
+        document.getElementById('btnFecharModalEditar').addEventListener('click', fecharModalEditar);
+        document.getElementById('btnLogout').addEventListener('click', logout);
+        document.getElementById('btnLimparMarcacoes').addEventListener('click', limparMarcacoes);
+        document.getElementById('btnCopiarLista').addEventListener('click', copiarListaCompras);
+        document.getElementById('btnBuscar').addEventListener('click', buscarMateriais);
     });
-
-    // Verificar estado de autenticação
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            document.getElementById('loginContainer').classList.add('hidden');
-            document.getElementById('mainContainer').classList.remove('hidden');
-            carregarMateriais();
-        } else {
-            document.getElementById('loginContainer').classList.remove('hidden');
-            document.getElementById('mainContainer').classList.add('hidden');
-        }
-    });
-
-    // Adicionar Event Listeners
-    document.getElementById('btnAbrirModal').addEventListener('click', abrirModal);
-    document.getElementById('btnFecharModal').addEventListener('click', fecharModal);
-    document.getElementById('btnFecharModalEditar').addEventListener('click', fecharModalEditar);
-    document.getElementById('btnLogout').addEventListener('click', logout);
-    document.getElementById('btnLimparMarcacoes').addEventListener('click', limparMarcacoes);
-    document.getElementById('btnCopiarLista').addEventListener('click', copiarListaCompras);
-    document.getElementById('btnBuscar').addEventListener('click', buscarMateriais);
-
-
-});
-</script>
+    </script>
 </body>
 </html>
