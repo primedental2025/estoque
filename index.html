@@ -8,6 +8,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- Biblioteca SheetJS para exportar Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -420,12 +422,9 @@
             <input type="text" id="searchInput" placeholder="Buscar material...">
             <button id="btnBuscar">Buscar</button>
             <button id="btnGerarRelatorio">Gerar Relatório</button>
-            <button id="btnExportarDados">Exportar</button>
-            <button id="btnImportarDados">Importar</button>
             <button id="btnCopiarLista" class="copiar-lista-btn">Copiar Lista de Compras</button>
             <button id="btnLimparMarcacoes" class="limpar-marcacoes-btn">Limpar Marcações</button>
             <button id="btnLogout" class="logout-btn">Sair</button>
-            <input type="file" id="importInput" accept=".json" style="display: none;">
         </div>
 
         <div id="cadastroModal" class="modal">
@@ -522,8 +521,8 @@
             implantodontia: "Implantodontia"
         };
 
-        let materiaisFiltrados = []; // Variável global para armazenar os materiais
-        let termoDeBusca = ""; // Variável global para o termo de busca
+        let materiaisFiltrados = [];
+        let termoDeBusca = "";
 
         function converterParaDataURL(arquivo) {
             return new Promise((resolve, reject) => {
@@ -744,7 +743,43 @@
 
         async function buscarMateriais() {
             termoDeBusca = document.getElementById('searchInput').value.toLowerCase().trim();
-            carregarMateriais(); // Reutiliza a função carregarMateriais com o termo atualizado
+            carregarMateriais();
+        }
+
+        async function gerarRelatorio() {
+            try {
+                const snapshot = await db.collection('materiais').get();
+                if (snapshot.empty) {
+                    alert("Nenhum material encontrado para gerar o relatório.");
+                    return;
+                }
+
+                // Preparar os dados para o Excel
+                const dados = [];
+                snapshot.forEach(doc => {
+                    const material = doc.data();
+                    dados.push({
+                        Nome: material.nome,
+                        Categoria: categorias[material.categoria] || material.categoria,
+                        Quantidade: material.quantidade,
+                        "Quantidade Mínima": material.quantidadeMinima,
+                        "Marcado para Compra": material.comprar ? "Sim" : "Não",
+                        "Última Modificação": material.ultimaModificacao || "N/A"
+                    });
+                });
+
+                // Criar planilha com SheetJS
+                const ws = XLSX.utils.json_to_sheet(dados);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Estoque");
+
+                // Exportar como arquivo Excel
+                XLSX.writeFile(wb, "Relatorio_Estoque_Odontologico.xlsx");
+                console.log("Relatório gerado com sucesso!");
+            } catch (error) {
+                console.error("Erro ao gerar relatório:", error);
+                alert("Erro ao gerar relatório: " + error.message);
+            }
         }
 
         function logout() {
@@ -856,6 +891,7 @@
         document.getElementById('btnLimparMarcacoes').addEventListener('click', limparMarcacoes);
         document.getElementById('btnCopiarLista').addEventListener('click', copiarListaCompras);
         document.getElementById('btnBuscar').addEventListener('click', buscarMateriais);
+        document.getElementById('btnGerarRelatorio').addEventListener('click', gerarRelatorio);
     });
     </script>
 </body>
