@@ -599,12 +599,16 @@
             lista.innerHTML = '';
             const materiaisPorCategoria = {};
 
+            // Agrupar materiais por categoria
             materiais.forEach(material => {
                 if (!materiaisPorCategoria[material.categoria]) {
                     materiaisPorCategoria[material.categoria] = [];
                 }
                 materiaisPorCategoria[material.categoria].push(material);
             });
+
+            // Carregar o estado salvo do localStorage
+            const categoriasRecolhidas = JSON.parse(localStorage.getItem('categoriasRecolhidas')) || {};
 
             Object.keys(materiaisPorCategoria).sort().forEach(categoria => {
                 const section = document.createElement('div');
@@ -613,15 +617,30 @@
                 const title = document.createElement('h3');
                 title.className = 'category-title';
                 title.textContent = categorias[categoria] || categoria;
+
+                // Verificar se a categoria estava recolhida
+                const estaRecolhida = categoriasRecolhidas[categoria] === true;
+                if (estaRecolhida) {
+                    title.classList.add('collapsed');
+                }
+
                 title.addEventListener('click', () => {
                     const items = section.querySelector('.category-items');
                     items.classList.toggle('collapsed');
                     title.classList.toggle('collapsed');
+
+                    // Atualizar o estado no localStorage
+                    categoriasRecolhidas[categoria] = title.classList.contains('collapsed');
+                    localStorage.setItem('categoriasRecolhidas', JSON.stringify(categoriasRecolhidas));
                 });
+
                 section.appendChild(title);
 
                 const itemsContainer = document.createElement('div');
                 itemsContainer.className = 'category-items';
+                if (estaRecolhida) {
+                    itemsContainer.classList.add('collapsed');
+                }
 
                 materiaisPorCategoria[categoria].sort((a, b) => a.nome.localeCompare(b.nome)).forEach(material => {
                     const itemDiv = document.createElement('div');
