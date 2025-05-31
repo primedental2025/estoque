@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Estoque - Prime Dental</title>
+    <title>Controle de Estoque - Consultório Odontológico</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -78,7 +78,8 @@
     </div>
 
     <div id="mainContainer" class="container bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-6xl hidden">
-    
+        <h1 class="text-3xl md:text-4xl font-extrabold text-center text-primary-dark mb-6">Controle de Estoque Odontológico</h1>
+
         <div class="flex flex-wrap items-center justify-center gap-3 md:gap-4 p-4 bg-light-neutral rounded-lg mb-6 shadow-sm">
             <input type="text" id="searchInput" placeholder="Buscar material..."
                    class="flex-1 min-w-[150px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark transition duration-200">
@@ -481,16 +482,17 @@
 
                     // Product Image
                     const imgContainer = document.createElement('div');
-                    imgContainer.className = 'w-full h-48 bg-gray-200 flex items-center justify-center relative';
+                    // Changed bg-gray-200 to bg-white
+                    imgContainer.className = 'w-full h-48 bg-white flex items-center justify-center relative';
                     if (material.imagem) {
                         const img = document.createElement('img');
                         img.src = material.imagem;
                         img.alt = `Imagem de ${material.nome}`;
-                        img.className = 'w-full h-full object-cover';
+                        img.className = 'w-full h-full object-contain';
                         img.onerror = () => {
                             console.error('Erro ao carregar imagem:', material.imagem);
                             img.src = 'https://placehold.co/300x300/BFBFBF/585856?text=Sem+Imagem'; // Placeholder image
-                            img.className = 'w-24 h-24 object-contain'; // Adjust size for placeholder
+                            img.className = 'w-24 h-24 object-contain'; // Ensure placeholder also uses object-contain
                         };
                         imgContainer.appendChild(img);
                     } else {
