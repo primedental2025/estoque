@@ -14,9 +14,11 @@
                     },
                     // Custom colors from the provided palette
                     colors: {
-                        'primary-dark': '#612436',
-                        'secondary-dark': '#585856',
-                        'light-neutral': '#BFBFBF',
+                        'primary-dark': '#612436', // Dark purple/wine
+                        'secondary-dark': '#585856', // Dark gray
+                        'light-neutral': '#BFBFBF', // Light gray
+                        'accent-yellow': '#F7C948', // Yellow for edit actions
+                        'danger-red': '#E74C3C', // Red for delete actions
                     }
                 }
             }
@@ -44,7 +46,7 @@
         }
     </style>
 </head>
-<body class="font-sans bg-light-neutral min-h-screen flex items-center justify-center p-4">
+<body class="font-sans bg-light-neutral min-h-screen flex flex-col items-center p-4">
 
     <div id="customModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
@@ -93,7 +95,6 @@
                     class="flex-1 min-w-[150px] bg-secondary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-secondary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
                 Limpar Marcações
             </button>
-
             <button id="btnAdvancedOptions"
                     class="flex-1 min-w-[150px] bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-primary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
                 Avançado
@@ -110,9 +111,22 @@
                 Gerar Relatório
             </button>
             <button id="btnLogout"
-                    class="flex-1 min-w-[100px] bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
+                    class="flex-1 min-w-[100px] bg-danger-red text-white py-2 px-4 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
                 Sair
             </button>
+        </div>
+
+        <div class="flex flex-col md:flex-row w-full gap-6">
+            <div class="w-full md:w-1/4 bg-white p-4 rounded-xl shadow-lg h-fit">
+                <h2 class="text-xl font-bold text-primary-dark mb-4">Categorias</h2>
+                <div id="categorySidebar" class="space-y-2">
+                    </div>
+            </div>
+
+            <div class="w-full md:w-3/4">
+                <div id="materialList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    </div>
+            </div>
         </div>
 
         <div id="cadastroModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
@@ -166,7 +180,8 @@
                 <form id="editarForm" class="space-y-4">
                     <input type="text" id="editNome" placeholder="Nome do material" required
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
-                    <input type="hidden" id="originalNome"> <select id="editCategoria"
+                    <input type="hidden" id="originalNome">
+                    <select id="editCategoria"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
                         <option value="">Selecione uma categoria</option>
                         <option value="biosseguranca">Biossegurança</option>
@@ -192,8 +207,6 @@
                 </form>
             </div>
         </div>
-
-        <div id="materialList" class="space-y-4"></div>
     </div>
 
     <script>
@@ -237,6 +250,7 @@
 
             let materiaisFiltrados = [];
             let termoDeBusca = "";
+            let categoriaSelecionada = "todos"; // New state for selected category
 
             /**
              * Displays a custom modal for alerts or confirmations.
@@ -305,7 +319,7 @@
 
                         const noButton = document.createElement('button');
                         noButton.textContent = 'Não';
-                        noButton.className = 'bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-200 ease-in-out transform hover:scale-105';
+                        noButton.className = 'bg-danger-red text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-200 ease-in-out transform hover:scale-105';
                         noButton.onclick = () => {
                             modal.classList.add('hidden');
                             resolve(false);
@@ -338,16 +352,23 @@
             async function carregarMateriais() {
                 try {
                     const snapshot = await db.collection('materiais').get();
-                    materiaisFiltrados = [];
-                    snapshot.forEach(doc => materiaisFiltrados.push(doc.data()));
+                    let todosMateriais = [];
+                    snapshot.forEach(doc => todosMateriais.push(doc.data()));
 
-                    if (termoDeBusca !== "") {
+                    // Apply search filter
+                    materiaisFiltrados = todosMateriais.filter(m =>
+                        m.nome.toLowerCase().includes(termoDeBusca.toLowerCase())
+                    );
+
+                    // Apply category filter
+                    if (categoriaSelecionada !== "todos") {
                         materiaisFiltrados = materiaisFiltrados.filter(m =>
-                            m.nome.toLowerCase().includes(termoDeBusca)
+                            m.categoria === categoriaSelecionada
                         );
                     }
 
                     atualizarLista(materiaisFiltrados);
+                    renderizarCategorias(todosMateriais); // Render categories based on all materials
                 } catch (error) {
                     console.error("Erro ao carregar materiais:", error);
                     showCustomModal("Erro", "Erro ao carregar materiais: " + error.message, 'alert');
@@ -369,169 +390,180 @@
             }
 
             /**
+             * Renders the category sidebar.
+             * @param {Array<object>} allMaterials - All materials to extract categories from.
+             */
+            function renderizarCategorias(allMaterials) {
+                const categorySidebar = document.getElementById('categorySidebar');
+                categorySidebar.innerHTML = ''; // Clear existing categories
+
+                const uniqueCategories = new Set();
+                allMaterials.forEach(m => uniqueCategories.add(m.categoria));
+
+                // Add "Todos" option
+                const allButton = document.createElement('button');
+                allButton.textContent = 'Todos';
+                allButton.className = `w-full text-left py-2 px-4 rounded-lg transition duration-200 ${categoriaSelecionada === 'todos' ? 'bg-primary-dark text-white' : 'bg-gray-200 text-secondary-dark hover:bg-gray-300'}`;
+                allButton.onclick = () => {
+                    categoriaSelecionada = 'todos';
+                    carregarMateriais();
+                };
+                categorySidebar.appendChild(allButton);
+
+                // Add other categories
+                Array.from(uniqueCategories).sort().forEach(catKey => {
+                    const categoryButton = document.createElement('button');
+                    categoryButton.textContent = categorias[catKey] || catKey;
+                    categoryButton.className = `w-full text-left py-2 px-4 rounded-lg transition duration-200 ${categoriaSelecionada === catKey ? 'bg-primary-dark text-white' : 'bg-gray-200 text-secondary-dark hover:bg-gray-300'}`;
+                    categoryButton.onclick = () => {
+                        categoriaSelecionada = catKey;
+                        carregarMateriais();
+                    };
+                    categorySidebar.appendChild(categoryButton);
+                });
+            }
+
+
+            /**
              * Updates the material list display based on the provided materials array.
              * Groups materials by category and allows collapsing/expanding categories.
              * @param {Array<object>} materiais - An array of material objects to display.
              */
             function atualizarLista(materiais) {
                 const lista = document.getElementById('materialList');
-                lista.innerHTML = '';
-                const materiaisPorCategoria = {};
+                lista.innerHTML = ''; // Clear existing items
 
-                // Group materials by category
-                materiais.forEach(material => {
-                    if (!materiaisPorCategoria[material.categoria]) {
-                        materiaisPorCategoria[material.categoria] = [];
-                    }
-                    materiaisPorCategoria[material.categoria].push(material);
-                });
+                // If a specific category is selected, only show items from that category
+                let materiaisParaExibir = materiais;
+                if (categoriaSelecionada !== "todos") {
+                    materiaisParaExibir = materiais.filter(m => m.categoria === categoriaSelecionada);
+                }
 
-                // Load collapsed state from localStorage
-                const categoriasRecolhidas = JSON.parse(localStorage.getItem('categoriasRecolhidas')) || {};
+                if (materiaisParaExibir.length === 0) {
+                    lista.innerHTML = '<p class="text-center text-gray-600 col-span-full">Nenhum material encontrado para esta busca/categoria.</p>';
+                    return;
+                }
 
-                Object.keys(materiaisPorCategoria).sort().forEach(categoria => {
-                    const section = document.createElement('div');
-                    section.className = 'category-section mb-4';
+                materiaisParaExibir.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(material => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = `material-item bg-white rounded-lg shadow-md overflow-hidden flex flex-col transition duration-200 ease-in-out hover:shadow-lg ${material.quantidade < material.quantidadeMinima ? 'border-2 border-red-400' : ''}`;
 
-                    const title = document.createElement('h3');
-                    title.className = 'category-title bg-primary-dark text-white p-3 rounded-lg text-lg font-semibold cursor-pointer relative transition duration-300 ease-in-out hover:bg-opacity-90 flex justify-between items-center';
-                    title.textContent = categorias[categoria] || categoria;
-
-                    // Check if the category was collapsed
-                    const estaRecolhida = categoriasRecolhidas[categoria] === true;
-                    if (estaRecolhida) {
-                        title.classList.add('collapsed');
-                    }
-
-                    // Add expand/collapse icon
-                    const icon = document.createElement('span');
-                    icon.className = 'ml-2 text-xl transform transition-transform duration-300';
-                    icon.textContent = estaRecolhida ? '▶' : '▼';
-                    title.appendChild(icon);
-
-                    title.addEventListener('click', () => {
-                        const items = section.querySelector('.category-items');
-                        items.classList.toggle('hidden'); // Use hidden class for display toggle
-                        title.classList.toggle('collapsed');
-                        icon.textContent = title.classList.contains('collapsed') ? '▶' : '▼';
-
-                        // Update state in localStorage
-                        categoriasRecolhidas[categoria] = title.classList.contains('collapsed');
-                        localStorage.setItem('categoriasRecolhidas', JSON.stringify(categoriasRecolhidas));
-                    });
-
-                    section.appendChild(title);
-
-                    const itemsContainer = document.createElement('div');
-                    itemsContainer.className = 'category-items space-y-3 mt-3';
-                    if (estaRecolhida) {
-                        itemsContainer.classList.add('hidden'); // Hide items if collapsed
-                    }
-
-                    materiaisPorCategoria[categoria].sort((a, b) => a.nome.localeCompare(b.nome)).forEach(material => {
-                        const itemDiv = document.createElement('div');
-                        itemDiv.className = `material-item flex flex-col md:flex-row items-start md:items-center p-4 border border-gray-200 rounded-lg bg-white shadow-sm transition duration-200 ease-in-out hover:bg-gray-50 ${material.quantidade < material.quantidadeMinima ? 'bg-red-50 border-red-200' : ''}`;
-
-                        if (material.imagem) {
-                            const img = document.createElement('img');
-                            img.src = material.imagem;
-                            img.alt = `Imagem de ${material.nome}`;
-                            img.className = 'w-full md:w-48 h-auto rounded-md mr-0 md:mr-4 mb-4 md:mb-0 object-cover';
-                            img.onerror = () => {
-                                console.error('Erro ao carregar imagem:', material.imagem);
-                                img.style.display = 'none'; // Hide broken image
-                            };
-                            itemDiv.appendChild(img);
-                        }
-
-                        const info = document.createElement('div');
-                        info.className = 'material-info flex-grow mr-0 md:mr-4 mb-4 md:mb-0';
-                        info.innerHTML = `
-                            <strong class="text-xl font-semibold text-secondary-dark">${material.nome}</strong>
-                            <span class="text-lg text-gray-700 ml-2">Quantidade: ${material.quantidade}</span><br>
-                            <span class="text-sm text-gray-500 mt-1 block">Mínimo: ${material.quantidadeMinima} | Última modificação: ${material.ultimaModificacao || 'N/A'}</span>
-                        `;
-                        itemDiv.appendChild(info);
-
-                        const controls = document.createElement('div');
-                        controls.className = 'controls flex flex-col md:flex-row items-start md:items-center gap-3 w-full md:w-auto';
-
-                        // Quantity controls: input field with increment/decrement buttons
-                        const quantityControlDiv = document.createElement('div');
-                        quantityControlDiv.className = 'flex items-center gap-1';
-                        const btnRemove = document.createElement('button');
-                        btnRemove.textContent = '-';
-                        btnRemove.className = 'bg-primary-dark text-white p-2 rounded-lg text-lg font-bold hover:bg-opacity-90 transition duration-200 transform hover:scale-105 w-8 h-8 flex items-center justify-center';
-                        btnRemove.onclick = () => alterarQuantidade(material.nome, -1);
-                        quantityControlDiv.appendChild(btnRemove);
-
-                        const quantityInput = document.createElement('input');
-                        quantityInput.type = 'number';
-                        quantityInput.value = material.quantidade;
-                        quantityInput.min = '0';
-                        quantityInput.className = 'w-16 text-center border border-gray-300 rounded-lg py-1 px-2 text-lg focus:ring-primary-dark focus:border-primary-dark';
-                        quantityInput.onchange = (e) => alterarQuantidadeDireta(material.nome, parseInt(e.target.value));
-                        quantityControlDiv.appendChild(quantityInput);
-
-                        const btnAdd = document.createElement('button');
-                        btnAdd.textContent = '+';
-                        btnAdd.className = 'bg-primary-dark text-white p-2 rounded-lg text-lg font-bold hover:bg-opacity-90 transition duration-200 transform hover:scale-105 w-8 h-8 flex items-center justify-center';
-                        btnAdd.onclick = () => alterarQuantidade(material.nome, 1);
-                        quantityControlDiv.appendChild(btnAdd);
-                        controls.appendChild(quantityControlDiv);
-
-                        // Options dropdown for Edit/Delete
-                        const optionsDropdownDiv = document.createElement('div');
-                        optionsDropdownDiv.className = 'relative inline-block text-left';
-
-                        const btnOptions = document.createElement('button');
-                        btnOptions.textContent = 'Opções';
-                        btnOptions.className = 'bg-secondary-dark text-white py-2 px-3 rounded-lg text-sm hover:bg-opacity-90 transition duration-200 transform hover:scale-105';
-                        btnOptions.onclick = (e) => {
-                            e.stopPropagation(); // Prevent closing immediately if clicking on button
-                            const dropdownContent = optionsDropdownDiv.querySelector('.dropdown-content');
-                            dropdownContent.classList.toggle('hidden');
+                    // Product Image
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'w-full h-48 bg-gray-200 flex items-center justify-center relative';
+                    if (material.imagem) {
+                        const img = document.createElement('img');
+                        img.src = material.imagem;
+                        img.alt = `Imagem de ${material.nome}`;
+                        img.className = 'w-full h-full object-cover';
+                        img.onerror = () => {
+                            console.error('Erro ao carregar imagem:', material.imagem);
+                            img.src = 'https://placehold.co/300x300/BFBFBF/585856?text=Sem+Imagem'; // Placeholder image
+                            img.className = 'w-24 h-24 object-contain'; // Adjust size for placeholder
                         };
-                        optionsDropdownDiv.appendChild(btnOptions);
+                        imgContainer.appendChild(img);
+                    } else {
+                         const placeholderImg = document.createElement('img');
+                         placeholderImg.src = 'https://placehold.co/300x300/BFBFBF/585856?text=Sem+Imagem'; // Placeholder image
+                         placeholderImg.alt = `Sem imagem para ${material.nome}`;
+                         placeholderImg.className = 'w-24 h-24 object-contain';
+                         imgContainer.appendChild(placeholderImg);
+                    }
+                    itemDiv.appendChild(imgContainer);
 
-                        const dropdownContent = document.createElement('div');
-                        dropdownContent.className = 'dropdown-content absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-10';
-                        dropdownContent.onclick = (e) => e.stopPropagation(); // Prevent closing when clicking inside dropdown
+                    // Product Info
+                    const info = document.createElement('div');
+                    info.className = 'p-4 flex-grow';
+                    info.innerHTML = `
+                        <h3 class="text-lg font-semibold text-secondary-dark mb-1">${material.nome}</h3>
+                        <p class="text-sm text-gray-700">Categoria: ${categorias[material.categoria] || material.categoria}</p>
+                        <p class="text-sm text-gray-700">Mínimo: ${material.quantidadeMinima}</p>
+                        <p class="text-xs text-gray-500 mt-1">Última modificação: ${material.ultimaModificacao || 'N/A'}</p>
+                    `;
+                    itemDiv.appendChild(info);
 
-                        const btnEdit = document.createElement('button');
-                        btnEdit.textContent = 'Editar';
-                        btnEdit.className = 'block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-secondary-dark rounded-t-md';
-                        btnEdit.onclick = () => {
-                            abrirModalEditar(material.nome);
-                            dropdownContent.classList.add('hidden'); // Hide dropdown after click
-                        };
-                        dropdownContent.appendChild(btnEdit);
+                    // Controls Section
+                    const controls = document.createElement('div');
+                    controls.className = 'p-4 bg-gray-50 border-t border-gray-100 flex flex-col space-y-3';
 
-                        const btnDelete = document.createElement('button');
-                        btnDelete.textContent = 'Excluir';
-                        btnDelete.className = 'block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-100 hover:text-red-800 rounded-b-md';
-                        btnDelete.onclick = () => {
-                            confirmarExclusao(material.nome);
-                            dropdownContent.classList.add('hidden'); // Hide dropdown after click
-                        };
-                        dropdownContent.appendChild(btnDelete);
+                    // Quantity controls
+                    const quantityControlDiv = document.createElement('div');
+                    quantityControlDiv.className = 'flex items-center justify-between gap-2';
+                    quantityControlDiv.innerHTML = `<span class="text-secondary-dark font-medium">Quantidade:</span>`;
 
-                        optionsDropdownDiv.appendChild(dropdownContent);
-                        controls.appendChild(optionsDropdownDiv);
+                    const qtyAdjustDiv = document.createElement('div');
+                    qtyAdjustDiv.className = 'flex items-center gap-1';
 
-                        // Comprar button remains prominent
-                        const btnComprar = document.createElement('button');
-                        btnComprar.textContent = 'Comprar';
-                        btnComprar.className = `comprar-btn py-2 px-4 rounded-lg font-semibold transition duration-200 transform hover:scale-105 ${material.comprar ? 'bg-primary-dark text-white hover:bg-opacity-90' : 'bg-light-neutral text-secondary-dark hover:bg-opacity-90'}`;
-                        btnComprar.onclick = () => toggleComprar(material.nome);
-                        controls.appendChild(btnComprar);
+                    const btnRemove = document.createElement('button');
+                    btnRemove.textContent = '-';
+                    btnRemove.className = 'bg-primary-dark text-white p-1 rounded-full text-base font-bold hover:bg-opacity-90 transition duration-200 w-7 h-7 flex items-center justify-center';
+                    btnRemove.onclick = () => alterarQuantidade(material.nome, -1);
+                    qtyAdjustDiv.appendChild(btnRemove);
 
-                        itemDiv.appendChild(controls);
-                        itemsContainer.appendChild(itemDiv);
-                    });
+                    const quantityInput = document.createElement('input');
+                    quantityInput.type = 'number';
+                    quantityInput.value = material.quantidade;
+                    quantityInput.min = '0';
+                    quantityInput.className = 'w-16 text-center border border-gray-300 rounded-md py-1 text-sm focus:ring-primary-dark focus:border-primary-dark';
+                    quantityInput.onchange = (e) => alterarQuantidadeDireta(material.nome, parseInt(e.target.value));
+                    qtyAdjustDiv.appendChild(quantityInput);
 
-                    section.appendChild(itemsContainer);
-                    lista.appendChild(section);
+                    const btnAdd = document.createElement('button');
+                    btnAdd.textContent = '+';
+                    btnAdd.className = 'bg-primary-dark text-white p-1 rounded-full text-base font-bold hover:bg-opacity-90 transition duration-200 w-7 h-7 flex items-center justify-center';
+                    btnAdd.onclick = () => alterarQuantidade(material.nome, 1);
+                    qtyAdjustDiv.appendChild(btnAdd);
+                    quantityControlDiv.appendChild(qtyAdjustDiv);
+                    controls.appendChild(quantityControlDiv);
+
+                    // Buy button
+                    const btnComprar = document.createElement('button');
+                    btnComprar.textContent = material.comprar ? 'Na Lista de Compras' : 'Adicionar à Lista';
+                    btnComprar.className = `w-full py-2 px-4 rounded-lg font-semibold transition duration-200 transform hover:scale-105 ${material.comprar ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-primary-dark text-white hover:bg-opacity-90'}`;
+                    btnComprar.onclick = () => toggleComprar(material.nome);
+                    controls.appendChild(btnComprar);
+
+                    // Options dropdown (Edit/Delete)
+                    const optionsDropdownDiv = document.createElement('div');
+                    optionsDropdownDiv.className = 'relative inline-block text-left w-full';
+
+                    const btnOptions = document.createElement('button');
+                    btnOptions.innerHTML = `<svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg> Opções`;
+                    btnOptions.className = 'w-full bg-gray-200 text-secondary-dark py-2 px-3 rounded-lg text-sm hover:bg-gray-300 transition duration-200 transform hover:scale-105 mt-2';
+                    btnOptions.onclick = (e) => {
+                        e.stopPropagation();
+                        const dropdownContent = optionsDropdownDiv.querySelector('.dropdown-content');
+                        dropdownContent.classList.toggle('hidden');
+                    };
+                    optionsDropdownDiv.appendChild(btnOptions);
+
+                    const dropdownContent = document.createElement('div');
+                    dropdownContent.className = 'dropdown-content absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-10';
+                    dropdownContent.onclick = (e) => e.stopPropagation();
+
+                    const btnEdit = document.createElement('button');
+                    btnEdit.textContent = 'Editar';
+                    btnEdit.className = 'block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-secondary-dark rounded-t-md';
+                    btnEdit.onclick = () => {
+                        abrirModalEditar(material.nome);
+                        dropdownContent.classList.add('hidden');
+                    };
+                    dropdownContent.appendChild(btnEdit);
+
+                    const btnDelete = document.createElement('button');
+                    btnDelete.textContent = 'Excluir';
+                    btnDelete.className = 'block w-full text-left px-4 py-2 text-sm text-danger-red hover:bg-red-100 hover:text-red-800 rounded-b-md';
+                    btnDelete.onclick = () => {
+                        confirmarExclusao(material.nome);
+                        dropdownContent.classList.add('hidden');
+                    };
+                    dropdownContent.appendChild(btnDelete);
+
+                    optionsDropdownDiv.appendChild(dropdownContent);
+                    controls.appendChild(optionsDropdownDiv);
+
+                    itemDiv.appendChild(controls);
+                    lista.appendChild(itemDiv);
                 });
             }
 
