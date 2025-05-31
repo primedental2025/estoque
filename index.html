@@ -19,6 +19,7 @@
                         'background-light': '#FFFFFF', // Branco puro
                         'text-dark': '#333333', // Cinza Escuro (Dark Gray)
                         'danger-red': '#CD5C5C', // Vermelho Suave (Muted Red)
+                        'ai-sparkle': '#FFD700', // Dourado para o botão AI (será removido)
                     }
                 }
             }
@@ -78,7 +79,6 @@
     </div>
 
     <div id="mainContainer" class="container bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-6xl hidden">
-
         <div class="flex flex-wrap items-center justify-center gap-3 md:gap-4 p-4 bg-secondary-light rounded-lg mb-6 shadow-sm">
             <input type="text" id="searchInput" placeholder="Buscar material..."
                    class="flex-1 min-w-[150px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark transition duration-200">
@@ -508,9 +508,8 @@
                     info.innerHTML = `
                         <h3 class="text-lg font-semibold text-text-dark mb-1">${material.nome}</h3>
                         <p class="text-sm text-gray-700">Categoria: ${categorias[material.categoria] || material.categoria}</p>
-                        <p class="text-sm text-gray-700">Mínimo: ${material.quantidadeMinima}</p>
-                        <p class="text-xs text-gray-500 mt-1">Última modificação: ${material.ultimaModificacao || 'N/A'}</p>
-                    `;
+                        <p class="text-xs text-gray-500 mt-1">Modificado em: ${material.ultimaModificacao || 'N/A'}</p>
+                        `;
                     itemDiv.appendChild(info);
 
                     // Controls Section
@@ -798,7 +797,7 @@
                             Quantidade: material.quantidade,
                             "Quantidade Mínima": material.quantidadeMinima,
                             "Marcado para Compra": material.comprar ? "Sim" : "Não",
-                            "Última Modificação": material.ultimaModificacao || "N/A"
+                            "Última Modificação": material.ultimaModificacao || "N/A",
                         });
                     });
 
@@ -1000,6 +999,11 @@
                 const advancedOptions = document.getElementById('advancedOptionsContainer');
                 advancedOptions.classList.toggle('hidden');
             });
+
+            // Removed event listeners for AI description generation buttons
+            // document.getElementById('btnGerarDescricao').addEventListener('click', async () => { ... });
+            // document.getElementById('btnGerarDescricaoEditar').addEventListener('click', async () => { ... });
+
 
             // Close dropdowns when clicking outside
             document.addEventListener('click', function(event) {
