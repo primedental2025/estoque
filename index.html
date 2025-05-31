@@ -4,470 +4,134 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Estoque - Consultório Odontológico</title>
-    <!-- Firebase SDK (versão compatível) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    // Custom colors from the provided palette
+                    colors: {
+                        'primary-dark': '#612436',
+                        'secondary-dark': '#585856',
+                        'light-neutral': '#BFBFBF',
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <!-- Biblioteca SheetJS para exportar Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7fa;
-            margin: 0;
-            padding: 20px;
-            color: #333;
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background-color: #fff;
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
         }
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 25px;
-            font-size: 28px;
-        }
-        .search-container {
-            background-color: #ecf0f1;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        input[type="text"], input[type="number"], input[type="email"], input[type="password"], select, input[type="file"] {
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s ease, transform 0.1s ease;
-        }
-        button:hover {
-            background-color: #2980b9;
-            transform: scale(1.02);
-        }
-        .logout-btn {
-            background-color: #e74c3c;
-        }
-        .logout-btn:hover {
-            background-color: #c0392b;
-        }
-        .copiar-lista-btn {
-            background-color: #27ae60;
-        }
-        .copiar-lista-btn:hover {
-            background-color: #219653;
-        }
-        .limpar-marcacoes-btn {
-            background-color: #7f8c8d;
-        }
-        .limpar-marcacoes-btn:hover {
-            background-color: #6c757d;
-        }
-        .material-list {
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-        .category-section {
-            margin-bottom: 20px;
-        }
-        .category-title {
-            background-color: #3498db;
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            font-size: 18px;
-            text-transform: uppercase;
-            cursor: pointer; /* Indica que é clicável */
-            position: relative; /* Para o ícone de expandir/recolher */
-            transition: background-color 0.3s ease;
-        }
-        .category-title:hover {
-            background-color: #2980b9;
-        }
-        .category-title::after {
-            content: '▼'; /* Ícone de expandir (seta para baixo) */
-            position: absolute;
-            right: 10px;
-            font-size: 14px;
-            transition: transform 0.3s ease;
-        }
-        .category-title.collapsed::after {
-            content: '▶'; /* Ícone de recolher (seta para a direita) */
-            transform: rotate(0deg);
-        }
-        .category-items {
-            display: block; /* Inicialmente visível */
-            transition: all 0.3s ease; /* Animação suave ao expandir/recolher */
-        }
-        .category-items.collapsed {
-            display: none; /* Esconde os itens quando a categoria está recolhida */
-        }
-        .material-item {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-            background-color: #fafafa;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            transition: background-color 0.2s;
-        }
-        .material-item:hover {
-            background-color: #f0f0f0;
-        }
-        .material-item.abaixo-minimo {
-            background-color: #ffebee;
-        }
-        .material-item.abaixo-minimo:hover {
-            background-color: #ffcdd2;
-        }
-        .material-item img {
-            max-width: 300px;
-            width: 100%;
-            height: auto;
-            border-radius: 5px;
-            margin-right: 15px;
-        }
-        .material-info {
-            flex-grow: 1;
-            margin-right: 15px;
-        }
-        .material-info strong {
-            color: #2c3e50;
-            font-size: 18px;
-        }
-        .material-info .quantidade {
-            font-size: 16px;
-            color: #34495e;
-            margin-left: 10px;
-        }
-        .material-info .detalhes {
-            font-size: 12px;
-            color: #95a5a6;
-            margin-top: 5px;
-        }
-        .controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .controls .quantidade-btns {
-            display: flex;
-            gap: 10px;
-        }
-        .controls .quantidade-btns button {
-            background-color: #3498db;
-            padding: 10px 15px;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .controls .quantidade-btns button:hover {
-            background-color: #2980b9;
-        }
-        .controls .acao-btns {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .controls .acao-btns button {
-            padding: 5px 8px;
-            font-size: 12px;
-            width: 60px;
-        }
-        .controls button.edit-btn {
-            background-color: #f7c948;
-        }
-        .controls button.edit-btn:hover {
-            background-color: #e4b73e;
-        }
-        .controls button.delete-btn {
-            background-color: #ff8787;
-        }
-        .controls button.delete-btn:hover {
-            background-color: #e57373;
-        }
-        .controls .comprar-btn {
-            background-color: #F5F5F4;
-            color: white;
-            padding: 10px 15px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 5px;
-            margin-left: 20px;
-            transition: background-color 0.3s ease, transform 0.1s ease;
-        }
-        .controls .comprar-btn:hover {
-            background-color: #f7e7ce;
-            transform: scale(1.02);
-        }
-        .controls .comprar-btn.active {
-            background-color: #e67e22;
-        }
-        .controls .comprar-btn.active:hover {
-            background-color: #d35400;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        .modal-content h3 {
-            margin-top: 0;
-            color: #34495e;
-            font-size: 20px;
-        }
-        .modal-content button[type="submit"] {
-            margin-top: 15px;
-            width: 100%;
-        }
-        .close-btn {
-            background-color: #e74c3c;
-            float: right;
-            padding: 5px 10px;
-            font-size: 14px;
-        }
-        .close-btn:hover {
-            background-color: #c0392b;
-        }
-        .login-container {
-            max-width: 500px;
-            margin: 50px auto;
-            background-color: #fff;
+        ::-webkit-scrollbar-thumb {
+            background: #888;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            text-align: center;
         }
-        .login-container h2 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-            font-size: 24px;
-        }
-        .hidden {
-            display: none;
-        }
-
-        /* Media Queries para Responsividade */
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-            .container {
-                max-width: 100%;
-                padding: 15px;
-            }
-            h1 {
-                font-size: 24px;
-                margin-bottom: 20px;
-            }
-            .search-container {
-                padding: 15px;
-                gap: 10px;
-            }
-            .search-container button, .search-container input[type="text"] {
-                width: 100%;
-                margin: 5px 0;
-            }
-            .material-item {
-                flex-direction: column;
-                align-items: flex-start;
-                padding: 10px;
-            }
-            .material-item img {
-                max-width: 300px;
-                width: 100%;
-                height: auto;
-                margin-right: 0;
-                margin-bottom: 15px;
-            }
-            .material-info {
-                margin-bottom: 15px;
-                margin-right: 0;
-                width: 100%;
-            }
-            .material-info strong {
-                font-size: 16px;
-            }
-            .material-info .quantidade {
-                font-size: 14px;
-                margin-left: 5px;
-            }
-            .material-info .detalhes {
-                font-size: 10px;
-            }
-            .controls {
-                flex-direction: row;
-                flex-wrap: wrap;
-                width: 100%;
-                justify-content: space-between;
-                gap: 10px;
-            }
-            .controls .quantidade-btns {
-                gap: 5px;
-            }
-            .controls .quantidade-btns button {
-                padding: 8px 12px;
-                font-size: 16px;
-            }
-            .controls .acao-btns {
-                flex-direction: row;
-                gap: 5px;
-            }
-            .controls .acao-btns button {
-                width: auto;
-                padding: 4px 6px;
-                font-size: 10px;
-            }
-            .controls .comprar-btn {
-                padding: 8px 12px;
-                font-size: 14px;
-                margin-left: 10px;
-                margin-top: 10px;
-            }
-            .category-title {
-                font-size: 16px;
-                padding: 8px;
-            }
-            .modal-content {
-                padding: 15px;
-                width: 95%;
-            }
-            .modal-content h3 {
-                font-size: 18px;
-            }
-            .modal-content input, .modal-content select {
-                font-size: 14px;
-            }
-            .modal-content button {
-                font-size: 14px;
-            }
-            .close-btn {
-                font-size: 12px;
-                padding: 4px 8px;
-            }
-            .login-container {
-                margin: 30px auto;
-                padding: 15px;
-            }
-            .login-container h2 {
-                font-size: 20px;
-            }
-            .login-container input, .login-container button {
-                font-size: 14px;
-                padding: 8px;
-            }
-        }
-
-        @media (max-width: 600px) {
-            body {
-                padding: 5px;
-            }
-            .container {
-                padding: 10px;
-            }
-            h1 {
-                font-size: 20px;
-                margin-bottom: 15px;
-            }
-            .search-container {
-                padding: 10px;
-                gap: 8px;
-            }
-            .material-item img {
-                max-width: 200px;
-                width: 100%;
-                height: auto;
-            }
-            .material-info strong {
-                font-size: 14px;
-            }
-            .material-info .quantidade {
-                font-size: 12px;
-            }
-            .controls .quantidade-btns button {
-                padding: 6px 10px;
-                font-size: 14px;
-            }
-            .controls .comprar-btn {
-                padding: 6px 10px;
-                font-size: 12px;
-            }
-            .category-title {
-                font-size: 14px;
-                padding: 6px;
-            }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
     </style>
 </head>
-<body>
-    <!-- Formulário de Login -->
-    <div id="loginContainer" class="login-container">
-        <h2>Login - Controle de Estoque</h2>
-        <form id="loginForm">
-            <input type="email" id="email" placeholder="E-mail" required>
-            <input type="password" id="password" placeholder="Senha" required>
-            <button type="submit">Entrar</button>
+<body class="font-sans bg-light-neutral min-h-screen flex items-center justify-center p-4">
+
+    <div id="customModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
+            <h3 id="modalTitle" class="text-xl font-semibold mb-4 text-secondary-dark"></h3>
+            <p id="modalMessage" class="mb-6 text-gray-700"></p>
+            <div id="modalActions" class="flex justify-center space-x-4">
+                </div>
+        </div>
+    </div>
+
+    <div id="loginContainer" class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md hidden">
+        <h2 class="text-3xl font-bold text-center text-primary-dark mb-6">Login - Controle de Estoque</h2>
+        <form id="loginForm" class="space-y-4">
+            <div>
+                <label for="email" class="sr-only">E-mail</label>
+                <input type="email" id="email" placeholder="E-mail" required
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark transition duration-200">
+            </div>
+            <div>
+                <label for="password" class="sr-only">Senha</label>
+                <input type="password" id="password" placeholder="Senha" required
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark transition duration-200">
+            </div>
+            <button type="submit"
+                    class="w-full bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-primary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
+                Entrar
+            </button>
         </form>
     </div>
 
-    <!-- Interface Principal -->
-    <div id="mainContainer" class="container hidden">
-        <h1>Controle de Estoque Odontológico</h1>
-        <div class="search-container">
-            <button id="btnAbrirModal">Adicionar Novo Item</button>
-            <input type="text" id="searchInput" placeholder="Buscar material...">
-            <button id="btnBuscar">Buscar</button>
-            <button id="btnGerarRelatorio">Gerar Relatório</button>
-            <button id="btnCopiarLista" class="copiar-lista-btn">Copiar Lista de Compras</button>
-            <button id="btnLimparMarcacoes" class="limpar-marcacoes-btn">Limpar Marcações</button>
-            <button id="btnLogout" class="logout-btn">Sair</button>
+    <div id="mainContainer" class="container bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-6xl hidden">
+        <h1 class="text-3xl md:text-4xl font-extrabold text-center text-primary-dark mb-6">Controle de Estoque Odontológico</h1>
+
+        <div class="flex flex-wrap items-center justify-center gap-3 md:gap-4 p-4 bg-light-neutral rounded-lg mb-6 shadow-sm">
+            <input type="text" id="searchInput" placeholder="Buscar material..."
+                   class="flex-1 min-w-[150px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark transition duration-200">
+            <button id="btnBuscar"
+                    class="flex-1 min-w-[100px] bg-secondary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-secondary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
+                Buscar
+            </button>
+            <button id="btnCopiarLista"
+                    class="flex-1 min-w-[150px] bg-secondary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-secondary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
+                Copiar Lista de Compras
+            </button>
+            <button id="btnLimparMarcacoes"
+                    class="flex-1 min-w-[150px] bg-secondary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-secondary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
+                Limpar Marcações
+            </button>
+
+            <button id="btnAdvancedOptions"
+                    class="flex-1 min-w-[150px] bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-primary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
+                Avançado
+            </button>
         </div>
 
-        <div id="cadastroModal" class="modal">
-            <div class="modal-content">
-                <button class="close-btn" id="btnFecharModal">X</button>
-                <h3>Cadastrar Novo Material</h3>
-                <form id="materialForm">
-                    <input type="text" id="nome" placeholder="Nome do material" required>
-                    <input type="number" id="quantidade" placeholder="Quantidade inicial" min="0" required>
-                    <input type="number" id="quantidadeMinima" placeholder="Quantidade mínima" min="0" required>
-                    <select id="categoria" required>
+        <div id="advancedOptionsContainer" class="flex flex-wrap items-center justify-center gap-3 md:gap-4 p-4 bg-light-neutral rounded-lg mb-6 shadow-sm hidden">
+            <button id="btnAbrirModal"
+                    class="flex-1 min-w-[150px] bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-primary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
+                Adicionar Novo Item
+            </button>
+            <button id="btnGerarRelatorio"
+                    class="flex-1 min-w-[150px] bg-secondary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-secondary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
+                Gerar Relatório
+            </button>
+            <button id="btnLogout"
+                    class="flex-1 min-w-[100px] bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
+                Sair
+            </button>
+        </div>
+
+        <div id="cadastroModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
+            <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-semibold text-primary-dark">Cadastrar Novo Material</h3>
+                    <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharModal">
+                        &times;
+                    </button>
+                </div>
+                <form id="materialForm" class="space-y-4">
+                    <input type="text" id="nome" placeholder="Nome do material" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+                    <input type="number" id="quantidade" placeholder="Quantidade inicial" min="0" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+                    <input type="number" id="quantidadeMinima" placeholder="Quantidade mínima" min="0" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+                    <select id="categoria" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
                         <option value="">Selecione uma categoria</option>
                         <option value="biosseguranca">Biossegurança</option>
                         <option value="brocas">Brocas</option>
@@ -481,19 +145,29 @@
                         <option value="protese">Prótese</option>
                         <option value="implantodontia">Implantodontia</option>
                     </select>
-                    <input type="file" id="imagem" accept="image/*">
-                    <button type="submit">Cadastrar</button>
+                    <input type="file" id="imagem" accept="image/*"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-primary-dark hover:file:bg-blue-100">
+                    <button type="submit"
+                            class="w-full bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-primary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
+                        Cadastrar
+                    </button>
                 </form>
             </div>
         </div>
 
-        <div id="editarModal" class="modal">
-            <div class="modal-content">
-                <button class="close-btn" id="btnFecharModalEditar">X</button>
-                <h3>Editar Material</h3>
-                <form id="editarForm">
-                    <input type="hidden" id="editNome">
-                    <select id="editCategoria">
+        <div id="editarModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
+            <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-semibold text-primary-dark">Editar Material</h3>
+                    <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharModalEditar">
+                        &times;
+                    </button>
+                </div>
+                <form id="editarForm" class="space-y-4">
+                    <input type="text" id="editNome" placeholder="Nome do material" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+                    <input type="hidden" id="originalNome"> <select id="editCategoria"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
                         <option value="">Selecione uma categoria</option>
                         <option value="biosseguranca">Biossegurança</option>
                         <option value="brocas">Brocas</option>
@@ -507,449 +181,653 @@
                         <option value="protese">Prótese</option>
                         <option value="implantodontia">Implantodontia</option>
                     </select>
-                    <input type="number" id="editQuantidadeMinima" placeholder="Quantidade mínima" min="0">
-                    <input type="file" id="editImagem" accept="image/*">
-                    <button type="submit">Salvar Alterações</button>
+                    <input type="number" id="editQuantidadeMinima" placeholder="Quantidade mínima" min="0"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+                    <input type="file" id="editImagem" accept="image/*"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-primary-dark hover:file:bg-blue-100">
+                    <button type="submit"
+                            class="w-full bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-primary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
+                        Salvar Alterações
+                    </button>
                 </form>
             </div>
         </div>
 
-        <div class="material-list" id="materialList"></div>
+        <div id="materialList" class="space-y-4"></div>
     </div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        if (typeof firebase === 'undefined') {
-            console.error('Firebase SDK não foi carregado corretamente.');
-            alert('Erro: Firebase SDK não foi carregado. Verifique sua conexão ou tente novamente.');
-            return;
-        }
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCDxJW_o6y-hmisQHOHVYPVJ8cag6hrKv0",
-            authDomain: "estoque-prime.firebaseapp.com",
-            projectId: "estoque-prime",
-            storageBucket: "estoque-prime.firebasestorage.app",
-            messagingSenderId: "1092019247496",
-            appId: "1:1092019247496:web:92076afda68ccbc23d823d",
-            measurementId: "G-04D19CYTTQ"
-        };
-
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
-
-        const categorias = {
-            biosseguranca: "Biossegurança",
-            brocas: "Brocas",
-            cirurgia: "Cirurgia",
-            clinica_geral: "Clínica Geral",
-            dentistica: "Dentística",
-            endodontia: "Endodontia",
-            instrumental: "Instrumental",
-            material_limpeza: "Material de Limpeza",
-            ortodontia: "Ortodontia",
-            protese: "Prótese",
-            implantodontia: "Implantodontia"
-        };
-
-        let materiaisFiltrados = [];
-        let termoDeBusca = "";
-
-        function converterParaDataURL(arquivo) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-                reader.readAsDataURL(arquivo);
-            });
-        }
-
-        async function carregarMateriais() {
-            try {
-                const snapshot = await db.collection('materiais').get();
-                materiaisFiltrados = [];
-                snapshot.forEach(doc => materiaisFiltrados.push(doc.data()));
-
-                if (termoDeBusca !== "") {
-                    materiaisFiltrados = materiaisFiltrados.filter(m => 
-                        m.nome.toLowerCase().includes(termoDeBusca)
-                    );
-                }
-
-                atualizarLista(materiaisFiltrados);
-            } catch (error) {
-                console.error("Erro ao carregar materiais:", error);
-                alert("Erro ao carregar materiais: " + error.message);
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if Firebase SDK is loaded
+            if (typeof firebase === 'undefined') {
+                showCustomModal('Erro', 'Firebase SDK não foi carregado. Verifique sua conexão ou tente novamente.', 'alert');
+                return;
             }
-        }
 
-        async function salvarMaterial(material) {
-            try {
-                await db.collection('materiais').doc(material.nome).set(material);
-                console.log('Material salvo com sucesso:', material);
-            } catch (error) {
-                console.error('Erro ao salvar material:', error);
-                alert('Erro ao salvar material: ' + error.message);
-            }
-        }
-
-        function atualizarLista(materiais) {
-            const lista = document.getElementById('materialList');
-            lista.innerHTML = '';
-            const materiaisPorCategoria = {};
-
-            // Agrupar materiais por categoria
-            materiais.forEach(material => {
-                if (!materiaisPorCategoria[material.categoria]) {
-                    materiaisPorCategoria[material.categoria] = [];
-                }
-                materiaisPorCategoria[material.categoria].push(material);
-            });
-
-            // Carregar o estado salvo do localStorage
-            const categoriasRecolhidas = JSON.parse(localStorage.getItem('categoriasRecolhidas')) || {};
-
-            Object.keys(materiaisPorCategoria).sort().forEach(categoria => {
-                const section = document.createElement('div');
-                section.className = 'category-section';
-
-                const title = document.createElement('h3');
-                title.className = 'category-title';
-                title.textContent = categorias[categoria] || categoria;
-
-                // Verificar se a categoria estava recolhida
-                const estaRecolhida = categoriasRecolhidas[categoria] === true;
-                if (estaRecolhida) {
-                    title.classList.add('collapsed');
-                }
-
-                title.addEventListener('click', () => {
-                    const items = section.querySelector('.category-items');
-                    items.classList.toggle('collapsed');
-                    title.classList.toggle('collapsed');
-
-                    // Atualizar o estado no localStorage
-                    categoriasRecolhidas[categoria] = title.classList.contains('collapsed');
-                    localStorage.setItem('categoriasRecolhidas', JSON.stringify(categoriasRecolhidas));
-                });
-
-                section.appendChild(title);
-
-                const itemsContainer = document.createElement('div');
-                itemsContainer.className = 'category-items';
-                if (estaRecolhida) {
-                    itemsContainer.classList.add('collapsed');
-                }
-
-                materiaisPorCategoria[categoria].sort((a, b) => a.nome.localeCompare(b.nome)).forEach(material => {
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'material-item';
-                    if (material.quantidade < material.quantidadeMinima) {
-                        itemDiv.classList.add('abaixo-minimo');
-                    }
-
-                    if (material.imagem) {
-                        const img = document.createElement('img');
-                        img.src = material.imagem;
-                        img.onerror = () => {
-                            console.error('Erro ao carregar imagem:', material.imagem);
-                            img.style.display = 'none';
-                        };
-                        itemDiv.appendChild(img);
-                    }
-
-                    const info = document.createElement('div');
-                    info.className = 'material-info';
-                    info.innerHTML = `<strong>${material.nome}</strong> <span class="quantidade">Quantidade: ${material.quantidade}</span><br><span class="detalhes">Mínimo: ${material.quantidadeMinima} | Última modificação: ${material.ultimaModificacao || 'N/A'}</span>`;
-                    itemDiv.appendChild(info);
-
-                    const controls = document.createElement('div');
-                    controls.className = 'controls';
-
-                    const quantidadeBtns = document.createElement('div');
-                    quantidadeBtns.className = 'quantidade-btns';
-                    const btnAdd = document.createElement('button');
-                    btnAdd.textContent = '+';
-                    btnAdd.onclick = () => alterarQuantidade(material.nome, 1);
-                    quantidadeBtns.appendChild(btnAdd);
-
-                    const btnRemove = document.createElement('button');
-                    btnRemove.textContent = '-';
-                    btnRemove.onclick = () => alterarQuantidade(material.nome, -1);
-                    quantidadeBtns.appendChild(btnRemove);
-                    controls.appendChild(quantidadeBtns);
-
-                    const acaoBtns = document.createElement('div');
-                    acaoBtns.className = 'acao-btns';
-                    const btnEdit = document.createElement('button');
-                    btnEdit.textContent = 'Editar';
-                    btnEdit.className = 'edit-btn';
-                    btnEdit.onclick = () => abrirModalEditar(material.nome);
-                    acaoBtns.appendChild(btnEdit);
-
-                    const btnDelete = document.createElement('button');
-                    btnDelete.textContent = 'Excluir';
-                    btnDelete.className = 'delete-btn';
-                    btnDelete.onclick = () => confirmarExclusao(material.nome);
-                    acaoBtns.appendChild(btnDelete);
-                    controls.appendChild(acaoBtns);
-
-                    const btnComprar = document.createElement('button');
-                    btnComprar.textContent = 'Comprar';
-                    btnComprar.className = 'comprar-btn';
-                    btnComprar.classList.toggle('active', material.comprar);
-                    btnComprar.onclick = () => toggleComprar(material.nome);
-                    controls.appendChild(btnComprar);
-
-                    itemDiv.appendChild(controls);
-                    itemsContainer.appendChild(itemDiv);
-                });
-
-                section.appendChild(itemsContainer);
-                lista.appendChild(section);
-            });
-        }
-
-        function abrirModal() {
-            document.getElementById('cadastroModal').style.display = 'flex';
-        }
-
-        function fecharModal() {
-            document.getElementById('cadastroModal').style.display = 'none';
-            document.getElementById('materialForm').reset();
-        }
-
-        function abrirModalEditar(nome) {
-            const material = materiaisFiltrados.find(m => m.nome === nome);
-            document.getElementById('editNome').value = material.nome;
-            document.getElementById('editCategoria').value = material.categoria;
-            document.getElementById('editQuantidadeMinima').value = material.quantidadeMinima;
-            document.getElementById('editarModal').style.display = 'flex';
-        }
-
-        function fecharModalEditar() {
-            document.getElementById('editarModal').style.display = 'none';
-            document.getElementById('editarForm').reset();
-        }
-
-        document.getElementById('editarForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const nome = document.getElementById('editNome').value;
-            const novaCategoria = document.getElementById('editCategoria').value;
-            const novaQuantidadeMinima = parseInt(document.getElementById('editQuantidadeMinima').value);
-            const arquivo = document.getElementById('editImagem').files[0];
-
-            const materialRef = db.collection('materiais').doc(nome);
-            try {
-                let updateData = { 
-                    categoria: novaCategoria, 
-                    quantidadeMinima: novaQuantidadeMinima 
-                };
-                if (arquivo) {
-                    updateData.imagem = await converterParaDataURL(arquivo);
-                }
-                await materialRef.update(updateData);
-                console.log("Material atualizado com sucesso!");
-                fecharModalEditar();
-                carregarMateriais();
-            } catch (error) {
-                console.error("Erro ao atualizar material:", error);
-                alert("Erro ao atualizar material: " + error.message);
-            }
-        });
-
-        async function limparMarcacoes() {
-            if (confirm("Tem certeza de que deseja limpar todas as marcações de compra?")) {
-                try {
-                    const snapshot = await db.collection('materiais').get();
-                    const batch = db.batch();
-                    snapshot.forEach(doc => batch.update(doc.ref, { comprar: false }));
-                    await batch.commit();
-                    console.log("Marcações de compra limpas com sucesso!");
-                    carregarMateriais();
-                } catch (error) {
-                    console.error("Erro ao limpar marcações:", error);
-                    alert("Erro ao limpar marcações: " + error.message);
-                }
-            }
-        }
-
-        async function copiarListaCompras() {
-            try {
-                const snapshot = await db.collection('materiais').where("comprar", "==", true).get();
-                if (snapshot.empty) {
-                    alert("Nenhum item marcado para compra.");
-                    return;
-                }
-                let itensPorCategoria = {};
-                snapshot.forEach(doc => {
-                    let material = doc.data();
-                    let categoria = material.categoria || "Outros";
-                    if (!itensPorCategoria[categoria]) itensPorCategoria[categoria] = [];
-                    itensPorCategoria[categoria].push(material.nome + " (" + material.quantidade + ")");
-                });
-                let listaTexto = Object.keys(itensPorCategoria).sort().map(categoria => {
-                    let itensOrdenados = itensPorCategoria[categoria].sort();
-                    return `🔹 ${categoria.toUpperCase()}\n${itensOrdenados.join("\n")}`;
-                }).join("\n\n");
-                await navigator.clipboard.writeText(listaTexto);
-                alert("Lista de compras copiada com sucesso!\n\n" + listaTexto);
-                console.log("Lista de compras copiada:", listaTexto);
-            } catch (error) {
-                console.error("Erro ao copiar a lista:", error);
-                alert("Erro ao copiar a lista: " + error.message);
-            }
-        }
-
-        async function buscarMateriais() {
-            termoDeBusca = document.getElementById('searchInput').value.toLowerCase().trim();
-            carregarMateriais();
-        }
-
-        async function gerarRelatorio() {
-            try {
-                const snapshot = await db.collection('materiais').get();
-                if (snapshot.empty) {
-                    alert("Nenhum material encontrado para gerar o relatório.");
-                    return;
-                }
-
-                const dados = [];
-                snapshot.forEach(doc => {
-                    const material = doc.data();
-                    dados.push({
-                        Nome: material.nome,
-                        Categoria: categorias[material.categoria] || material.categoria,
-                        Quantidade: material.quantidade,
-                        "Quantidade Mínima": material.quantidadeMinima,
-                        "Marcado para Compra": material.comprar ? "Sim" : "Não",
-                        "Última Modificação": material.ultimaModificacao || "N/A"
-                    });
-                });
-
-                const ws = XLSX.utils.json_to_sheet(dados);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Estoque");
-                XLSX.writeFile(wb, "Relatorio_Estoque_Odontologico.xlsx");
-                console.log("Relatório gerado com sucesso!");
-            } catch (error) {
-                console.error("Erro ao gerar relatório:", error);
-                alert("Erro ao gerar relatório: " + error.message);
-            }
-        }
-
-        function logout() {
-            auth.signOut().then(() => {
-                console.log('Usuário desconectado com sucesso.');
-            }).catch(error => {
-                console.error('Erro ao desconectar:', error);
-                alert('Falha ao desconectar: ' + error.message);
-            });
-        }
-
-        document.getElementById('materialForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const nome = document.getElementById('nome').value;
-            const quantidade = parseInt(document.getElementById('quantidade').value);
-            const quantidadeMinima = parseInt(document.getElementById('quantidadeMinima').value);
-            const categoria = document.getElementById('categoria').value;
-            const arquivo = document.getElementById('imagem').files[0];
-
-            const material = {
-                nome: nome,
-                quantidade: quantidade,
-                quantidadeMinima: quantidadeMinima,
-                categoria: categoria,
-                imagem: null,
-                ultimaModificacao: new Date().toLocaleString('pt-BR'),
-                comprar: false
+            // Firebase configuration (replace with your actual config from __firebase_config if available)
+            const firebaseConfig = {
+                apiKey: "AIzaSyCDxJW_o6y-hmisQHOHVYPVJ8cag6hrKv0",
+                authDomain: "estoque-prime.firebaseapp.com",
+                projectId: "estoque-prime",
+                storageBucket: "estoque-prime.firebasestorage.app",
+                messagingSenderId: "1092019247496",
+                appId: "1:1092019247496:web:92076afda68ccbc23d823d",
+                measurementId: "G-04D19CYTTQ"
             };
 
-            if (arquivo) {
-                try {
-                    const dataURL = await converterParaDataURL(arquivo);
-                    const tamanhoBytes = (dataURL.length * 3) / 4 - 2;
-                    if (tamanhoBytes > 500000) {
-                        alert('A imagem é muito grande! Use uma imagem menor (menos de 500 KB).');
-                        return;
+            // Initialize Firebase
+            const app = firebase.initializeApp(firebaseConfig);
+            const db = firebase.firestore();
+            const auth = firebase.auth();
+
+            // Category mapping for display purposes
+            const categorias = {
+                biosseguranca: "Biossegurança",
+                brocas: "Brocas",
+                cirurgia: "Cirurgia",
+                clinica_geral: "Clínica Geral",
+                dentistica: "Dentística",
+                endodontia: "Endodontia",
+                instrumental: "Instrumental",
+                material_limpeza: "Material de Limpeza",
+                ortodontia: "Ortodontia",
+                protese: "Prótese",
+                implantodontia: "Implantodontia"
+            };
+
+            let materiaisFiltrados = [];
+            let termoDeBusca = "";
+
+            /**
+             * Displays a custom modal for alerts or confirmations.
+             * @param {string} title - The title of the modal.
+             * @param {string} message - The message content of the modal.
+             * @param {'alert'|'confirm'} type - The type of modal ('alert' for OK button, 'confirm' for Yes/No buttons).
+             * @returns {Promise<boolean>} - Resolves to true if 'Yes' is clicked for confirm, false otherwise.
+             */
+            function showCustomModal(title, message, type) {
+                return new Promise((resolve) => {
+                    const modal = document.getElementById('customModal');
+                    const modalTitle = document.getElementById('modalTitle');
+                    const modalMessage = document.getElementById('modalMessage');
+                    const modalActions = document.getElementById('modalActions');
+
+                    modalTitle.textContent = title;
+                    modalMessage.textContent = message;
+                    modalActions.innerHTML = ''; // Clear previous buttons
+
+                    if (type === 'alert') {
+                        const okButton = document.createElement('button');
+                        okButton.textContent = 'OK';
+                        okButton.className = 'bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition duration-200 ease-in-out transform hover:scale-105';
+                        okButton.onclick = () => {
+                            modal.classList.add('hidden');
+                            resolve(true); // Always resolve true for alert
+                        };
+                        modalActions.appendChild(okButton);
+                    } else if (type === 'confirm') {
+                        const yesButton = document.createElement('button');
+                        yesButton.textContent = 'Sim';
+                        yesButton.className = 'bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200 ease-in-out transform hover:scale-105';
+                        yesButton.onclick = () => {
+                            modal.classList.add('hidden');
+                            resolve(true);
+                        };
+                        modalActions.appendChild(yesButton);
+
+                        const noButton = document.createElement('button');
+                        noButton.textContent = 'Não';
+                        noButton.className = 'bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-200 ease-in-out transform hover:scale-105';
+                        noButton.onclick = () => {
+                            modal.classList.add('hidden');
+                            resolve(false);
+                        };
+                        modalActions.appendChild(noButton);
                     }
-                    material.imagem = dataURL;
+
+                    modal.classList.remove('hidden');
+                });
+            }
+
+            /**
+             * Converts a File object to a Data URL (base64 string).
+             * @param {File} file - The file to convert.
+             * @returns {Promise<string>} - A promise that resolves with the Data URL.
+             */
+            function converterParaDataURL(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = error => reject(error);
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            /**
+             * Loads materials from Firestore, filters them if a search term is present,
+             * and then updates the displayed list.
+             */
+            async function carregarMateriais() {
+                try {
+                    const snapshot = await db.collection('materiais').get();
+                    materiaisFiltrados = [];
+                    snapshot.forEach(doc => materiaisFiltrados.push(doc.data()));
+
+                    if (termoDeBusca !== "") {
+                        materiaisFiltrados = materiaisFiltrados.filter(m =>
+                            m.nome.toLowerCase().includes(termoDeBusca)
+                        );
+                    }
+
+                    atualizarLista(materiaisFiltrados);
                 } catch (error) {
-                    console.error('Erro ao converter imagem:', error);
-                    alert('Falha ao processar a imagem: ' + error.message);
-                    return;
+                    console.error("Erro ao carregar materiais:", error);
+                    showCustomModal("Erro", "Erro ao carregar materiais: " + error.message, 'alert');
                 }
             }
 
-            await salvarMaterial(material);
-            await carregarMateriais();
-            fecharModal();
-        });
+            /**
+             * Saves a material object to Firestore.
+             * @param {object} material - The material object to save.
+             */
+            async function salvarMaterial(material) {
+                try {
+                    await db.collection('materiais').doc(material.nome).set(material);
+                    console.log('Material salvo com sucesso:', material);
+                } catch (error) {
+                    console.error('Erro ao salvar material:', error);
+                    showCustomModal("Erro", 'Erro ao salvar material: ' + error.message, 'alert');
+                }
+            }
 
-        async function alterarQuantidade(nome, valor) {
-            const material = materiaisFiltrados.find(m => m.nome === nome);
-            if (material && material.quantidade + valor >= 0) {
-                material.quantidade += valor;
-                material.ultimaModificacao = new Date().toLocaleString('pt-BR');
+            /**
+             * Updates the material list display based on the provided materials array.
+             * Groups materials by category and allows collapsing/expanding categories.
+             * @param {Array<object>} materiais - An array of material objects to display.
+             */
+            function atualizarLista(materiais) {
+                const lista = document.getElementById('materialList');
+                lista.innerHTML = '';
+                const materiaisPorCategoria = {};
+
+                // Group materials by category
+                materiais.forEach(material => {
+                    if (!materiaisPorCategoria[material.categoria]) {
+                        materiaisPorCategoria[material.categoria] = [];
+                    }
+                    materiaisPorCategoria[material.categoria].push(material);
+                });
+
+                // Load collapsed state from localStorage
+                const categoriasRecolhidas = JSON.parse(localStorage.getItem('categoriasRecolhidas')) || {};
+
+                Object.keys(materiaisPorCategoria).sort().forEach(categoria => {
+                    const section = document.createElement('div');
+                    section.className = 'category-section mb-4';
+
+                    const title = document.createElement('h3');
+                    title.className = 'category-title bg-primary-dark text-white p-3 rounded-lg text-lg font-semibold cursor-pointer relative transition duration-300 ease-in-out hover:bg-opacity-90 flex justify-between items-center';
+                    title.textContent = categorias[categoria] || categoria;
+
+                    // Check if the category was collapsed
+                    const estaRecolhida = categoriasRecolhidas[categoria] === true;
+                    if (estaRecolhida) {
+                        title.classList.add('collapsed');
+                    }
+
+                    // Add expand/collapse icon
+                    const icon = document.createElement('span');
+                    icon.className = 'ml-2 text-xl transform transition-transform duration-300';
+                    icon.textContent = estaRecolhida ? '▶' : '▼';
+                    title.appendChild(icon);
+
+                    title.addEventListener('click', () => {
+                        const items = section.querySelector('.category-items');
+                        items.classList.toggle('hidden'); // Use hidden class for display toggle
+                        title.classList.toggle('collapsed');
+                        icon.textContent = title.classList.contains('collapsed') ? '▶' : '▼';
+
+                        // Update state in localStorage
+                        categoriasRecolhidas[categoria] = title.classList.contains('collapsed');
+                        localStorage.setItem('categoriasRecolhidas', JSON.stringify(categoriasRecolhidas));
+                    });
+
+                    section.appendChild(title);
+
+                    const itemsContainer = document.createElement('div');
+                    itemsContainer.className = 'category-items space-y-3 mt-3';
+                    if (estaRecolhida) {
+                        itemsContainer.classList.add('hidden'); // Hide items if collapsed
+                    }
+
+                    materiaisPorCategoria[categoria].sort((a, b) => a.nome.localeCompare(b.nome)).forEach(material => {
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = `material-item flex flex-col md:flex-row items-start md:items-center p-4 border border-gray-200 rounded-lg bg-white shadow-sm transition duration-200 ease-in-out hover:bg-gray-50 ${material.quantidade < material.quantidadeMinima ? 'bg-red-50 border-red-200' : ''}`;
+
+                        if (material.imagem) {
+                            const img = document.createElement('img');
+                            img.src = material.imagem;
+                            img.alt = `Imagem de ${material.nome}`;
+                            img.className = 'w-full md:w-48 h-auto rounded-md mr-0 md:mr-4 mb-4 md:mb-0 object-cover';
+                            img.onerror = () => {
+                                console.error('Erro ao carregar imagem:', material.imagem);
+                                img.style.display = 'none'; // Hide broken image
+                            };
+                            itemDiv.appendChild(img);
+                        }
+
+                        const info = document.createElement('div');
+                        info.className = 'material-info flex-grow mr-0 md:mr-4 mb-4 md:mb-0';
+                        info.innerHTML = `
+                            <strong class="text-xl font-semibold text-secondary-dark">${material.nome}</strong>
+                            <span class="text-lg text-gray-700 ml-2">Quantidade: ${material.quantidade}</span><br>
+                            <span class="text-sm text-gray-500 mt-1 block">Mínimo: ${material.quantidadeMinima} | Última modificação: ${material.ultimaModificacao || 'N/A'}</span>
+                        `;
+                        itemDiv.appendChild(info);
+
+                        const controls = document.createElement('div');
+                        controls.className = 'controls flex flex-col md:flex-row items-start md:items-center gap-3 w-full md:w-auto';
+
+                        const quantidadeBtns = document.createElement('div');
+                        quantidadeBtns.className = 'quantidade-btns flex gap-2';
+                        const btnAdd = document.createElement('button');
+                        btnAdd.textContent = '+';
+                        btnAdd.className = 'bg-primary-dark text-white p-2 rounded-lg text-lg font-bold hover:bg-opacity-90 transition duration-200 transform hover:scale-105';
+                        btnAdd.onclick = () => alterarQuantidade(material.nome, 1);
+                        quantidadeBtns.appendChild(btnAdd);
+
+                        const btnRemove = document.createElement('button');
+                        btnRemove.textContent = '-';
+                        btnRemove.className = 'bg-primary-dark text-white p-2 rounded-lg text-lg font-bold hover:bg-opacity-90 transition duration-200 transform hover:scale-105';
+                        btnRemove.onclick = () => alterarQuantidade(material.nome, -1);
+                        quantidadeBtns.appendChild(btnRemove);
+                        controls.appendChild(quantidadeBtns);
+
+                        const acaoBtns = document.createElement('div');
+                        acaoBtns.className = 'acao-btns flex gap-2';
+                        const btnEdit = document.createElement('button');
+                        btnEdit.textContent = 'Editar';
+                        btnEdit.className = 'bg-secondary-dark text-white py-2 px-3 rounded-lg text-sm hover:bg-opacity-90 transition duration-200 transform hover:scale-105';
+                        btnEdit.onclick = () => abrirModalEditar(material.nome);
+                        acaoBtns.appendChild(btnEdit);
+
+                        const btnDelete = document.createElement('button');
+                        btnDelete.textContent = 'Excluir';
+                        btnDelete.className = 'bg-red-500 text-white py-2 px-3 rounded-lg text-sm hover:bg-red-600 transition duration-200 transform hover:scale-105';
+                        btnDelete.onclick = () => confirmarExclusao(material.nome);
+                        acaoBtns.appendChild(btnDelete);
+                        controls.appendChild(acaoBtns);
+
+                        const btnComprar = document.createElement('button');
+                        btnComprar.textContent = 'Comprar';
+                        btnComprar.className = `comprar-btn py-2 px-4 rounded-lg font-semibold transition duration-200 transform hover:scale-105 ${material.comprar ? 'bg-primary-dark text-white hover:bg-opacity-90' : 'bg-light-neutral text-secondary-dark hover:bg-opacity-90'}`;
+                        btnComprar.onclick = () => toggleComprar(material.nome);
+                        controls.appendChild(btnComprar);
+
+                        itemDiv.appendChild(controls);
+                        itemsContainer.appendChild(itemDiv);
+                    });
+
+                    section.appendChild(itemsContainer);
+                    lista.appendChild(section);
+                });
+            }
+
+            /**
+             * Opens the add new material modal.
+             */
+            function abrirModal() {
+                document.getElementById('cadastroModal').classList.remove('hidden');
+            }
+
+            /**
+             * Closes the add new material modal and resets the form.
+             */
+            function fecharModal() {
+                document.getElementById('cadastroModal').classList.add('hidden');
+                document.getElementById('materialForm').reset();
+            }
+
+            /**
+             * Opens the edit material modal and populates it with existing material data.
+             * @param {string} nome - The name of the material to edit.
+             */
+            function abrirModalEditar(nome) {
+                const material = materiaisFiltrados.find(m => m.nome === nome);
+                if (material) {
+                    document.getElementById('editNome').value = material.nome;
+                    document.getElementById('originalNome').value = material.nome; // Store original name
+                    document.getElementById('editCategoria').value = material.categoria;
+                    document.getElementById('editQuantidadeMinima').value = material.quantidadeMinima;
+                    document.getElementById('editarModal').classList.remove('hidden');
+                } else {
+                    showCustomModal("Erro", "Material não encontrado para edição.", 'alert');
+                }
+            }
+
+            /**
+             * Closes the edit material modal and resets the form.
+             */
+            function fecharModalEditar() {
+                document.getElementById('editarModal').classList.add('hidden');
+                document.getElementById('editarForm').reset();
+            }
+
+            // Event listener for editing material form submission
+            document.getElementById('editarForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const originalNome = document.getElementById('originalNome').value;
+                const newNome = document.getElementById('editNome').value.trim();
+                const novaCategoria = document.getElementById('editCategoria').value;
+                const novaQuantidadeMinima = parseInt(document.getElementById('editQuantidadeMinima').value);
+                const arquivo = document.getElementById('editImagem').files[0];
+
+                try {
+                    let materialToUpdate = materiaisFiltrados.find(m => m.nome === originalNome);
+                    if (!materialToUpdate) {
+                        showCustomModal("Erro", "Material original não encontrado.", 'alert');
+                        return;
+                    }
+
+                    let updateData = {
+                        categoria: novaCategoria,
+                        quantidadeMinima: novaQuantidadeMinima,
+                        ultimaModificacao: new Date().toLocaleString('pt-BR')
+                    };
+
+                    if (arquivo) {
+                        const dataURL = await converterParaDataURL(arquivo);
+                        const tamanhoBytes = (dataURL.length * 3) / 4 - 2; // Approximate size in bytes
+                        if (tamanhoBytes > 500000) { // 500 KB limit
+                            showCustomModal('Aviso', 'A imagem é muito grande! Use uma imagem menor (menos de 500 KB).', 'alert');
+                            return;
+                        }
+                        updateData.imagem = dataURL;
+                    }
+
+                    if (newNome !== originalNome) {
+                        // Check if new name already exists
+                        const existingDoc = await db.collection('materiais').doc(newNome).get();
+                        if (existingDoc.exists) {
+                            showCustomModal("Erro", `Já existe um material com o nome "${newNome}". Por favor, escolha outro nome.`, 'alert');
+                            return;
+                        }
+
+                        // Create new document with new name
+                        const newMaterialData = { ...materialToUpdate, ...updateData, nome: newNome };
+                        await db.collection('materiais').doc(newNome).set(newMaterialData);
+
+                        // Delete old document
+                        await db.collection('materiais').doc(originalNome).delete();
+                        console.log(`Material "${originalNome}" renomeado para "${newNome}" com sucesso!`);
+                    } else {
+                        // Update existing document if name hasn't changed
+                        await db.collection('materiais').doc(originalNome).update(updateData);
+                        console.log("Material atualizado com sucesso!");
+                    }
+
+                    fecharModalEditar();
+                    carregarMateriais();
+                } catch (error) {
+                    console.error("Erro ao atualizar material:", error);
+                    showCustomModal("Erro", "Erro ao atualizar material: " + error.message, 'alert');
+                }
+            });
+
+            /**
+             * Clears all 'comprar' (to buy) markings on materials.
+             */
+            async function limparMarcacoes() {
+                const confirmed = await showCustomModal("Confirmar", "Tem certeza de que deseja limpar todas as marcações de compra?", 'confirm');
+                if (confirmed) {
+                    try {
+                        const snapshot = await db.collection('materiais').get();
+                        const batch = db.batch();
+                        snapshot.forEach(doc => batch.update(doc.ref, { comprar: false }));
+                        await batch.commit();
+                        console.log("Marcações de compra limpas com sucesso!");
+                        carregarMateriais();
+                    } catch (error) {
+                        console.error("Erro ao limpar marcações:", error);
+                        showCustomModal("Erro", "Erro ao limpar marcações: " + error.message, 'alert');
+                    }
+                }
+            }
+
+            /**
+             * Copies the list of materials marked for purchase to the clipboard.
+             */
+            async function copiarListaCompras() {
+                try {
+                    const snapshot = await db.collection('materiais').where("comprar", "==", true).get();
+                    if (snapshot.empty) {
+                        showCustomModal("Aviso", "Nenhum item marcado para compra.", 'alert');
+                        return;
+                    }
+                    let itensPorCategoria = {};
+                    snapshot.forEach(doc => {
+                        let material = doc.data();
+                        let categoria = categorias[material.categoria] || "Outros"; // Use mapped category name
+                        if (!itensPorCategoria[categoria]) itensPorCategoria[categoria] = [];
+                        itensPorCategoria[categoria].push(material.nome + " (Qtd: " + material.quantidade + ")");
+                    });
+
+                    let listaTexto = Object.keys(itensPorCategoria).sort().map(categoria => {
+                        let itensOrdenados = itensPorCategoria[categoria].sort();
+                        return `🔹 ${categoria.toUpperCase()}\n- ${itensOrdenados.join("\n- ")}`;
+                    }).join("\n\n");
+
+                    // Use document.execCommand('copy') for better compatibility in iframes
+                    const tempTextArea = document.createElement('textarea');
+                    tempTextArea.value = listaTexto;
+                    document.body.appendChild(tempTextArea);
+                    tempTextArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempTextArea);
+
+                    showCustomModal("Sucesso", "Lista de compras copiada com sucesso!", 'alert');
+                    console.log("Lista de compras copiada:", listaTexto);
+                } catch (error) {
+                    console.error("Erro ao copiar a lista:", error);
+                    showCustomModal("Erro", "Erro ao copiar a lista: " + error.message, 'alert');
+                }
+            }
+
+            /**
+             * Initiates a search for materials based on the input field.
+             */
+            async function buscarMateriais() {
+                termoDeBusca = document.getElementById('searchInput').value.toLowerCase().trim();
+                carregarMateriais();
+            }
+
+            /**
+             * Generates an Excel report of all materials.
+             */
+            async function gerarRelatorio() {
+                try {
+                    const snapshot = await db.collection('materiais').get();
+                    if (snapshot.empty) {
+                        showCustomModal("Aviso", "Nenhum material encontrado para gerar o relatório.", 'alert');
+                        return;
+                    }
+
+                    const dados = [];
+                    snapshot.forEach(doc => {
+                        const material = doc.data();
+                        dados.push({
+                            Nome: material.nome,
+                            Categoria: categorias[material.categoria] || material.categoria,
+                            Quantidade: material.quantidade,
+                            "Quantidade Mínima": material.quantidadeMinima,
+                            "Marcado para Compra": material.comprar ? "Sim" : "Não",
+                            "Última Modificação": material.ultimaModificacao || "N/A"
+                        });
+                    });
+
+                    const ws = XLSX.utils.json_to_sheet(dados);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "Estoque");
+                    XLSX.writeFile(wb, "Relatorio_Estoque_Odontologico.xlsx");
+                    console.log("Relatório gerado com sucesso!");
+                } catch (error) {
+                    console.error("Erro ao gerar relatório:", error);
+                    showCustomModal("Erro", "Erro ao gerar relatório: " + error.message, 'alert');
+                }
+            }
+
+            /**
+             * Handles user logout.
+             */
+            function logout() {
+                auth.signOut().then(() => {
+                    console.log('Usuário desconectado com sucesso.');
+                }).catch(error => {
+                    console.error('Erro ao desconectar:', error);
+                    showCustomModal("Erro", 'Falha ao desconectar: ' + error.message, 'alert');
+                });
+            }
+
+            // Event listener for adding new material form submission
+            document.getElementById('materialForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const nome = document.getElementById('nome').value.trim();
+                const quantidade = parseInt(document.getElementById('quantidade').value);
+                const quantidadeMinima = parseInt(document.getElementById('quantidadeMinima').value);
+                const categoria = document.getElementById('categoria').value;
+                const arquivo = document.getElementById('imagem').files[0];
+
+                // Check if material with this name already exists
+                const existingDoc = await db.collection('materiais').doc(nome).get();
+                if (existingDoc.exists) {
+                    showCustomModal("Erro", `Já existe um material com o nome "${nome}". Por favor, escolha outro nome.`, 'alert');
+                    return;
+                }
+
+                const material = {
+                    nome: nome,
+                    quantidade: quantidade,
+                    quantidadeMinima: quantidadeMinima,
+                    categoria: categoria,
+                    imagem: null,
+                    ultimaModificacao: new Date().toLocaleString('pt-BR'),
+                    comprar: false
+                };
+
+                if (arquivo) {
+                    try {
+                        const dataURL = await converterParaDataURL(arquivo);
+                        const tamanhoBytes = (dataURL.length * 3) / 4 - 2; // Approximate size in bytes
+                        if (tamanhoBytes > 500000) { // 500 KB limit
+                            showCustomModal('Aviso', 'A imagem é muito grande! Use uma imagem menor (menos de 500 KB).', 'alert');
+                            return;
+                        }
+                        material.imagem = dataURL;
+                    } catch (error) {
+                        console.error('Erro ao converter imagem:', error);
+                        showCustomModal('Erro', 'Falha ao processar a imagem: ' + error.message, 'alert');
+                        return;
+                    }
+                }
+
                 await salvarMaterial(material);
                 await carregarMateriais();
+                fecharModal();
+            });
+
+            /**
+             * Alters the quantity of a material.
+             * @param {string} nome - The name of the material.
+             * @param {number} valor - The amount to add or subtract from the quantity.
+             */
+            async function alterarQuantidade(nome, valor) {
+                const material = materiaisFiltrados.find(m => m.nome === nome);
+                if (material && material.quantidade + valor >= 0) {
+                    material.quantidade += valor;
+                    material.ultimaModificacao = new Date().toLocaleString('pt-BR');
+                    await salvarMaterial(material);
+                    await carregarMateriais();
+                } else if (material && material.quantidade + valor < 0) {
+                    showCustomModal('Aviso', 'A quantidade não pode ser negativa.', 'alert');
+                }
             }
-        }
 
-        async function confirmarExclusao(nome) {
-            if (confirm(`Deseja realmente excluir ${nome}?`)) {
-                await db.collection('materiais').doc(nome).delete();
-                await carregarMateriais();
+            /**
+             * Confirms and then deletes a material.
+             * @param {string} nome - The name of the material to delete.
+             */
+            async function confirmarExclusao(nome) {
+                const confirmed = await showCustomModal("Confirmar Exclusão", `Deseja realmente excluir ${nome}?`, 'confirm');
+                if (confirmed) {
+                    try {
+                        await db.collection('materiais').doc(nome).delete();
+                        await carregarMateriais();
+                    } catch (error) {
+                        console.error("Erro ao excluir material:", error);
+                        showCustomModal("Erro", "Erro ao excluir material: " + error.message, 'alert');
+                    }
+                }
             }
-        }
 
-        async function toggleComprar(nome) {
-            const material = materiaisFiltrados.find(m => m.nome === nome);
-            if (material) {
-                material.comprar = !material.comprar;
-                await salvarMaterial(material);
-                await carregarMateriais();
+            /**
+             * Toggles the 'comprar' (to buy) status of a material.
+             * @param {string} nome - The name of the material.
+             */
+            async function toggleComprar(nome) {
+                const material = materiaisFiltrados.find(m => m.nome === nome);
+                if (material) {
+                    material.comprar = !material.comprar;
+                    await salvarMaterial(material);
+                    await carregarMateriais();
+                }
             }
-        }
 
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            // Event listener for login form submission
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
 
-            auth.signInWithEmailAndPassword(email, password)
-                .then(() => {
+                auth.signInWithEmailAndPassword(email, password)
+                    .then(() => {
+                        document.getElementById('loginContainer').classList.add('hidden');
+                        document.getElementById('mainContainer').classList.remove('hidden');
+                        carregarMateriais();
+                    })
+                    .catch(error => {
+                        console.error('Erro ao autenticar:', error);
+                        showCustomModal("Erro de Autenticação", 'Falha ao autenticar: ' + error.message, 'alert');
+                    });
+            });
+
+            // Firebase authentication state change listener
+            auth.onAuthStateChanged(user => {
+                if (user) {
                     document.getElementById('loginContainer').classList.add('hidden');
                     document.getElementById('mainContainer').classList.remove('hidden');
                     carregarMateriais();
-                })
-                .catch(error => {
-                    console.error('Erro ao autenticar:', error);
-                    alert('Falha ao autenticar: ' + error.message);
-                });
-        });
+                } else {
+                    document.getElementById('loginContainer').classList.remove('hidden');
+                    document.getElementById('mainContainer').classList.add('hidden');
+                }
+            });
 
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                document.getElementById('loginContainer').classList.add('hidden');
-                document.getElementById('mainContainer').classList.remove('hidden');
-                carregarMateriais();
-            } else {
-                document.getElementById('loginContainer').classList.remove('hidden');
-                document.getElementById('mainContainer').classList.add('hidden');
-            }
-        });
+            // Event Listeners for UI interactions
+            document.getElementById('btnAbrirModal').addEventListener('click', abrirModal);
+            document.getElementById('btnFecharModal').addEventListener('click', fecharModal);
+            document.getElementById('btnFecharModalEditar').addEventListener('click', fecharModalEditar);
+            document.getElementById('btnLogout').addEventListener('click', logout);
+            document.getElementById('btnLimparMarcacoes').addEventListener('click', limparMarcacoes);
+            document.getElementById('btnCopiarLista').addEventListener('click', copiarListaCompras);
+            document.getElementById('btnBuscar').addEventListener('click', buscarMateriais);
+            document.getElementById('btnGerarRelatorio').addEventListener('click', gerarRelatorio);
 
-        document.getElementById('btnAbrirModal').addEventListener('click', abrirModal);
-        document.getElementById('btnFecharModal').addEventListener('click', fecharModal);
-        document.getElementById('btnFecharModalEditar').addEventListener('click', fecharModalEditar);
-        document.getElementById('btnLogout').addEventListener('click', logout);
-        document.getElementById('btnLimparMarcacoes').addEventListener('click', limparMarcacoes);
-        document.getElementById('btnCopiarLista').addEventListener('click', copiarListaCompras);
-        document.getElementById('btnBuscar').addEventListener('click', buscarMateriais);
-        document.getElementById('btnGerarRelatorio').addEventListener('click', gerarRelatorio);
-    });
+            // Event listener for Advanced Options button
+            document.getElementById('btnAdvancedOptions').addEventListener('click', function() {
+                const advancedOptions = document.getElementById('advancedOptionsContainer');
+                advancedOptions.classList.toggle('hidden');
+            });
+        });
     </script>
 </body>
 </html>
