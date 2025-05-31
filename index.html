@@ -428,36 +428,70 @@
                         const controls = document.createElement('div');
                         controls.className = 'controls flex flex-col md:flex-row items-start md:items-center gap-3 w-full md:w-auto';
 
-                        const quantidadeBtns = document.createElement('div');
-                        quantidadeBtns.className = 'quantidade-btns flex gap-2';
-                        const btnAdd = document.createElement('button');
-                        btnAdd.textContent = '+';
-                        btnAdd.className = 'bg-primary-dark text-white p-2 rounded-lg text-lg font-bold hover:bg-opacity-90 transition duration-200 transform hover:scale-105';
-                        btnAdd.onclick = () => alterarQuantidade(material.nome, 1);
-                        quantidadeBtns.appendChild(btnAdd);
-
+                        // Quantity controls: input field with increment/decrement buttons
+                        const quantityControlDiv = document.createElement('div');
+                        quantityControlDiv.className = 'flex items-center gap-1';
                         const btnRemove = document.createElement('button');
                         btnRemove.textContent = '-';
-                        btnRemove.className = 'bg-primary-dark text-white p-2 rounded-lg text-lg font-bold hover:bg-opacity-90 transition duration-200 transform hover:scale-105';
+                        btnRemove.className = 'bg-primary-dark text-white p-2 rounded-lg text-lg font-bold hover:bg-opacity-90 transition duration-200 transform hover:scale-105 w-8 h-8 flex items-center justify-center';
                         btnRemove.onclick = () => alterarQuantidade(material.nome, -1);
-                        quantidadeBtns.appendChild(btnRemove);
-                        controls.appendChild(quantidadeBtns);
+                        quantityControlDiv.appendChild(btnRemove);
 
-                        const acaoBtns = document.createElement('div');
-                        acaoBtns.className = 'acao-btns flex gap-2';
+                        const quantityInput = document.createElement('input');
+                        quantityInput.type = 'number';
+                        quantityInput.value = material.quantidade;
+                        quantityInput.min = '0';
+                        quantityInput.className = 'w-16 text-center border border-gray-300 rounded-lg py-1 px-2 text-lg focus:ring-primary-dark focus:border-primary-dark';
+                        quantityInput.onchange = (e) => alterarQuantidadeDireta(material.nome, parseInt(e.target.value));
+                        quantityControlDiv.appendChild(quantityInput);
+
+                        const btnAdd = document.createElement('button');
+                        btnAdd.textContent = '+';
+                        btnAdd.className = 'bg-primary-dark text-white p-2 rounded-lg text-lg font-bold hover:bg-opacity-90 transition duration-200 transform hover:scale-105 w-8 h-8 flex items-center justify-center';
+                        btnAdd.onclick = () => alterarQuantidade(material.nome, 1);
+                        quantityControlDiv.appendChild(btnAdd);
+                        controls.appendChild(quantityControlDiv);
+
+                        // Options dropdown for Edit/Delete
+                        const optionsDropdownDiv = document.createElement('div');
+                        optionsDropdownDiv.className = 'relative inline-block text-left';
+
+                        const btnOptions = document.createElement('button');
+                        btnOptions.textContent = 'Opções';
+                        btnOptions.className = 'bg-secondary-dark text-white py-2 px-3 rounded-lg text-sm hover:bg-opacity-90 transition duration-200 transform hover:scale-105';
+                        btnOptions.onclick = (e) => {
+                            e.stopPropagation(); // Prevent closing immediately if clicking on button
+                            const dropdownContent = optionsDropdownDiv.querySelector('.dropdown-content');
+                            dropdownContent.classList.toggle('hidden');
+                        };
+                        optionsDropdownDiv.appendChild(btnOptions);
+
+                        const dropdownContent = document.createElement('div');
+                        dropdownContent.className = 'dropdown-content absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-10';
+                        dropdownContent.onclick = (e) => e.stopPropagation(); // Prevent closing when clicking inside dropdown
+
                         const btnEdit = document.createElement('button');
                         btnEdit.textContent = 'Editar';
-                        btnEdit.className = 'bg-secondary-dark text-white py-2 px-3 rounded-lg text-sm hover:bg-opacity-90 transition duration-200 transform hover:scale-105';
-                        btnEdit.onclick = () => abrirModalEditar(material.nome);
-                        acaoBtns.appendChild(btnEdit);
+                        btnEdit.className = 'block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-secondary-dark rounded-t-md';
+                        btnEdit.onclick = () => {
+                            abrirModalEditar(material.nome);
+                            dropdownContent.classList.add('hidden'); // Hide dropdown after click
+                        };
+                        dropdownContent.appendChild(btnEdit);
 
                         const btnDelete = document.createElement('button');
                         btnDelete.textContent = 'Excluir';
-                        btnDelete.className = 'bg-red-500 text-white py-2 px-3 rounded-lg text-sm hover:bg-red-600 transition duration-200 transform hover:scale-105';
-                        btnDelete.onclick = () => confirmarExclusao(material.nome);
-                        acaoBtns.appendChild(btnDelete);
-                        controls.appendChild(acaoBtns);
+                        btnDelete.className = 'block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-100 hover:text-red-800 rounded-b-md';
+                        btnDelete.onclick = () => {
+                            confirmarExclusao(material.nome);
+                            dropdownContent.classList.add('hidden'); // Hide dropdown after click
+                        };
+                        dropdownContent.appendChild(btnDelete);
 
+                        optionsDropdownDiv.appendChild(dropdownContent);
+                        controls.appendChild(optionsDropdownDiv);
+
+                        // Comprar button remains prominent
                         const btnComprar = document.createElement('button');
                         btnComprar.textContent = 'Comprar';
                         btnComprar.className = `comprar-btn py-2 px-4 rounded-lg font-semibold transition duration-200 transform hover:scale-105 ${material.comprar ? 'bg-primary-dark text-white hover:bg-opacity-90' : 'bg-light-neutral text-secondary-dark hover:bg-opacity-90'}`;
@@ -736,7 +770,7 @@
             });
 
             /**
-             * Alters the quantity of a material.
+             * Alters the quantity of a material by a given value.
              * @param {string} nome - The name of the material.
              * @param {number} valor - The amount to add or subtract from the quantity.
              */
@@ -748,6 +782,23 @@
                     await salvarMaterial(material);
                     await carregarMateriais();
                 } else if (material && material.quantidade + valor < 0) {
+                    showCustomModal('Aviso', 'A quantidade não pode ser negativa.', 'alert');
+                }
+            }
+
+            /**
+             * Alters the quantity of a material directly from an input field.
+             * @param {string} nome - The name of the material.
+             * @param {number} novaQuantidade - The new quantity value.
+             */
+            async function alterarQuantidadeDireta(nome, novaQuantidade) {
+                const material = materiaisFiltrados.find(m => m.nome === nome);
+                if (material && novaQuantidade >= 0) {
+                    material.quantidade = novaQuantidade;
+                    material.ultimaModificacao = new Date().toLocaleString('pt-BR');
+                    await salvarMaterial(material);
+                    await carregarMateriais();
+                } else if (material && novaQuantidade < 0) {
                     showCustomModal('Aviso', 'A quantidade não pode ser negativa.', 'alert');
                 }
             }
@@ -826,6 +877,15 @@
             document.getElementById('btnAdvancedOptions').addEventListener('click', function() {
                 const advancedOptions = document.getElementById('advancedOptionsContainer');
                 advancedOptions.classList.toggle('hidden');
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(event) {
+                document.querySelectorAll('.dropdown-content').forEach(dropdown => {
+                    if (!dropdown.classList.contains('hidden') && !dropdown.parentElement.contains(event.target)) {
+                        dropdown.classList.add('hidden');
+                    }
+                });
             });
         });
     </script>
