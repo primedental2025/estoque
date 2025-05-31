@@ -651,18 +651,50 @@
                         return `🔹 ${categoria.toUpperCase()}\n- ${itensOrdenados.join("\n- ")}`;
                     }).join("\n\n");
 
-                    // Use document.execCommand('copy') for better compatibility in iframes
+                    // Attempt to use navigator.clipboard.writeText first (modern approach)
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        try {
+                            await navigator.clipboard.writeText(listaTexto);
+                            showCustomModal("Sucesso", "Lista de compras copiada com sucesso!", 'alert');
+                            console.log("Lista de compras copiada (navigator.clipboard):", listaTexto);
+                            return; // Exit if successful
+                        } catch (err) {
+                            console.warn('Falha ao usar navigator.clipboard.writeText:', err);
+                            // Fallback to execCommand if navigator.clipboard fails
+                        }
+                    }
+
+                    // Fallback to document.execCommand('copy') for broader compatibility, especially iOS
                     const tempTextArea = document.createElement('textarea');
                     tempTextArea.value = listaTexto;
+                    // Make the textarea invisible and outside the viewport
+                    tempTextArea.style.position = 'absolute';
+                    tempTextArea.style.left = '-9999px';
+                    tempTextArea.style.top = '0';
                     document.body.appendChild(tempTextArea);
-                    tempTextArea.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(tempTextArea);
+                    tempTextArea.focus(); // Focus the textarea
+                    tempTextArea.select(); // Select the text
+                    // For iOS, setSelectionRange might be more reliable
+                    tempTextArea.setSelectionRange(0, tempTextArea.value.length);
 
-                    showCustomModal("Sucesso", "Lista de compras copiada com sucesso!", 'alert');
-                    console.log("Lista de compras copiada:", listaTexto);
+                    try {
+                        const successful = document.execCommand('copy');
+                        if (successful) {
+                            showCustomModal("Sucesso", "Lista de compras copiada com sucesso!", 'alert');
+                            console.log("Lista de compras copiada (document.execCommand):", listaTexto);
+                        } else {
+                            showCustomModal("Erro", "Não foi possível copiar a lista. Por favor, tente manualmente.", 'alert');
+                            console.error("Falha ao copiar usando document.execCommand.");
+                        }
+                    } catch (err) {
+                        showCustomModal("Erro", "Não foi possível copiar a lista. Por favor, tente manualmente.", 'alert');
+                        console.error("Erro ao executar document.execCommand:", err);
+                    } finally {
+                        document.body.removeChild(tempTextArea);
+                    }
+
                 } catch (error) {
-                    console.error("Erro ao copiar a lista:", error);
+                    console.error("Erro geral ao copiar a lista:", error);
                     showCustomModal("Erro", "Erro ao copiar a lista: " + error.message, 'alert');
                 }
             }
