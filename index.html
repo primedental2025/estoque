@@ -242,10 +242,11 @@
              * Displays a custom modal for alerts or confirmations.
              * @param {string} title - The title of the modal.
              * @param {string} message - The message content of the modal.
-             * @param {'alert'|'confirm'} type - The type of modal ('alert' for OK button, 'confirm' for Yes/No buttons).
-             * @returns {Promise<boolean>} - Resolves to true if 'Yes' is clicked for confirm, false otherwise.
+             * @param {'alert'|'confirm'|'copy'} type - The type of modal ('alert' for OK button, 'confirm' for Yes/No buttons, 'copy' for text to be manually copied).
+             * @param {string} [copyText=''] - The text to be displayed for manual copying (only for 'copy' type).
+             * @returns {Promise<boolean>} - Resolves to true if 'Yes'/'OK' is clicked, false otherwise.
              */
-            function showCustomModal(title, message, type) {
+            function showCustomModal(title, message, type, copyText = '') {
                 return new Promise((resolve) => {
                     const modal = document.getElementById('customModal');
                     const modalTitle = document.getElementById('modalTitle');
@@ -253,19 +254,46 @@
                     const modalActions = document.getElementById('modalActions');
 
                     modalTitle.textContent = title;
-                    modalMessage.textContent = message;
+                    modalMessage.innerHTML = ''; // Clear previous message content
                     modalActions.innerHTML = ''; // Clear previous buttons
 
-                    if (type === 'alert') {
+                    if (type === 'copy') {
+                        const textArea = document.createElement('textarea');
+                        textArea.value = copyText;
+                        textArea.readOnly = true;
+                        textArea.className = 'w-full h-32 p-2 border border-gray-300 rounded-lg resize-none mb-4 font-mono text-sm';
+                        modalMessage.appendChild(document.createTextNode(message)); // Add message before textarea
+                        modalMessage.appendChild(document.createElement('br'));
+                        modalMessage.appendChild(document.createElement('br'));
+                        modalMessage.appendChild(textArea);
+
+                        const closeButton = document.createElement('button');
+                        closeButton.textContent = 'Fechar';
+                        closeButton.className = 'bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition duration-200 ease-in-out transform hover:scale-105';
+                        closeButton.onclick = () => {
+                            modal.classList.add('hidden');
+                            resolve(false); // Resolve false as it's not a confirmation
+                        };
+                        modalActions.appendChild(closeButton);
+
+                        // Select text automatically for easier copying (works on most devices)
+                        textArea.focus();
+                        textArea.select();
+                        // For iOS, setSelectionRange might be more reliable after select()
+                        textArea.setSelectionRange(0, textArea.value.length);
+
+                    } else if (type === 'alert') {
+                        modalMessage.textContent = message;
                         const okButton = document.createElement('button');
                         okButton.textContent = 'OK';
                         okButton.className = 'bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition duration-200 ease-in-out transform hover:scale-105';
                         okButton.onclick = () => {
                             modal.classList.add('hidden');
-                            resolve(true); // Always resolve true for alert
+                            resolve(true);
                         };
                         modalActions.appendChild(okButton);
                     } else if (type === 'confirm') {
+                        modalMessage.textContent = message;
                         const yesButton = document.createElement('button');
                         yesButton.textContent = 'Sim';
                         yesButton.className = 'bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200 ease-in-out transform hover:scale-105';
@@ -660,38 +688,12 @@
                             return; // Exit if successful
                         } catch (err) {
                             console.warn('Falha ao usar navigator.clipboard.writeText:', err);
-                            // Fallback to execCommand if navigator.clipboard fails
+                            // Fallback to custom modal if navigator.clipboard fails
                         }
                     }
 
-                    // Fallback to document.execCommand('copy') for broader compatibility, especially iOS
-                    const tempTextArea = document.createElement('textarea');
-                    tempTextArea.value = listaTexto;
-                    // Make the textarea invisible and outside the viewport
-                    tempTextArea.style.position = 'absolute';
-                    tempTextArea.style.left = '-9999px';
-                    tempTextArea.style.top = '0';
-                    document.body.appendChild(tempTextArea);
-                    tempTextArea.focus(); // Focus the textarea
-                    tempTextArea.select(); // Select the text
-                    // For iOS, setSelectionRange might be more reliable
-                    tempTextArea.setSelectionRange(0, tempTextArea.value.length);
-
-                    try {
-                        const successful = document.execCommand('copy');
-                        if (successful) {
-                            showCustomModal("Sucesso", "Lista de compras copiada com sucesso!", 'alert');
-                            console.log("Lista de compras copiada (document.execCommand):", listaTexto);
-                        } else {
-                            showCustomModal("Erro", "Não foi possível copiar a lista. Por favor, tente manualmente.", 'alert');
-                            console.error("Falha ao copiar usando document.execCommand.");
-                        }
-                    } catch (err) {
-                        showCustomModal("Erro", "Não foi possível copiar a lista. Por favor, tente manualmente.", 'alert');
-                        console.error("Erro ao executar document.execCommand:", err);
-                    } finally {
-                        document.body.removeChild(tempTextArea);
-                    }
+                    // Fallback to custom modal for manual copying
+                    showCustomModal("Copiar Lista de Compras", "Por favor, selecione o texto abaixo e copie-o manualmente:", 'copy', listaTexto);
 
                 } catch (error) {
                     console.error("Erro geral ao copiar a lista:", error);
