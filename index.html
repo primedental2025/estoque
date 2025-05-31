@@ -12,13 +12,13 @@
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
                     },
-                    // Custom colors from the provided palette
+                    // Nova paleta de cores pastel em tons de rosa com melhor contraste
                     colors: {
-                        'primary-dark': '#612436', // Dark purple/wine
-                        'secondary-dark': '#585856', // Dark gray
-                        'light-neutral': '#BFBFBF', // Light gray
-                        'accent-yellow': '#F7C948', // Yellow for edit actions
-                        'danger-red': '#E74C3C', // Red for delete actions
+                        'primary-dark': '#8B456C', // Rosa Profundo (Deep Rose)
+                        'secondary-light': '#F0E6F0', // Rosa Pastel Claro (Light Pastel Rose)
+                        'background-light': '#FFFFFF', // Branco puro
+                        'text-dark': '#333333', // Cinza Escuro (Dark Gray)
+                        'danger-red': '#CD5C5C', // Vermelho Suave (Muted Red)
                     }
                 }
             }
@@ -46,11 +46,11 @@
         }
     </style>
 </head>
-<body class="font-sans bg-light-neutral min-h-screen flex flex-col items-center p-4">
+<body class="font-sans bg-background-light min-h-screen flex flex-col items-center p-4">
 
     <div id="customModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
-            <h3 id="modalTitle" class="text-xl font-semibold mb-4 text-secondary-dark"></h3>
+            <h3 id="modalTitle" class="text-xl font-semibold mb-4 text-text-dark"></h3>
             <p id="modalMessage" class="mb-6 text-gray-700"></p>
             <div id="modalActions" class="flex justify-center space-x-4">
                 </div>
@@ -80,19 +80,19 @@
     <div id="mainContainer" class="container bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-6xl hidden">
         <h1 class="text-3xl md:text-4xl font-extrabold text-center text-primary-dark mb-6">Controle de Estoque Odontológico</h1>
 
-        <div class="flex flex-wrap items-center justify-center gap-3 md:gap-4 p-4 bg-light-neutral rounded-lg mb-6 shadow-sm">
+        <div class="flex flex-wrap items-center justify-center gap-3 md:gap-4 p-4 bg-secondary-light rounded-lg mb-6 shadow-sm">
             <input type="text" id="searchInput" placeholder="Buscar material..."
                    class="flex-1 min-w-[150px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark transition duration-200">
             <button id="btnBuscar"
-                    class="flex-1 min-w-[100px] bg-secondary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-secondary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
+                    class="flex-1 min-w-[100px] bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-text-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
                 Buscar
             </button>
             <button id="btnListaCompras"
-                    class="flex-1 min-w-[150px] bg-secondary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-secondary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
+                    class="flex-1 min-w-[150px] bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-text-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
                 Lista de Compras
             </button>
             <button id="btnLimparMarcacoes"
-                    class="flex-1 min-w-[150px] bg-secondary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-secondary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
+                    class="flex-1 min-w-[150px] bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-text-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
                 Limpar Marcações
             </button>
             <button id="btnAdvancedOptions"
@@ -101,13 +101,13 @@
             </button>
         </div>
 
-        <div id="advancedOptionsContainer" class="flex flex-wrap items-center justify-center gap-3 md:gap-4 p-4 bg-light-neutral rounded-lg mb-6 shadow-sm hidden">
+        <div id="advancedOptionsContainer" class="flex flex-wrap items-center justify-center gap-3 md:gap-4 p-4 bg-secondary-light rounded-lg mb-6 shadow-sm hidden">
             <button id="btnAbrirModal"
                     class="flex-1 min-w-[150px] bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-primary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
                 Adicionar Novo Item
             </button>
             <button id="btnGerarRelatorio"
-                    class="flex-1 min-w-[150px] bg-secondary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-secondary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
+                    class="flex-1 min-w-[150px] bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-text-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
                 Gerar Relatório
             </button>
             <button id="btnLogout"
@@ -124,9 +124,9 @@
             </div>
 
             <div class="w-full md:w-3/4">
-                <div id="purchaseListActionsContainer" class="flex flex-wrap items-center justify-end gap-3 p-4 bg-light-neutral rounded-lg mb-6 shadow-sm hidden">
+                <div id="purchaseListActionsContainer" class="flex flex-wrap items-center justify-end gap-3 p-4 bg-secondary-light rounded-lg mb-6 shadow-sm hidden">
                     <button id="btnCopiarLista"
-                            class="bg-secondary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-secondary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
+                            class="bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-text-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
                         Copiar Lista
                     </button>
                     <button id="btnMostrarTodos"
@@ -428,7 +428,7 @@
                 // Add "Todos" option
                 const allButton = document.createElement('button');
                 allButton.textContent = 'Todos';
-                allButton.className = `w-full text-left py-2 px-4 rounded-lg transition duration-200 ${categoriaSelecionada === 'todos' && !isShowingPurchaseList ? 'bg-primary-dark text-white' : 'bg-gray-200 text-secondary-dark hover:bg-gray-300'}`;
+                allButton.className = `w-full text-left py-2 px-4 rounded-lg transition duration-200 ${categoriaSelecionada === 'todos' && !isShowingPurchaseList ? 'bg-primary-dark text-white' : 'bg-gray-200 text-text-dark hover:bg-gray-300'}`;
                 allButton.onclick = () => {
                     categoriaSelecionada = 'todos';
                     isShowingPurchaseList = false; // Disable purchase list filter
@@ -440,7 +440,7 @@
                 Array.from(uniqueCategories).sort().forEach(catKey => {
                     const categoryButton = document.createElement('button');
                     categoryButton.textContent = categorias[catKey] || catKey;
-                    categoryButton.className = `w-full text-left py-2 px-4 rounded-lg transition duration-200 ${categoriaSelecionada === catKey && !isShowingPurchaseList ? 'bg-primary-dark text-white' : 'bg-gray-200 text-secondary-dark hover:bg-gray-300'}`;
+                    categoryButton.className = `w-full text-left py-2 px-4 rounded-lg transition duration-200 ${categoriaSelecionada === catKey && !isShowingPurchaseList ? 'bg-primary-dark text-white' : 'bg-gray-200 text-text-dark hover:bg-gray-300'}`;
                     categoryButton.onclick = () => {
                         categoriaSelecionada = catKey;
                         isShowingPurchaseList = false; // Disable purchase list filter
@@ -478,11 +478,10 @@
 
                 materiais.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(material => {
                     const itemDiv = document.createElement('div');
-                    itemDiv.className = `material-item bg-white rounded-lg shadow-md flex flex-col transition duration-200 ease-in-out hover:shadow-lg ${material.quantidade < material.quantidadeMinima ? 'border-2 border-red-400' : ''}`;
+                    itemDiv.className = `material-item bg-white rounded-lg shadow-md flex flex-col transition duration-200 ease-in-out hover:shadow-lg ${material.quantidade < material.quantidadeMinima ? 'border-2 border-danger-red' : ''}`;
 
                     // Product Image
                     const imgContainer = document.createElement('div');
-                    // Changed bg-gray-200 to bg-white
                     imgContainer.className = 'w-full h-48 bg-white flex items-center justify-center relative';
                     if (material.imagem) {
                         const img = document.createElement('img');
@@ -508,7 +507,7 @@
                     const info = document.createElement('div');
                     info.className = 'p-4 flex-grow';
                     info.innerHTML = `
-                        <h3 class="text-lg font-semibold text-secondary-dark mb-1">${material.nome}</h3>
+                        <h3 class="text-lg font-semibold text-text-dark mb-1">${material.nome}</h3>
                         <p class="text-sm text-gray-700">Categoria: ${categorias[material.categoria] || material.categoria}</p>
                         <p class="text-sm text-gray-700">Mínimo: ${material.quantidadeMinima}</p>
                         <p class="text-xs text-gray-500 mt-1">Última modificação: ${material.ultimaModificacao || 'N/A'}</p>
@@ -522,7 +521,7 @@
                     // Quantity controls
                     const quantityControlDiv = document.createElement('div');
                     quantityControlDiv.className = 'flex items-center justify-between gap-2';
-                    quantityControlDiv.innerHTML = `<span class="text-secondary-dark font-medium">Quantidade:</span>`;
+                    quantityControlDiv.innerHTML = `<span class="text-text-dark font-medium">Quantidade:</span>`;
 
                     const qtyAdjustDiv = document.createElement('div');
                     qtyAdjustDiv.className = 'flex items-center gap-1';
@@ -562,7 +561,7 @@
 
                     const btnOptions = document.createElement('button');
                     btnOptions.innerHTML = `<svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg> Opções`;
-                    btnOptions.className = 'w-full bg-gray-200 text-secondary-dark py-2 px-3 rounded-lg text-sm hover:bg-gray-300 transition duration-200 transform hover:scale-105 mt-2';
+                    btnOptions.className = 'w-full bg-gray-200 text-text-dark py-2 px-3 rounded-lg text-sm hover:bg-gray-300 transition duration-200 transform hover:scale-105 mt-2';
                     btnOptions.onclick = (e) => {
                         e.stopPropagation();
                         // Close all other dropdowns
@@ -581,7 +580,7 @@
 
                     const btnEdit = document.createElement('button');
                     btnEdit.textContent = 'Editar';
-                    btnEdit.className = 'block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-secondary-dark rounded-t-md';
+                    btnEdit.className = 'block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-text-dark rounded-t-md';
                     btnEdit.onclick = () => {
                         abrirModalEditar(material.nome);
                         dropdownContent.classList.add('hidden');
