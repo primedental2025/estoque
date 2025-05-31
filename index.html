@@ -87,9 +87,9 @@
                     class="flex-1 min-w-[100px] bg-secondary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-secondary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
                 Buscar
             </button>
-            <button id="btnCopiarLista"
+            <button id="btnListaCompras"
                     class="flex-1 min-w-[150px] bg-secondary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-secondary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
-                Copiar Lista de Compras
+                Lista de Compras
             </button>
             <button id="btnLimparMarcacoes"
                     class="flex-1 min-w-[150px] bg-secondary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-secondary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
@@ -124,6 +124,17 @@
             </div>
 
             <div class="w-full md:w-3/4">
+                <div id="purchaseListActionsContainer" class="flex flex-wrap items-center justify-end gap-3 p-4 bg-light-neutral rounded-lg mb-6 shadow-sm hidden">
+                    <button id="btnCopiarLista"
+                            class="bg-secondary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-secondary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
+                        Copiar Lista
+                    </button>
+                    <button id="btnMostrarTodos"
+                            class="bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-primary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
+                        Mostrar Todos os Itens
+                    </button>
+                </div>
+
                 <div id="materialList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     </div>
             </div>
@@ -251,6 +262,7 @@
             let materiaisFiltrados = [];
             let termoDeBusca = "";
             let categoriaSelecionada = "todos"; // New state for selected category
+            let isShowingPurchaseList = false; // New state to track if purchase list is active
 
             /**
              * Displays a custom modal for alerts or confirmations.
@@ -346,8 +358,8 @@
             }
 
             /**
-             * Loads materials from Firestore, filters them if a search term is present,
-             * and then updates the displayed list.
+             * Loads materials from Firestore, filters them based on current state,
+             * and then updates the displayed list and category sidebar.
              */
             async function carregarMateriais() {
                 try {
@@ -355,20 +367,33 @@
                     let todosMateriais = [];
                     snapshot.forEach(doc => todosMateriais.push(doc.data()));
 
-                    // Apply search filter
-                    materiaisFiltrados = todosMateriais.filter(m =>
-                        m.nome.toLowerCase().includes(termoDeBusca.toLowerCase())
-                    );
+                    let materiaisParaProcessar = todosMateriais;
 
-                    // Apply category filter
-                    if (categoriaSelecionada !== "todos") {
-                        materiaisFiltrados = materiaisFiltrados.filter(m =>
-                            m.categoria === categoriaSelecionada
+                    if (isShowingPurchaseList) {
+                        // If showing purchase list, override other filters
+                        materiaisFiltrados = todosMateriais.filter(m => m.comprar === true);
+                        // Clear search and category selection for clarity in this mode
+                        document.getElementById('searchInput').value = '';
+                        termoDeBusca = '';
+                        categoriaSelecionada = 'todos';
+                    } else {
+                        // Apply search filter
+                        materiaisFiltrados = todosMateriais.filter(m =>
+                            m.nome.toLowerCase().includes(termoDeBusca.toLowerCase())
                         );
+
+                        // Apply category filter
+                        if (categoriaSelecionada !== "todos") {
+                            materiaisFiltrados = materiaisFiltrados.filter(m =>
+                                m.categoria === categoriaSelecionada
+                            );
+                        }
                     }
 
                     atualizarLista(materiaisFiltrados);
-                    renderizarCategorias(todosMateriais); // Render categories based on all materials
+                    renderizarCategorias(todosMateriais); // Always render all categories in sidebar
+                    togglePurchaseListActionsVisibility(); // Update visibility of purchase list specific buttons
+
                 } catch (error) {
                     console.error("Erro ao carregar materiais:", error);
                     showCustomModal("Erro", "Erro ao carregar materiais: " + error.message, 'alert');
@@ -403,9 +428,10 @@
                 // Add "Todos" option
                 const allButton = document.createElement('button');
                 allButton.textContent = 'Todos';
-                allButton.className = `w-full text-left py-2 px-4 rounded-lg transition duration-200 ${categoriaSelecionada === 'todos' ? 'bg-primary-dark text-white' : 'bg-gray-200 text-secondary-dark hover:bg-gray-300'}`;
+                allButton.className = `w-full text-left py-2 px-4 rounded-lg transition duration-200 ${categoriaSelecionada === 'todos' && !isShowingPurchaseList ? 'bg-primary-dark text-white' : 'bg-gray-200 text-secondary-dark hover:bg-gray-300'}`;
                 allButton.onclick = () => {
                     categoriaSelecionada = 'todos';
+                    isShowingPurchaseList = false; // Disable purchase list filter
                     carregarMateriais();
                 };
                 categorySidebar.appendChild(allButton);
@@ -414,39 +440,45 @@
                 Array.from(uniqueCategories).sort().forEach(catKey => {
                     const categoryButton = document.createElement('button');
                     categoryButton.textContent = categorias[catKey] || catKey;
-                    categoryButton.className = `w-full text-left py-2 px-4 rounded-lg transition duration-200 ${categoriaSelecionada === catKey ? 'bg-primary-dark text-white' : 'bg-gray-200 text-secondary-dark hover:bg-gray-300'}`;
+                    categoryButton.className = `w-full text-left py-2 px-4 rounded-lg transition duration-200 ${categoriaSelecionada === catKey && !isShowingPurchaseList ? 'bg-primary-dark text-white' : 'bg-gray-200 text-secondary-dark hover:bg-gray-300'}`;
                     categoryButton.onclick = () => {
                         categoriaSelecionada = catKey;
+                        isShowingPurchaseList = false; // Disable purchase list filter
                         carregarMateriais();
                     };
                     categorySidebar.appendChild(categoryButton);
                 });
             }
 
+            /**
+             * Toggles the visibility of the "Copiar Lista" and "Mostrar Todos os Itens" buttons.
+             */
+            function togglePurchaseListActionsVisibility() {
+                const purchaseListActionsContainer = document.getElementById('purchaseListActionsContainer');
+                if (isShowingPurchaseList) {
+                    purchaseListActionsContainer.classList.remove('hidden');
+                } else {
+                    purchaseListActionsContainer.classList.add('hidden');
+                }
+            }
+
 
             /**
              * Updates the material list display based on the provided materials array.
-             * Groups materials by category and allows collapsing/expanding categories.
              * @param {Array<object>} materiais - An array of material objects to display.
              */
             function atualizarLista(materiais) {
                 const lista = document.getElementById('materialList');
                 lista.innerHTML = ''; // Clear existing items
 
-                // If a specific category is selected, only show items from that category
-                let materiaisParaExibir = materiais;
-                if (categoriaSelecionada !== "todos") {
-                    materiaisParaExibir = materiais.filter(m => m.categoria === categoriaSelecionada);
-                }
-
-                if (materiaisParaExibir.length === 0) {
+                if (materiais.length === 0) {
                     lista.innerHTML = '<p class="text-center text-gray-600 col-span-full">Nenhum material encontrado para esta busca/categoria.</p>';
                     return;
                 }
 
-                materiaisParaExibir.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(material => {
+                materiais.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(material => {
                     const itemDiv = document.createElement('div');
-                    itemDiv.className = `material-item bg-white rounded-lg shadow-md overflow-hidden flex flex-col transition duration-200 ease-in-out hover:shadow-lg ${material.quantidade < material.quantidadeMinima ? 'border-2 border-red-400' : ''}`;
+                    itemDiv.className = `material-item bg-white rounded-lg shadow-md flex flex-col transition duration-200 ease-in-out hover:shadow-lg ${material.quantidade < material.quantidadeMinima ? 'border-2 border-red-400' : ''}`;
 
                     // Product Image
                     const imgContainer = document.createElement('div');
@@ -532,13 +564,18 @@
                     btnOptions.className = 'w-full bg-gray-200 text-secondary-dark py-2 px-3 rounded-lg text-sm hover:bg-gray-300 transition duration-200 transform hover:scale-105 mt-2';
                     btnOptions.onclick = (e) => {
                         e.stopPropagation();
-                        const dropdownContent = optionsDropdownDiv.querySelector('.dropdown-content');
+                        // Close all other dropdowns
+                        document.querySelectorAll('.dropdown-content').forEach(otherDropdown => {
+                            if (otherDropdown !== dropdownContent && !otherDropdown.classList.contains('hidden')) {
+                                otherDropdown.classList.add('hidden');
+                            }
+                        });
                         dropdownContent.classList.toggle('hidden');
                     };
                     optionsDropdownDiv.appendChild(btnOptions);
 
                     const dropdownContent = document.createElement('div');
-                    dropdownContent.className = 'dropdown-content absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-10';
+                    dropdownContent.className = 'dropdown-content absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-50';
                     dropdownContent.onclick = (e) => e.stopPropagation();
 
                     const btnEdit = document.createElement('button');
@@ -738,6 +775,7 @@
              */
             async function buscarMateriais() {
                 termoDeBusca = document.getElementById('searchInput').value.toLowerCase().trim();
+                isShowingPurchaseList = false; // Disable purchase list filter
                 carregarMateriais();
             }
 
@@ -935,7 +973,26 @@
             document.getElementById('btnFecharModalEditar').addEventListener('click', fecharModalEditar);
             document.getElementById('btnLogout').addEventListener('click', logout);
             document.getElementById('btnLimparMarcacoes').addEventListener('click', limparMarcacoes);
+
+            // New event listener for "Lista de Compras" button
+            document.getElementById('btnListaCompras').addEventListener('click', () => {
+                isShowingPurchaseList = true;
+                carregarMateriais();
+            });
+
+            // New event listener for "Mostrar Todos os Itens" button
+            document.getElementById('btnMostrarTodos').addEventListener('click', () => {
+                isShowingPurchaseList = false;
+                document.getElementById('searchInput').value = ''; // Clear search input
+                termoDeBusca = ''; // Clear search term
+                categoriaSelecionada = 'todos'; // Reset category selection
+                carregarMateriais();
+            });
+
+            // "Copiar Lista" button now inside the purchase list container
             document.getElementById('btnCopiarLista').addEventListener('click', copiarListaCompras);
+
+
             document.getElementById('btnBuscar').addEventListener('click', buscarMateriais);
             document.getElementById('btnGerarRelatorio').addEventListener('click', gerarRelatorio);
 
