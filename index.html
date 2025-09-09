@@ -96,11 +96,18 @@
         Sair
       </button>
 
-      <!-- Importar NF-e -->
+      <!-- Importações -->
       <input id="inputXmlNfe" type="file" accept=".xml" class="hidden">
       <button id="btnImportarNfe"
               class="flex-1 min-w-[180px] bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-primary-dark transition">
         Importar NF-e (XML)
+      </button>
+
+      <!-- NOVO: importador de planilhas -->
+      <input id="inputPlanilha" type="file" accept=".xlsx,.xls,.csv" class="hidden"> <!-- NOVO -->
+      <button id="btnImportarPlanilha"
+              class="flex-1 min-w-[200px] bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-text-dark transition">
+        Importar compras (XLSX/CSV) <!-- NOVO -->
       </button>
     </div>
 
@@ -164,12 +171,12 @@
       </div>
     </div>
 
-    <!-- Modal: editar -->
+    <!-- Modal: editar material (sem campos de compra) -->
     <div id="editarModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
       <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-2xl font-semibold text-primary-dark">Editar Material</h3>
-        <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharModalEditar">&times;</button>
+          <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharModalEditar">&times;</button>
         </div>
         <form id="editarForm" class="space-y-4">
           <input type="text" id="editNome" placeholder="Nome do material" required
@@ -200,13 +207,7 @@
           <input type="number" id="editQuantidadeMinima" placeholder="Quantidade mínima" min="0"
                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
 
-          <!-- novos campos editáveis -->
-          <input type="date" id="editUltimaCompraData" placeholder="Última compra (data NF)"
-                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
-          <input type="date" id="editValidadeUltimaCompra" placeholder="Validade (última compra)"
-                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
-          <input type="number" step="0.01" id="editPrecoCompra" placeholder="Preço de compra (R$)"
-                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+          <!-- (removidos: data compra, validade, preço) -->
 
           <input type="file" id="editImagem" accept="image/*"
                  class="w-full px-4 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-primary-dark hover:file:bg-blue-100">
@@ -284,29 +285,24 @@
           <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharCompra">&times;</button>
         </div>
         <form id="compraForm" class="space-y-4">
-          <input type="text" id="compraNome" readonly
-                 class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100">
-          <input type="date" id="compraData" required
-                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
-          <input type="number" step="any" min="0" id="compraQtd" placeholder="Quantidade" required
-                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
-          <input type="number" step="0.01" min="0" id="compraPreco" placeholder="Preço unitário (R$)" required
-                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
-          <input type="text" id="compraLote" placeholder="Lote (opcional)"
-                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
-          <input type="date" id="compraValidade" placeholder="Validade (opcional)"
-                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
-          <button type="submit"
-                  class="w-full bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-primary-dark transition">
+          <input type="text" id="compraNome" readonly class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100">
+          <input type="date" id="compraData" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+          <input type="number" step="any" min="0" id="compraQtd" placeholder="Quantidade" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+          <input type="number" step="0.01" min="0" id="compraPreco" placeholder="Preço unitário (R$)" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+          <input type="text" id="compraLote" placeholder="Lote (opcional)" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+          <input type="date" id="compraValidade" placeholder="Validade (opcional)" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+          <input type="text" id="compraLoja" placeholder="Loja (opcional)" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark"> <!-- NOVO -->
+          <input type="text" id="compraNF" placeholder="Número da NF (opcional)" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark"> <!-- NOVO -->
+          <button type="submit" class="w-full bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-primary-dark transition">
             Salvar compra
           </button>
         </form>
       </div>
     </div>
 
-    <!-- Modal: Histórico de compras -->
+    <!-- Modal: Histórico de compras (com editar/excluir) -->
     <div id="historicoModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-      <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-3xl mx-4">
+      <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl mx-4">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-2xl font-semibold text-primary-dark">Histórico de compras</h3>
           <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharHistorico">&times;</button>
@@ -322,7 +318,10 @@
                 <th class="p-2 text-right border">Total</th>
                 <th class="p-2 text-left border">Lote</th>
                 <th class="p-2 text-left border">Validade</th>
+                <th class="p-2 text-left border">Loja</th> <!-- NOVO -->
+                <th class="p-2 text-left border">NF</th>   <!-- NOVO -->
                 <th class="p-2 text-left border">Origem</th>
+                <th class="p-2 text-left border">Ações</th> <!-- NOVO -->
               </tr>
             </thead>
             <tbody id="historicoTabela" class="text-sm"></tbody>
@@ -331,6 +330,26 @@
         <div class="mt-4 flex justify-end gap-2">
           <button id="btnExportarHistorico" class="bg-text-dark text-white py-2 px-3 rounded-lg hover:bg-opacity-90">Baixar CSV</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Modal: Editar compra (histórico) -->
+    <div id="editarCompraModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+      <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-2xl font-semibold text-primary-dark">Editar compra</h3>
+          <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharEditarCompra">&times;</button>
+        </div>
+        <form id="editarCompraForm" class="space-y-4">
+          <input type="date" id="editCompraData" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+          <input type="number" step="any" min="0" id="editCompraQtd" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+          <input type="number" step="0.01" min="0" id="editCompraPreco" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+          <input type="text" id="editCompraLote" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Lote (opcional)">
+          <input type="date" id="editCompraValidade" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Validade (opcional)">
+          <input type="text" id="editCompraLoja" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Loja (opcional)">
+          <input type="text" id="editCompraNF" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Número da NF (opcional)">
+          <button type="submit" class="w-full bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90">Salvar</button>
+        </form>
       </div>
     </div>
 
@@ -364,6 +383,9 @@
     let termoDeBusca = "";
     let categoriaSelecionada = "todos";
     let isShowingPurchaseList = false;
+
+    // Estado auxiliar para edição/exclusão de compras
+    let historicoContext = { nome: null, compras: [], editId: null, editSnap: null };
 
     // util
     function showCustomModal(title, message, type, copyText='') {
@@ -408,12 +430,8 @@
       const p=dStr.split('T')[0]; if(p && p.includes('-')){ const [y,m,da]=p.split('-'); return `${da}/${m}/${y}`;}
       return dStr;
     }
-    function toISODateInput(dStr){
-      if(!dStr) return '';
-      const d = new Date(dStr);
-      if(!isNaN(d)) return d.toISOString().slice(0,10);
-      const p=dStr.split('T')[0]; return p || '';
-    }
+    function toISODateInput(dStr){ if(!dStr) return ''; const d=new Date(dStr); if(!isNaN(d)) return d.toISOString().slice(0,10); const p=dStr.split('T')[0]; return p||''; }
+    const isFuture = (iso)=> iso && new Date(iso).getTime() >= (new Date().setHours(0,0,0,0));
 
     // carregar/render
     async function carregarMateriais(){
@@ -432,10 +450,7 @@
         togglePurchaseListActionsVisibility();
       }catch(e){ console.error(e); showCustomModal('Erro','Erro ao carregar materiais: '+e.message,'alert');}
     }
-    async function salvarMaterial(material){
-      try{ await db.collection('materiais').doc(material.nome).set(material); }
-      catch(e){ console.error(e); showCustomModal('Erro','Erro ao salvar material: '+e.message,'alert');}
-    }
+    async function salvarMaterial(material){ await db.collection('materiais').doc(material.nome).set(material); }
     function renderizarCategorias(all){
       const box=document.getElementById('categorySidebar'); box.innerHTML='';
       const set=new Set(); all.forEach(m=>set.add(m.categoria));
@@ -475,7 +490,7 @@
           <p class="text-sm text-gray-700">Quantidade: <span class="font-medium">${m.quantidade ?? 0}</span></p>
           <div class="text-xs text-gray-500 mt-2 space-y-1">
             <p><span class="font-medium text-text-dark">Última compra:</span> ${toBRDate(m.ultimaCompraEm)}</p>
-            <p><span class="font-medium text-text-dark">Validade (última compra):</span> ${m.validadeUltimaCompra ? toBRDate(m.validadeUltimaCompra) : 'N/A'}</p>
+            <p><span class="font-medium text-text-dark">Validade mais próxima:</span> ${m.validadeUltimaCompra ? toBRDate(m.validadeUltimaCompra) : 'N/A'}</p>
             <p><span class="font-medium text-text-dark">Preço de compra:</span> R$ ${m.precoCompra!=null ? fmtMoeda(m.precoCompra) : '-'}</p>
           </div>
         `;
@@ -533,14 +548,11 @@
       document.getElementById('editCategoria').value = m.categoria || '';
       document.getElementById('editQuantidadeMinima').value = m.quantidadeMinima ?? 0;
       document.getElementById('editQuantidade').value = m.quantidade ?? 0;
-      document.getElementById('editUltimaCompraData').value = toISODateInput(m.ultimaCompraEm);
-      document.getElementById('editValidadeUltimaCompra').value = toISODateInput(m.validadeUltimaCompra);
-      document.getElementById('editPrecoCompra').value = m.precoCompra!=null ? Number(m.precoCompra) : '';
       document.getElementById('editarModal').classList.remove('hidden');
     }
     function fecharModalEditar(){ document.getElementById('editarModal').classList.add('hidden'); document.getElementById('editarForm').reset(); }
 
-    // salvar edição
+    // salvar edição (sem campos de compra)
     document.getElementById('editarForm').addEventListener('submit', async function(e){
       e.preventDefault();
       const originalNome = document.getElementById('originalNome').value;
@@ -548,9 +560,6 @@
       const novaCategoria = document.getElementById('editCategoria').value;
       const novaQuantidadeMinima = parseInt(document.getElementById('editQuantidadeMinima').value || '0');
       const novaQuantidade = parseInt(document.getElementById('editQuantidade').value || '0');
-      const ultimaCompraISO = document.getElementById('editUltimaCompraData').value || '';
-      const validadeISO = document.getElementById('editValidadeUltimaCompra').value || '';
-      const precoCompra = document.getElementById('editPrecoCompra').value;
       const arquivo = document.getElementById('editImagem').files[0];
 
       try{
@@ -563,9 +572,6 @@
           categoria: novaCategoria || base.categoria || '',
           quantidadeMinima: novaQuantidadeMinima,
           quantidade: novaQuantidade,
-          ultimaCompraEm: ultimaCompraISO || null,
-          validadeUltimaCompra: validadeISO || null,
-          precoCompra: precoCompra==='' ? null : Number(precoCompra),
           ultimaModificacao: new Date().toLocaleString('pt-BR')
         };
 
@@ -589,19 +595,13 @@
       }catch(err){ console.error(err); showCustomModal("Erro","Erro ao atualizar material: "+err.message,'alert'); }
     });
 
-    // bulk actions
-    async function limparMarcacoes(){
-      const ok = await showCustomModal("Confirmar","Deseja limpar todas as marcações de compra?",'confirm');
-      if(!ok) return;
-      const snap=await db.collection('materiais').get();
-      const batch=db.batch(); snap.forEach(doc=>batch.update(doc.ref,{comprar:false}));
-      await batch.commit(); carregarMateriais();
-    }
+    // bulk actions e utilitários já existentes…
+    async function limparMarcacoes(){ const ok=await showCustomModal("Confirmar","Deseja limpar todas as marcações de compra?",'confirm'); if(!ok) return;
+      const snap=await db.collection('materiais').get(); const batch=db.batch(); snap.forEach(doc=>batch.update(doc.ref,{comprar:false})); await batch.commit(); carregarMateriais(); }
     async function copiarListaCompras(){
       const snap=await db.collection('materiais').where("comprar","==",true).get();
       if (snap.empty){ showCustomModal("Aviso","Nenhum item marcado para compra.",'alert'); return; }
-      let grupos={};
-      snap.forEach(doc=>{ const m=doc.data(); const cat=categorias[m.categoria]||"Outros"; (grupos[cat]=grupos[cat]||[]).push(`${m.nome} (Qtd: ${m.quantidade})`); });
+      let grupos={}; snap.forEach(doc=>{ const m=doc.data(); const cat=categorias[m.categoria]||"Outros"; (grupos[cat]=grupos[cat]||[]).push(`${m.nome} (Qtd: ${m.quantidade})`); });
       const lista = Object.keys(grupos).sort().map(c=>`🔹 ${c.toUpperCase()}\n- ${grupos[c].sort().join("\n- ")}`).join("\n\n");
       try{ await navigator.clipboard.writeText(lista); showCustomModal("Sucesso","Lista de compras copiada!","alert"); }catch{ showCustomModal("Copiar","Selecione e copie:","copy",lista); }
     }
@@ -611,7 +611,7 @@
       const dados=[]; snap.forEach(doc=>{const m=doc.data(); dados.push({
         Nome:m.nome, Categoria:categorias[m.categoria]||m.categoria, Quantidade:m.quantidade,
         "Quantidade Mínima":m.quantidadeMinima, "Última compra": toBRDate(m.ultimaCompraEm),
-        "Validade (última compra)": m.validadeUltimaCompra?toBRDate(m.validadeUltimaCompra):'N/A',
+        "Validade mais próxima": m.validadeUltimaCompra?toBRDate(m.validadeUltimaCompra):'N/A',
         "Preço de compra (R$)": m.precoCompra!=null ? Number(m.precoCompra) : ''
       });});
       const ws=XLSX.utils.json_to_sheet(dados); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Estoque"); XLSX.writeFile(wb,"Relatorio_Estoque_Odontologico.xlsx");
@@ -627,8 +627,9 @@
       const categoria=document.getElementById('categoria').value;
       const arquivo=document.getElementById('imagem').files[0];
       if((await db.collection('materiais').doc(nome).get()).exists){ showCustomModal("Erro",`Já existe "${nome}".`,'alert'); return; }
-      const material={ nome, quantidade, quantidadeMinima, categoria, imagem:null, ultimaModificacao:new Date().toLocaleString('pt-BR'),
-        comprar:false, ultimaCompraEm:null, validadeUltimaCompra:null, precoCompra:null };
+      const material={ nome, quantidade, quantidadeMinima, categoria, imagem:null,
+        ultimaModificacao:new Date().toLocaleString('pt-BR'), comprar:false,
+        ultimaCompraEm:null, validadeUltimaCompra:null, precoCompra:null };
       if(arquivo){
         const dataURL=await converterParaDataURL(arquivo);
         const tamanhoBytes=(dataURL.length*3)/4-2; if(tamanhoBytes>500000){ showCustomModal('Aviso','Imagem > 500 KB.','alert'); return; }
@@ -648,7 +649,7 @@
     }
 
     // ---------- NF-e ----------
-    let nfeItensExtraidos=[]; let nfeStep=0; let materiaisIndex=[]; let nfeDataEmissao=null;
+    let nfeItensExtraidos=[]; let nfeStep=0; let materiaisIndex=[]; let nfeDataEmissao=null; let nfeLoja=null; let nfeNumero=null; // NOVO
 
     const btnImportarNfe=document.getElementById('btnImportarNfe');
     const inputXmlNfe=document.getElementById('inputXmlNfe');
@@ -707,32 +708,27 @@
       try{
         await carregarMateriaisIndex();
         const xmlStr=await file.text();
+        const meta = extrairMetaNfe(xmlStr); // NOVO
+        nfeLoja = meta.loja || null;
+        nfeNumero = meta.numero || null;
+        nfeDataEmissao = meta.emissao || null;
+
         nfeItensExtraidos = extrairItensDaNfe(xmlStr);
-        nfeDataEmissao = extrairDataEmissaoNfe(xmlStr);
         if(!nfeItensExtraidos.length){ showCustomModal("Aviso","Não encontrei itens na NF-e.","alert"); return; }
         nfeStep=0; abrirModalMatching(); renderNfeMatchStep();
       }catch(e){ console.error(e); showCustomModal("Erro","Falha ao processar a NF-e: "+e.message,"alert"); }
       finally{ inputXmlNfe.value=''; }
     }
 
-    function renderNfeMatchStep(){
-      const it=nfeItensExtraidos[nfeStep];
-      nfeStepIdx.textContent=String(nfeStep+1);
-      nfeItemNome.textContent=it.nome||'(sem nome)'; nfeItemQtd.textContent=it.qtd??''; nfeItemPreco.textContent=(it.preco??0).toFixed(2);
-      nfeItemLote.textContent=it.lote||'-'; nfeItemVal.textContent=it.validade||'-';
-      nfeNewName.value=''; nfeNewCategory.value='';
-      const cands=sugerirMateriais(it.nome,materiaisIndex,10);
-      nfeCandidateSelect.innerHTML=''; const empty=document.createElement('option'); empty.value=''; empty.textContent='— Selecione um item do estoque —'; nfeCandidateSelect.appendChild(empty);
-      cands.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=`${c.nome} ${c.score<1?`(simil.: ${(c.score*100).toFixed(0)}%)`:''}`; nfeCandidateSelect.appendChild(o); });
-    }
-
-    function extrairDataEmissaoNfe(xmlStr){
+    function extrairMetaNfe(xmlStr){ // NOVO
       const parser=new DOMParser(); const xml=parser.parseFromString(xmlStr,"text/xml");
       const ns="http://www.portalfiscal.inf.br/nfe";
       const ide=xml.getElementsByTagNameNS(ns,'ide')[0];
-      if(!ide) return null;
-      const dh = ide.getElementsByTagNameNS(ns,'dhEmi')[0];
-      return dh ? dh.textContent.trim() : null;
+      const emit=xml.getElementsByTagNameNS(ns,'emit')[0];
+      const dh = ide ? (ide.getElementsByTagNameNS(ns,'dhEmi')[0]?.textContent||null) : null;
+      const nNF = ide ? (ide.getElementsByTagNameNS(ns,'nNF')[0]?.textContent||null) : null;
+      const loja = emit ? (emit.getElementsByTagNameNS(ns,'xNome')[0]?.textContent||null) : null;
+      return { emissao: dh, numero: nNF, loja };
     }
 
     function extrairItensDaNfe(xmlStr){
@@ -745,7 +741,9 @@
         const vUn=parseFloat((t(prod,'vUnCom')||'0').replace(',','.'))||0; const vProd=parseFloat((t(prod,'vProd')||'0').replace(',','.'))||0;
         const cProd=t(prod,'cProd'); let ean=t(prod,'cEAN'); if(!ean) ean=t(prod,'cEANTrib');
         const r=prod.getElementsByTagNameNS(ns,'rastro')[0]; const nLote=r?t(r,'nLote'):null; const dVal=r?t(r,'dVal'):null;
-        itens.push({ cod:cProd, ean:ean, nome:xProd, qtd:qCom, preco:(qCom>0? vProd/qCom : vUn)||vUn, lote:nLote, validade:dVal });
+        itens.push({ cod:cProd, ean:ean, nome:xProd, qtd:qCom, preco:(qCom>0? vProd/qCom : vUn)||vUn, lote:nLote, validade:dVal,
+          loja: nfeLoja || null, nf: nfeNumero || null
+        });
       }
       return itens;
     }
@@ -764,17 +762,22 @@
       const agoraISO=new Date().toISOString();
       const dataCompraISO = (origem==='nfe' ? (nfeDataEmissao || agoraISO) : agoraISO);
 
-      // Atualiza campos da "última compra" apenas se esta compra é mais recente
-      const deveriaAtualizarUltima = !atual.ultimaCompraEm || new Date(dataCompraISO) >= new Date(atual.ultimaCompraEm);
-
+      // Denormalização esperta: última compra (mais recente) e validade mais próxima (futura mínima)
       const updateBase = {
         quantidade:novaQtd,
         ultimaModificacao:new Date().toLocaleString('pt-BR'),
       };
-      if (deveriaAtualizarUltima){
+
+      // atualiza "última compra" e preço se a compra atual é a mais recente
+      if (!atual.ultimaCompraEm || new Date(dataCompraISO) >= new Date(atual.ultimaCompraEm)) {
         updateBase.ultimaCompraEm = dataCompraISO;
-        if (item.validade) updateBase.validadeUltimaCompra = item.validade;
         if (item.preco != null) updateBase.precoCompra = Number(item.preco);
+      }
+      // validade mais próxima (só considera futuras)
+      if (item.validade && isFuture(item.validade)) {
+        if (!atual.validadeUltimaCompra || new Date(item.validade) < new Date(atual.validadeUltimaCompra)) {
+          updateBase.validadeUltimaCompra = item.validade;
+        }
       }
 
       await ref.set({ ...atual, ...updateBase }, { merge:true });
@@ -784,7 +787,9 @@
         tipo:'entrada', origem: origem || 'manual', data: agoraISO,
         nfeEmissao: (origem==='nfe'? nfeDataEmissao : null),
         nfeItemNome:item.nome, qtd:item.qtd||0, precoUnit:item.preco||0,
-        lote:item.lote||null, validade:item.validade||null, ean:item.ean||null, codProdNfe:item.cod||null
+        lote:item.lote||null, validade:item.validade||null, ean:item.ean||null, codProdNfe:item.cod||null,
+        loja: item.loja || (origem==='nfe'? (nfeLoja||null): null),
+        numeroNF: item.nf || (origem==='nfe'? (nfeNumero||null): null)
       });
 
       // histórico de compras
@@ -797,20 +802,11 @@
         lote: item.lote || null,
         validade: item.validade || null,
         ean: item.ean || null,
+        loja: item.loja || (origem==='nfe'? (nfeLoja||null): null),   // NOVO
+        numeroNF: item.nf || (origem==='nfe'? (nfeNumero||null): null), // NOVO
         criadoEm: agoraISO
       });
-
-      // lote
-      if(item.lote || item.validade){
-        const lotekey=(item.lote||'s/lote')+'|'+(item.validade||'s/valid');
-        await ref.collection('lotes').doc(lotekey).set({
-          lote:item.lote||null, validade:item.validade||null, ean:item.ean||null,
-          ultimaEntradaEm:agoraISO,
-          quantidade: firebase.firestore.FieldValue.increment(item.qtd||0),
-        }, { merge:true });
-      }
     }
-    // ---------- fim NF-e ----------
 
     // ---------- COMPRAS MANUAIS ----------
     const compraModal=document.getElementById('compraModal');
@@ -821,6 +817,8 @@
     const compraPreco=document.getElementById('compraPreco');
     const compraLote=document.getElementById('compraLote');
     const compraValidade=document.getElementById('compraValidade');
+    const compraLoja=document.getElementById('compraLoja');     // NOVO
+    const compraNF=document.getElementById('compraNF');         // NOVO
     document.getElementById('btnFecharCompra').addEventListener('click', ()=>compraModal.classList.add('hidden'));
 
     function abrirModalCompra(nome){
@@ -830,6 +828,8 @@
       compraPreco.value = '';
       compraLote.value = '';
       compraValidade.value = '';
+      compraLoja.value = '';
+      compraNF.value = '';
       compraModal.classList.remove('hidden');
     }
 
@@ -841,7 +841,9 @@
         qtd: parseFloat(compraQtd.value || '0'),
         preco: parseFloat(compraPreco.value || '0'),
         lote: (compraLote.value || null),
-        validade: (compraValidade.value || null)
+        validade: (compraValidade.value || null),
+        loja: (compraLoja.value || null),
+        nf: (compraNF.value || null)
       };
       const dataCompraISO = compraData.value ? new Date(compraData.value).toISOString() : new Date().toISOString();
 
@@ -849,20 +851,19 @@
       if (isNaN(item.preco) || item.preco < 0){ showCustomModal('Aviso','Informe um preço válido.','alert'); return; }
 
       try{
-        // usa a mesma função de entrada, mas sem nfeDataEmissao; forçamos origem manual
-        const oldNfeDate = nfeDataEmissao;
-        nfeDataEmissao = dataCompraISO; // para reutilizar a lógica de atualização de última compra
+        // injeta a data para a lógica de "última compra"
+        const oldNfe = { date: nfeDataEmissao }; nfeDataEmissao = dataCompraISO;
         await registrarEntradaEmMaterialExistente(nome, item, 'manual');
-        nfeDataEmissao = oldNfeDate;
+        nfeDataEmissao = oldNfe.date;
 
         compraModal.classList.add('hidden');
+        await recomputarAgregados(nome); // garante validade mais próxima/último preço
         await carregarMateriais();
         showCustomModal('Sucesso','Compra registrada com sucesso!','alert');
       }catch(err){ console.error(err); showCustomModal('Erro','Falha ao registrar compra: '+err.message,'alert'); }
     });
-    // ---------- fim COMPRAS MANUAIS ----------
 
-    // ---------- HISTÓRICO ----------
+    // ---------- HISTÓRICO (listar, editar, excluir) ----------
     const historicoModal=document.getElementById('historicoModal');
     const historicoTitulo=document.getElementById('historicoTitulo');
     const historicoTabela=document.getElementById('historicoTabela');
@@ -870,54 +871,247 @@
     document.getElementById('btnFecharHistorico').addEventListener('click', ()=>historicoModal.classList.add('hidden'));
 
     async function abrirHistoricoCompras(nome){
+      historicoContext = { nome, compras: [], editId: null, editSnap: null };
       historicoTitulo.textContent = `Produto: ${nome}`;
-      historicoTabela.innerHTML = '<tr><td class="p-2 border text-center text-gray-500" colspan="7">Carregando...</td></tr>';
+      historicoTabela.innerHTML = '<tr><td class="p-2 border text-center text-gray-500" colspan="10">Carregando...</td></tr>';
       historicoModal.classList.remove('hidden');
       try{
-        const snap = await db.collection('materiais').doc(nome).collection('compras').orderBy('dataCompra','desc').limit(200).get();
-        if (snap.empty){ historicoTabela.innerHTML = '<tr><td class="p-2 border text-center text-gray-500" colspan="7">Sem registros.</td></tr>'; return; }
+        const snap = await db.collection('materiais').doc(nome).collection('compras').orderBy('dataCompra','desc').limit(500).get();
+        if (snap.empty){ historicoTabela.innerHTML = '<tr><td class="p-2 border text-center text-gray-500" colspan="10">Sem registros.</td></tr>'; return; }
         let rows=[];
         snap.forEach(doc=>{
           const c=doc.data();
-          rows.push({
-            Data: toBRDate(c.dataCompra),
-            Qtd: c.qtd,
-            Preco: c.precoUnit,
-            Total: (c.total!=null? c.total : (c.qtd||0)*(c.precoUnit||0)),
-            Lote: c.lote || '',
-            Validade: c.validade ? toBRDate(c.validade) : '',
-            Origem: c.origem || ''
-          });
+          rows.push({ id:doc.id, ...c });
         });
-        historicoTabela.innerHTML = rows.map(r=>`
-          <tr>
-            <td class="p-2 border">${r.Data}</td>
-            <td class="p-2 border text-right">${r.Qtd}</td>
-            <td class="p-2 border text-right">R$ ${fmtMoeda(r.Preco)}</td>
-            <td class="p-2 border text-right">R$ ${fmtMoeda(r.Total)}</td>
-            <td class="p-2 border">${r.Lote}</td>
-            <td class="p-2 border">${r.Validade}</td>
-            <td class="p-2 border">${r.Origem}</td>
-          </tr>
-        `).join('');
-        // export CSV
-        btnExportarHistorico.onclick = ()=>{
-          const header = 'Data;Qtd;PrecoUnit;Total;Lote;Validade;Origem\n';
-          const csv = header + rows.map(r=>[
-            r.Data, r.Qtd, r.Preco, r.Total, r.Lote, r.Validade, r.Origem
-          ].map(x=>String(x).replaceAll(';',',')).join(';')).join('\n');
-          const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url; a.download = `historico_${nome}.csv`; a.click();
-          URL.revokeObjectURL(url);
-        };
+        historicoContext.compras = rows;
+        renderTabelaHistorico(rows);
       }catch(err){
         console.error(err);
-        historicoTabela.innerHTML = '<tr><td class="p-2 border text-center text-danger-red" colspan="7">Erro ao carregar.</td></tr>';
+        historicoTabela.innerHTML = '<tr><td class="p-2 border text-center text-danger-red" colspan="10">Erro ao carregar.</td></tr>';
       }
     }
-    // ---------- fim HISTÓRICO ----------
+
+    function renderTabelaHistorico(rows){
+      historicoTabela.innerHTML = rows.map(r=>`
+        <tr data-id="${r.id}">
+          <td class="p-2 border">${toBRDate(r.dataCompra)}</td>
+          <td class="p-2 border text-right">${r.qtd}</td>
+          <td class="p-2 border text-right">R$ ${fmtMoeda(r.precoUnit)}</td>
+          <td class="p-2 border text-right">R$ ${fmtMoeda(r.total!=null ? r.total : (r.qtd||0)*(r.precoUnit||0))}</td>
+          <td class="p-2 border">${r.lote || ''}</td>
+          <td class="p-2 border">${r.validade ? toBRDate(r.validade) : ''}</td>
+          <td class="p-2 border">${r.loja || ''}</td>
+          <td class="p-2 border">${r.numeroNF || ''}</td>
+          <td class="p-2 border">${r.origem || ''}</td>
+          <td class="p-2 border">
+            <button class="text-primary-dark underline mr-2" onclick="window._editarCompra('${r.id}')">Editar</button>
+            <button class="text-danger-red underline" onclick="window._excluirCompra('${r.id}')">Excluir</button>
+          </td>
+        </tr>
+      `).join('');
+      // export CSV
+      btnExportarHistorico.onclick = ()=>{
+        const header = 'Data;Qtd;PrecoUnit;Total;Lote;Validade;Loja;NF;Origem\n';
+        const csv = header + rows.map(r=>[
+          toBRDate(r.dataCompra), r.qtd, r.precoUnit, (r.total!=null ? r.total : (r.qtd||0)*(r.precoUnit||0)),
+          r.lote||'', (r.validade?toBRDate(r.validade):''), r.loja||'', r.numeroNF||'', r.origem||''
+        ].map(x=>String(x).replaceAll(';',',')).join(';')).join('\n');
+        const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `historico_${historicoContext.nome}.csv`; a.click();
+        URL.revokeObjectURL(url);
+      };
+    }
+
+    // editar compra (abrir modal com dados)
+    const editarCompraModal = document.getElementById('editarCompraModal');
+    const editarCompraForm  = document.getElementById('editarCompraForm');
+    const editCompraData = document.getElementById('editCompraData');
+    const editCompraQtd = document.getElementById('editCompraQtd');
+    const editCompraPreco = document.getElementById('editCompraPreco');
+    const editCompraLote = document.getElementById('editCompraLote');
+    const editCompraValidade = document.getElementById('editCompraValidade');
+    const editCompraLoja = document.getElementById('editCompraLoja');
+    const editCompraNF = document.getElementById('editCompraNF');
+    document.getElementById('btnFecharEditarCompra').addEventListener('click', ()=>editarCompraModal.classList.add('hidden'));
+
+    window._editarCompra = async (id)=>{
+      const row = historicoContext.compras.find(x=>x.id===id);
+      if(!row) return;
+      historicoContext.editId = id;
+      editCompraData.value = toISODateInput(row.dataCompra);
+      editCompraQtd.value = row.qtd;
+      editCompraPreco.value = row.precoUnit;
+      editCompraLote.value = row.lote || '';
+      editCompraValidade.value = toISODateInput(row.validade);
+      editCompraLoja.value = row.loja || '';
+      editCompraNF.value = row.numeroNF || '';
+      editarCompraModal.classList.remove('hidden');
+    };
+
+    editarCompraForm.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const id = historicoContext.editId; if(!id) return;
+      const ref = db.collection('materiais').doc(historicoContext.nome).collection('compras').doc(id);
+      const snap = await ref.get(); if(!snap.exists) return;
+      const old = snap.data();
+      const novo = {
+        dataCompra: new Date(editCompraData.value).toISOString(),
+        qtd: parseFloat(editCompraQtd.value||'0'),
+        precoUnit: parseFloat(editCompraPreco.value||'0'),
+        lote: editCompraLote.value || null,
+        validade: editCompraValidade.value || null,
+        loja: editCompraLoja.value || null,
+        numeroNF: editCompraNF.value || null,
+        total: parseFloat(editCompraQtd.value||'0') * parseFloat(editCompraPreco.value||'0')
+      };
+      if (isNaN(novo.qtd) || novo.qtd <= 0) { showCustomModal('Aviso','Quantidade inválida.','alert'); return; }
+      if (isNaN(novo.precoUnit) || novo.precoUnit < 0) { showCustomModal('Aviso','Preço inválido.','alert'); return; }
+
+      // ajusta estoque (diferença)
+      const diff = (novo.qtd - (old.qtd||0));
+      const matRef = db.collection('materiais').doc(historicoContext.nome);
+      await db.runTransaction(async (tx)=>{
+        const matSnap = await tx.get(matRef);
+        if(!matSnap.exists) throw new Error('Material não encontrado');
+        const cur = matSnap.data();
+        const novaQtd = (cur.quantidade||0) + diff;
+        if (novaQtd < 0) throw new Error('Estoque não pode ficar negativo.');
+        tx.update(matRef, { quantidade: novaQtd, ultimaModificacao: new Date().toLocaleString('pt-BR') });
+        tx.update(ref, novo);
+      });
+
+      editarCompraModal.classList.add('hidden');
+      await recomputarAgregados(historicoContext.nome);
+      await abrirHistoricoCompras(historicoContext.nome);
+      await carregarMateriais();
+      showCustomModal('Sucesso','Compra atualizada.','alert');
+    });
+
+    window._excluirCompra = async (id)=>{
+      const ok = await showCustomModal('Confirmar','Excluir este registro?','confirm');
+      if(!ok) return;
+      const ref = db.collection('materiais').doc(historicoContext.nome).collection('compras').doc(id);
+      const snap = await ref.get(); if(!snap.exists) return;
+      const row = snap.data();
+
+      // subtrai do estoque
+      const matRef = db.collection('materiais').doc(historicoContext.nome);
+      await db.runTransaction(async (tx)=>{
+        const mSnap = await tx.get(matRef);
+        if(!mSnap.exists) throw new Error('Material não encontrado');
+        const cur = mSnap.data();
+        const nova = (cur.quantidade||0) - (row.qtd||0);
+        if (nova < 0) throw new Error('Estoque não pode ficar negativo.');
+        tx.update(matRef, { quantidade: nova, ultimaModificacao: new Date().toLocaleString('pt-BR') });
+        tx.delete(ref);
+      });
+
+      await recomputarAgregados(historicoContext.nome);
+      await abrirHistoricoCompras(historicoContext.nome);
+      await carregarMateriais();
+      showCustomModal('Sucesso','Registro excluído.','alert');
+    };
+
+    // Recalcula campos agregados no documento do material com base na subcoleção "compras"
+    async function recomputarAgregados(nome){
+      const matRef = db.collection('materiais').doc(nome);
+      const compSnap = await matRef.collection('compras').get();
+      let ultimaCompraEm=null, precoCompra=null, menorValidade=null;
+
+      compSnap.forEach(d=>{
+        const c=d.data();
+        // última compra (mais recente)
+        if(c.dataCompra && (!ultimaCompraEm || new Date(c.dataCompra)>new Date(ultimaCompraEm))){
+          ultimaCompraEm=c.dataCompra; precoCompra=c.precoUnit!=null? c.precoUnit : precoCompra;
+        }
+        // validade mais próxima (futura mínima)
+        if(c.validade && isFuture(c.validade)){
+          if(!menorValidade || new Date(c.validade) < new Date(menorValidade)) menorValidade = c.validade;
+        }
+      });
+
+      await matRef.set({
+        ultimaCompraEm: ultimaCompraEm || null,
+        precoCompra: precoCompra!=null ? Number(precoCompra) : null,
+        validadeUltimaCompra: menorValidade || null
+      }, { merge:true });
+    }
+
+    // ---------- IMPORTAÇÃO POR PLANILHA (XLSX/CSV) ----------
+    const btnImportPlanilha = document.getElementById('btnImportarPlanilha');
+    const inputPlanilha = document.getElementById('inputPlanilha');
+    btnImportPlanilha.addEventListener('click', ()=>inputPlanilha.click());
+    inputPlanilha.addEventListener('change', async (e)=>{
+      const file = e.target.files && e.target.files[0];
+      if(!file) return;
+      try{
+        const data = await file.arrayBuffer();
+        const wb = XLSX.read(data, { type:'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { defval:'' });
+
+        // mapeamento de cabeçalhos comuns
+        const normalize = s => String(s||'').trim().toLowerCase();
+        const mapHeader = (row, keys) => {
+          for (const k of keys) {
+            const found = Object.keys(row).find(h => normalize(h)===normalize(k));
+            if (found) return row[found];
+          }
+          return '';
+        };
+
+        let count=0;
+        for (const r of rows){
+          const dataCompra = mapHeader(r, ['data de compra','data','data_compra']);
+          const nomeItem   = mapHeader(r, ['nome do item','produto','item','nome']);
+          const qtdStr     = mapHeader(r, ['quantidade','qtd','qte']);
+          const precoStr   = mapHeader(r, ['preço','preco','preço unitário','preco unitario','preço unit','valor unitário']);
+          const validade   = mapHeader(r, ['validade','vencimento','data de validade']);
+          const loja       = mapHeader(r, ['loja','estabelecimento','fornecedor']);
+          const nf         = mapHeader(r, ['número da nota fiscal','numero da nota fiscal','nf','nfe','numero nf']);
+
+          if (!nomeItem) continue;
+          // garante material
+          const docRef = db.collection('materiais').doc(nomeItem);
+          if(!(await docRef.get()).exists){
+            await docRef.set({
+              nome: nomeItem, categoria:'clinica_geral', quantidade:0, quantidadeMinima:0, imagem:null,
+              ultimaModificacao:new Date().toLocaleString('pt-BR'), comprar:false,
+              ultimaCompraEm:null, validadeUltimaCompra:null, precoCompra:null
+            });
+          }
+
+          const item = {
+            nome:nomeItem,
+            qtd: parseFloat(String(qtdStr).toString().replace(',','.')) || 0,
+            preco: parseFloat(String(precoStr).toString().replace(',','.')) || 0,
+            lote: null,
+            validade: validade ? new Date(validade).toISOString() : null,
+            loja: loja || null,
+            nf: nf || null
+          };
+          const dataISO = dataCompra ? new Date(dataCompra).toISOString() : new Date().toISOString();
+
+          // usa a mesma função (origem manual)
+          const oldNfe = nfeDataEmissao; nfeDataEmissao = dataISO;
+          await registrarEntradaEmMaterialExistente(nomeItem, item, 'manual');
+          nfeDataEmissao = oldNfe;
+
+          await recomputarAgregados(nomeItem);
+          count++;
+        }
+
+        await carregarMateriais();
+        showCustomModal('Importação concluída', `Processados ${count} registro(s) da planilha.`, 'alert');
+      }catch(err){
+        console.error(err);
+        showCustomModal('Erro','Falha na importação: '+err.message,'alert');
+      } finally {
+        inputPlanilha.value='';
+      }
+    });
 
     // Auth + listeners
     document.getElementById('loginForm').addEventListener('submit', function(e){
