@@ -212,17 +212,17 @@
       </div>
     </div>
 
-    <!-- Modal: matching NF-e -->
+    <!-- Modal: assistente de equivalência -->
     <div id="nfeMatchModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
       <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl mx-4">
         <div class="flex justify-between items-center mb-4">
-          <h3 class="text-2xl font-semibold text-primary-dark">Conferir item da NF-e</h3>
+          <h3 class="text-2xl font-semibold text-primary-dark">Conferir item importado</h3>
           <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharNfeMatch">&times;</button>
         </div>
         <div class="space-y-2 mb-4">
           <p class="text-sm text-gray-500">Passo <span id="nfeStepIdx">1</span> de <span id="nfeStepTotal">1</span></p>
           <div class="bg-secondary-light rounded-lg p-3">
-            <div class="text-sm text-gray-600">Item da nota:</div>
+            <div class="text-sm text-gray-600">Item importado:</div>
             <div id="nfeItemNome" class="font-semibold text-text-dark"></div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 text-sm">
               <div><span class="text-gray-600">Qtd:</span> <span id="nfeItemQtd"></span></div>
@@ -377,10 +377,10 @@
     let categoriaSelecionada = "todos";
     let isShowingPurchaseList = false;
 
-    // Estado auxiliar para edição/exclusão de compras
+    // Estado do histórico
     let historicoContext = { nome: null, compras: [], editId: null };
 
-    // util
+    // utils
     function showCustomModal(title, message, type, copyText='') {
       return new Promise((resolve) => {
         const modal = document.getElementById('customModal');
@@ -496,14 +496,13 @@
         btnComprar.onclick=()=>toggleComprar(m.nome); controls.appendChild(btnComprar);
 
         const options=document.createElement('div'); options.className='relative inline-block text-left w-full';
-        const btnOptions=document.createElement('button');
-        btnOptions.innerHTML=`<svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg> Opções`;
-        btnOptions.className='w-full bg-gray-200 text-text-dark py-2 px-3 rounded-lg text-sm hover:bg-gray-300 transition transform hover:scale-105 mt-2';
-        btnOptions.onclick=(e)=>{ e.stopPropagation(); document.querySelectorAll('.dropdown-content').forEach(d=>{ if(d!==dd && !d.classList.contains('hidden')) d.classList.add('hidden'); }); dd.classList.toggle('hidden'); };
-        options.appendChild(btnOptions);
-
         const dd=document.createElement('div'); dd.className='dropdown-content absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-50';
         dd.onclick=(e)=>e.stopPropagation();
+
+        const btnOptions=document.createElement('button');
+        btnOptions.innerHTML=`<svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg> Opções`;
+        btnOptions.className='w-full bg-gray-2 00 text-text-dark py-2 px-3 rounded-lg text-sm hover:bg-gray-300 transition transform hover:scale-105 mt-2';
+        btnOptions.onclick=(e)=>{ e.stopPropagation(); document.querySelectorAll('.dropdown-content').forEach(d=>{ if(d!==dd && !d.classList.contains('hidden')) d.classList.add('hidden'); }); dd.classList.toggle('hidden'); };
 
         const bEdit=document.createElement('button'); bEdit.textContent='Editar';
         bEdit.className='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100';
@@ -522,6 +521,7 @@
         bDel.onclick=()=>{ confirmarExclusao(m.nome); dd.classList.add('hidden'); };
 
         dd.appendChild(bEdit); dd.appendChild(bReg); dd.appendChild(bHist); dd.appendChild(bDel);
+        options.appendChild(btnOptions);
         options.appendChild(dd);
         controls.appendChild(options);
 
@@ -638,78 +638,156 @@
       const cur=!!snap.data().comprar; await ref.update({comprar:!cur}); await carregarMateriais();
     }
 
-    // ---------- NF-e ----------
-    let nfeItensExtraidos=[]; let nfeStep=0; let materiaisIndex=[]; let nfeDataEmissao=null; let nfeLoja=null; let nfeNumero=null;
+    // ---------- IMPORTAÇÃO COM ASSISTENTE (NF-e e PLANILHA) ----------
+    let importQueue = [];        // itens pendentes para conferir (tanto NF-e quanto planilha)
+    let importOrigin = null;     // 'nfe' | 'manual'
+    let importStep = 0;
+    let materiaisIndex = [];
+    let metaDataEmissao = null;  // data da compra corrente (p/ item em foco)
+    let metaLoja = null;         // loja corrente (p/ item em foco)
+    let metaNumeroNF = null;     // NF corrente (p/ item em foco)
 
-    const btnImportarNfe=document.getElementById('btnImportarNfe');
-    const inputXmlNfe=document.getElementById('inputXmlNfe');
-    const nfeMatchModal=document.getElementById('nfeMatchModal');
-    const btnFecharNfeMatch=document.getElementById('btnFecharNfeMatch');
-    const nfeStepIdx=document.getElementById('nfeStepIdx');
-    const nfeStepTotal=document.getElementById('nfeStepTotal');
-    const nfeItemNome=document.getElementById('nfeItemNome');
-    const nfeItemQtd=document.getElementById('nfeItemQtd');
-    const nfeItemPreco=document.getElementById('nfeItemPreco');
-    const nfeItemLote=document.getElementById('nfeItemLote');
-    const nfeItemVal=document.getElementById('nfeItemVal');
-    const nfeCandidateSelect=document.getElementById('nfeCandidateSelect');
-    const nfeNewName=document.getElementById('nfeNewName');
-    const nfeNewCategory=document.getElementById('nfeNewCategory');
-    const nfeBtnMesmo=document.getElementById('nfeBtnMesmo');
-    const nfeBtnCriar=document.getElementById('nfeBtnCriar');
-    const nfeBtnAvancar=document.getElementById('nfeBtnAvancar');
-    const nfeBtnPular=document.getElementById('nfeBtnPular');
+    // Elementos do modal de equivalência
+    const nfeMatchModal = document.getElementById('nfeMatchModal');
+    const btnFecharNfeMatch = document.getElementById('btnFecharNfeMatch');
+    const nfeStepIdx = document.getElementById('nfeStepIdx');
+    const nfeStepTotal = document.getElementById('nfeStepTotal');
+    const nfeItemNome = document.getElementById('nfeItemNome');
+    const nfeItemQtd = document.getElementById('nfeItemQtd');
+    const nfeItemPreco = document.getElementById('nfeItemPreco');
+    const nfeItemLote = document.getElementById('nfeItemLote');
+    const nfeItemVal = document.getElementById('nfeItemVal');
+    const nfeCandidateSelect = document.getElementById('nfeCandidateSelect');
+    const nfeNewName = document.getElementById('nfeNewName');
+    const nfeNewCategory = document.getElementById('nfeNewCategory');
+    const nfeBtnMesmo = document.getElementById('nfeBtnMesmo');
+    const nfeBtnCriar = document.getElementById('nfeBtnCriar');
+    const nfeBtnAvancar = document.getElementById('nfeBtnAvancar');
+    const nfeBtnPular = document.getElementById('nfeBtnPular');
+
+    // Botões / inputs NF-e
+    const btnImportarNfe = document.getElementById('btnImportarNfe');
+    const inputXmlNfe = document.getElementById('inputXmlNfe');
 
     btnImportarNfe.addEventListener('click',()=>inputXmlNfe.click());
     inputXmlNfe.addEventListener('change', onPickXmlFile);
+
     btnFecharNfeMatch.addEventListener('click',()=>nfeMatchModal.classList.add('hidden'));
     nfeBtnPular.addEventListener('click',()=>avancarItem());
     nfeBtnAvancar.addEventListener('click',()=>avancarItem());
 
+    // “É o mesmo”: vincula ao item do estoque escolhido
     nfeBtnMesmo.addEventListener('click', async ()=>{
-      const item=nfeItensExtraidos[nfeStep];
+      const item=importQueue[importStep];
       const selected=nfeCandidateSelect.value;
       if(!selected){ showCustomModal("Aviso","Selecione um item do estoque ou use 'Criar novo'.","alert"); return; }
-      await registrarEntradaEmMaterialExistente(selected,item,'nfe');
+      metaDataEmissao = item.dataCompra || item.emissao || new Date().toISOString();
+      metaLoja = item.loja || null;
+      metaNumeroNF = item.nf || null;
+
+      await registrarEntradaEmMaterialExistente(selected,item,importOrigin);
+      await recomputarAgregados(selected);
       avancarItem(true);
     });
+
+    // “Criar novo”: só cria se você mandar
     nfeBtnCriar.addEventListener('click', async ()=>{
-      const item=nfeItensExtraidos[nfeStep];
+      const item=importQueue[importStep];
       const nomeNovo=(nfeNewName.value||'').trim();
       const categoriaNova=nfeNewCategory.value;
       if(!nomeNovo){ showCustomModal("Aviso","Informe um nome padronizado.","alert"); return; }
       if(!categoriaNova){ showCustomModal("Aviso","Selecione a categoria.","alert"); return; }
-      const docRef=db.collection('materiais').doc(nomeNovo); const ex=await docRef.get();
+
+      const docRef=db.collection('materiais').doc(nomeNovo);
+      const ex=await docRef.get();
       if(!ex.exists){
-        await docRef.set({ nome:nomeNovo, categoria:categoriaNova, quantidade:0, quantidadeMinima:0, imagem:null,
+        await docRef.set({
+          nome:nomeNovo, categoria:categoriaNova, quantidade:0, quantidadeMinima:0, imagem:null,
           ultimaModificacao:new Date().toLocaleString('pt-BR'), comprar:false,
-          ultimaCompraEm:null, validadeUltimaCompra:null, precoCompra:null });
+          ultimaCompraEm:null, validadeUltimaCompra:null, precoCompra:null
+        });
       }
-      await registrarEntradaEmMaterialExistente(nomeNovo,item,'nfe');
+      metaDataEmissao = item.dataCompra || item.emissao || new Date().toISOString();
+      metaLoja = item.loja || null;
+      metaNumeroNF = item.nf || null;
+
+      await registrarEntradaEmMaterialExistente(nomeNovo,item,importOrigin);
+      await recomputarAgregados(nomeNovo);
       avancarItem(true);
     });
 
-    function abrirModalMatching(){ nfeMatchModal.classList.remove('hidden'); nfeStepTotal.textContent=nfeItensExtraidos.length; }
-    function avancarItem(){ nfeStep++; if(nfeStep>=nfeItensExtraidos.length){ nfeMatchModal.classList.add('hidden'); carregarMateriais(); showCustomModal("Sucesso","Processamento da NF-e concluído!","alert"); } else { renderNfeMatchStep(); } }
-    async function carregarMateriaisIndex(){ const s=await db.collection('materiais').get(); materiaisIndex=[]; s.forEach(doc=>{const d=doc.data(); materiaisIndex.push({id:doc.id,nome:d.nome||doc.id,categoria:d.categoria||''});}); }
+    function abrirModalMatching(){
+      nfeMatchModal.classList.remove('hidden');
+      nfeStepTotal.textContent=importQueue.length;
+    }
 
+    function avancarItem(){
+      importStep++;
+      if(importStep>=importQueue.length){
+        nfeMatchModal.classList.add('hidden');
+        carregarMateriais();
+        showCustomModal("Sucesso","Processamento concluído!","alert");
+      } else {
+        renderMatchStep();
+      }
+    }
+
+    async function carregarMateriaisIndex(){
+      const s=await db.collection('materiais').get();
+      materiaisIndex=[]; s.forEach(doc=>{
+        const d=doc.data();
+        materiaisIndex.push({id:doc.id,nome:d.nome||doc.id,categoria:d.categoria||''});
+      });
+    }
+
+    function renderMatchStep(){
+      const it=importQueue[importStep];
+      nfeStepIdx.textContent=String(importStep+1);
+      nfeItemNome.textContent=it.nome||'-';
+      nfeItemQtd.textContent=it.qtd||0;
+      nfeItemPreco.textContent=(it.preco||0).toFixed(2).replace('.',',');
+      nfeItemLote.textContent=it.lote||'-';
+      nfeItemVal.textContent=it.validade ? toBRDate(it.validade) : '-';
+
+      const candidates = sugerirMateriais(it.nome, materiaisIndex, 8);
+      nfeCandidateSelect.innerHTML = '<option value="">— selecione no estoque —</option>' +
+        candidates.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+      nfeNewName.value=''; nfeNewCategory.value='';
+    }
+
+    function stripAccents(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+    function norm(s){ return stripAccents(String(s||'').toLowerCase()).replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim(); }
+    function similarity(a,b){ a=norm(a); b=norm(b); if(!a||!b) return 0;
+      const ta=new Set(a.split(' ')), tb=new Set(b.split(' '));
+      const inter=[...ta].filter(x=>tb.has(x)).length; const uni=new Set([...ta,...tb]).size;
+      let score=inter/(uni||1); if(a.includes(b)||b.includes(a)) score+=0.15; return Math.min(1,Math.max(0,score));
+    }
+    function sugerirMateriais(nomeNota,base,topN=5){
+      const s=base.map(m=>({...m,score:similarity(nomeNota,m.nome)}));
+      s.sort((x,y)=>y.score-x.score); return s.slice(0,topN);
+    }
+
+    // NF-e XML -> coloca itens na fila SEM gravar
     async function onPickXmlFile(evt){
       const file=evt.target.files && evt.target.files[0]; if(!file) return;
       try{
         await carregarMateriaisIndex();
         const xmlStr=await file.text();
         const meta = extrairMetaNfe(xmlStr);
-        nfeLoja = meta.loja || null;
-        nfeNumero = meta.numero || null;
-        nfeDataEmissao = meta.emissao || null;
-
-        nfeItensExtraidos = extrairItensDaNfe(xmlStr);
-        if(!nfeItensExtraidos.length){ showCustomModal("Aviso","Não encontrei itens na NF-e.","alert"); return; }
-        nfeStep=0; abrirModalMatching(); renderNfeMatchStep();
+        importQueue = extrairItensDaNfe(xmlStr).map(it => ({
+          ...it,
+          emissao: meta.emissao,
+          loja: meta.loja || it.loja || null,
+          nf: meta.numero || it.nf || null
+        }));
+        if(!importQueue.length){ showCustomModal("Aviso","Não encontrei itens na NF-e.","alert"); return; }
+        importOrigin='nfe'; importStep=0;
+        abrirModalMatching(); renderMatchStep();
       }catch(e){ console.error(e); showCustomModal("Erro","Falha ao processar a NF-e: "+e.message,"alert"); }
       finally{ inputXmlNfe.value=''; }
     }
 
+    // Metadados da NF-e (emissor/ide)
     function extrairMetaNfe(xmlStr){
       const parser=new DOMParser(); const xml=parser.parseFromString(xmlStr,"text/xml");
       const ns="http://www.portalfiscal.inf.br/nfe";
@@ -721,6 +799,7 @@
       return { emissao: dh, numero: nNF, loja };
     }
 
+    // Itens da NF-e
     function extrairItensDaNfe(xmlStr){
       const parser=new DOMParser(); const xml=parser.parseFromString(xmlStr,"text/xml");
       const ns="http://www.portalfiscal.inf.br/nfe"; const dets=xml.getElementsByTagNameNS(ns,'det'); const itens=[];
@@ -731,39 +810,23 @@
         const vUn=parseFloat((t(prod,'vUnCom')||'0').replace(',','.'))||0; const vProd=parseFloat((t(prod,'vProd')||'0').replace(',','.'))||0;
         const cProd=t(prod,'cProd'); let ean=t(prod,'cEAN'); if(!ean) ean=t(prod,'cEANTrib');
         const r=prod.getElementsByTagNameNS(ns,'rastro')[0]; const nLote=r?t(r,'nLote'):null; const dVal=r?t(r,'dVal'):null;
-        itens.push({ cod:cProd, ean:ean, nome:xProd, qtd:qCom, preco:(qCom>0? vProd/qCom : vUn)||vUn, lote:nLote, validade:dVal,
-          loja: nfeLoja || null, nf: nfeNumero || null
-        });
+        itens.push({ cod:cProd, ean:ean, nome:xProd, qtd:qCom,
+          preco:(qCom>0? vProd/qCom : vUn)||vUn, lote:nLote, validade:dVal });
       }
       return itens;
     }
 
-    function renderNfeMatchStep(){
-      const it=nfeItensExtraidos[nfeStep];
-      nfeStepIdx.textContent=String(nfeStep+1);
-      nfeItemNome.textContent=it.nome||'-';
-      nfeItemQtd.textContent=it.qtd||0;
-      nfeItemPreco.textContent=(it.preco||0).toFixed(2).replace('.',',');
-      nfeItemLote.textContent=it.lote||'-';
-      nfeItemVal.textContent=it.validade ? toBRDate(it.validade) : '-';
-
-      const candidates = sugerirMateriais(it.nome, materiaisIndex, 8);
-      nfeCandidateSelect.innerHTML = '<option value="">— selecione no estoque —</option>' + candidates.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
-      nfeNewName.value=''; nfeNewCategory.value='';
-    }
-
-    function stripAccents(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
-    function norm(s){ return stripAccents(String(s||'').toLowerCase()).replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim(); }
-    function similarity(a,b){ a=norm(a); b=norm(b); if(!a||!b) return 0; const ta=new Set(a.split(' ')), tb=new Set(b.split(' '));
-      const inter=[...ta].filter(x=>tb.has(x)).length; const uni=new Set([...ta,...tb]).size; let score=inter/(uni||1); if(a.includes(b)||b.includes(a)) score+=0.15; return Math.min(1,Math.max(0,score)); }
-    function sugerirMateriais(nomeNota,base,topN=5){ const s=base.map(m=>({...m,score:similarity(nomeNota,m.nome)})); s.sort((x,y)=>y.score-x.score); return s.slice(0,topN); }
-
+    // Entrada em material existente (usa metadados do item em foco)
     async function registrarEntradaEmMaterialExistente(docId,item,origem){
-      const ref=db.collection('materiais').doc(docId); const snap=await ref.get(); if(!snap.exists) throw new Error(`Documento "${docId}" não encontrado.`);
-      const atual=snap.data()||{}; const novaQtd=(atual.quantidade||0)+(item.qtd||0);
+      const ref=db.collection('materiais').doc(docId);
+      const snap=await ref.get();
+      if(!snap.exists) throw new Error(`Documento "${docId}" não encontrado.`);
+
+      const atual=snap.data()||{};
+      const novaQtd=(atual.quantidade||0)+(item.qtd||0);
 
       const agoraISO=new Date().toISOString();
-      const dataCompraISO = (origem==='nfe' ? (nfeDataEmissao || agoraISO) : agoraISO);
+      const dataCompraISO = metaDataEmissao || item.dataCompra || new Date().toISOString();
 
       const updateBase = {
         quantidade:novaQtd,
@@ -782,11 +845,11 @@
 
       await ref.collection('movimentacoes').add({
         tipo:'entrada', origem: origem || 'manual', data: agoraISO,
-        nfeEmissao: (origem==='nfe'? nfeDataEmissao : null),
+        nfeEmissao: dataCompraISO,
         nfeItemNome:item.nome, qtd:item.qtd||0, precoUnit:item.preco||0,
         lote:item.lote||null, validade:item.validade||null, ean:item.ean||null, codProdNfe:item.cod||null,
-        loja: item.loja || (origem==='nfe'? (nfeLoja||null): null),
-        numeroNF: item.nf || (origem==='nfe'? (nfeNumero||null): null)
+        loja: metaLoja || item.loja || null,
+        numeroNF: metaNumeroNF || item.nf || null
       });
 
       await ref.collection('compras').add({
@@ -798,8 +861,8 @@
         lote: item.lote || null,
         validade: item.validade || null,
         ean: item.ean || null,
-        loja: item.loja || (origem==='nfe'? (nfeLoja||null): null),
-        numeroNF: item.nf || (origem==='nfe'? (nfeNumero||null): null),
+        loja: metaLoja || item.loja || null,
+        numeroNF: metaNumeroNF || item.nf || null,
         criadoEm: agoraISO
       });
     }
@@ -847,15 +910,16 @@
       if (isNaN(item.preco) || item.preco < 0){ showCustomModal('Aviso','Informe um preço válido.','alert'); return; }
 
       try{
-        const oldNfe = { date: nfeDataEmissao }; nfeDataEmissao = dataCompraISO;
+        // usa o mesmo pipeline (metadados)
+        metaDataEmissao = dataCompraISO; metaLoja = item.loja; metaNumeroNF = item.nf;
         await registrarEntradaEmMaterialExistente(nome, item, 'manual');
-        nfeDataEmissao = oldNfe.date;
 
         compraModal.classList.add('hidden');
         await recomputarAgregados(nome);
         await carregarMateriais();
         showCustomModal('Sucesso','Compra registrada com sucesso!','alert');
       }catch(err){ console.error(err); showCustomModal('Erro','Falha ao registrar compra: '+err.message,'alert'); }
+      finally { metaDataEmissao=null; metaLoja=null; metaNumeroNF=null; }
     });
 
     // ---------- HISTÓRICO ----------
@@ -1087,40 +1151,21 @@
       );
       if (!rows.length) return;
 
-      let count = 0, erros = 0;
-      for (const r of rows){
-        try{
-          const docRef = db.collection('materiais').doc(r.nome);
-          if(!(await docRef.get()).exists){
-            await docRef.set({
-              nome: r.nome, categoria:'clinica_geral', quantidade:0, quantidadeMinima:0, imagem:null,
-              ultimaModificacao:new Date().toLocaleString('pt-BR'), comprar:false,
-              ultimaCompraEm:null, validadeUltimaCompra:null, precoCompra:null
-            });
-          }
-          const item = {
-            nome: r.nome,
-            qtd: r.qtd,
-            preco: r.preco,
-            lote: r.lote || null,
-            validade: r.validade || null,
-            loja: r.loja || null,
-            nf: r.nf || null
-          };
-          const oldNfeDate = nfeDataEmissao;
-          nfeDataEmissao = r.dataCompra || new Date().toISOString();
-          await registrarEntradaEmMaterialExistente(r.nome, item, 'manual');
-          nfeDataEmissao = oldNfeDate;
-
-          await recomputarAgregados(r.nome);
-          count++;
-        }catch(e){
-          console.error('Falha ao gravar linha', r, e);
-          erros++;
-        }
-      }
-      await carregarMateriais();
-      await showCustomModal('Importação concluída', `Registros gravados: ${count}\nFalhas: ${erros}`, 'alert');
+      await carregarMateriaisIndex();
+      importQueue = rows.map(r => ({
+        nome: r.nome,
+        qtd: r.qtd,
+        preco: r.preco,
+        lote: r.lote || null,
+        validade: r.validade || null,
+        loja: r.loja || null,
+        nf: r.nf || null,
+        dataCompra: r.dataCompra || null
+      }));
+      importOrigin = 'manual';
+      importStep = 0;
+      abrirModalMatching();
+      renderMatchStep();
     }
 
     inputPlanilha.addEventListener('change', async (e)=>{
@@ -1192,7 +1237,7 @@
         console.error('Erro na importação da planilha:', err);
         await showCustomModal('Erro na importação', (err && err.message) ? err.message : String(err), 'alert');
       } finally {
-        inputPlanilha.value='';
+        e.target.value='';
       }
     });
 
