@@ -12,52 +12,43 @@
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
                     },
-                    // Nova paleta de cores pastel em tons de rosa com melhor contraste
                     colors: {
-                        'primary-dark': '#8B456C', // Rosa Profundo (Deep Rose)
-                        'secondary-light': '#F0E6F0', // Rosa Pastel Claro (Light Pastel Rose)
-                        'background-light': '#FFFFFF', // Branco puro
-                        'text-dark': '#333333', // Cinza Escuro (Dark Gray)
-                        'danger-red': '#CD5C5C', // Vermelho Suave (Muted Red)
-                        'ai-sparkle': '#FFD700', // Dourado para o botão AI (será removido)
+                        'primary-dark': '#8B456C',
+                        'secondary-light': '#F0E6F0',
+                        'background-light': '#FFFFFF',
+                        'text-dark': '#333333',
+                        'danger-red': '#CD5C5C',
+                        'ai-sparkle': '#FFD700',
                     }
                 }
             }
         }
     </script>
+    <!-- Firebase compat SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- XLSX (relatórios) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        /* Custom scrollbar for better aesthetics */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
     </style>
 </head>
 <body class="font-sans bg-background-light min-h-screen flex flex-col items-center p-4">
 
+    <!-- Modal base reutilizável -->
     <div id="customModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
             <h3 id="modalTitle" class="text-xl font-semibold mb-4 text-text-dark"></h3>
             <p id="modalMessage" class="mb-6 text-gray-700"></p>
-            <div id="modalActions" class="flex justify-center space-x-4">
-                </div>
+            <div id="modalActions" class="flex justify-center space-x-4"></div>
         </div>
     </div>
 
+    <!-- Login -->
     <div id="loginContainer" class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md hidden">
         <h2 class="text-3xl font-bold text-center text-primary-dark mb-6">Login - Controle de Estoque</h2>
         <form id="loginForm" class="space-y-4">
@@ -78,6 +69,7 @@
         </form>
     </div>
 
+    <!-- Main -->
     <div id="mainContainer" class="container bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-6xl hidden">
         <div class="flex flex-wrap items-center justify-center gap-3 md:gap-4 p-4 bg-secondary-light rounded-lg mb-6 shadow-sm">
             <input type="text" id="searchInput" placeholder="Buscar material..."
@@ -100,6 +92,7 @@
             </button>
         </div>
 
+        <!-- Opções avançadas -->
         <div id="advancedOptionsContainer" class="flex flex-wrap items-center justify-center gap-3 md:gap-4 p-4 bg-secondary-light rounded-lg mb-6 shadow-sm hidden">
             <button id="btnAbrirModal"
                     class="flex-1 min-w-[150px] bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-primary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
@@ -113,13 +106,20 @@
                     class="flex-1 min-w-[100px] bg-danger-red text-white py-2 px-4 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
                 Sair
             </button>
+
+            <!-- ======= NF-e: Botão + input file ======= -->
+            <input id="inputXmlNfe" type="file" accept=".xml" class="hidden">
+            <button id="btnImportarNfe"
+                    class="flex-1 min-w-[180px] bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-primary-dark focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
+                Importar NF-e (XML)
+            </button>
+            <!-- ======================================= -->
         </div>
 
         <div class="flex flex-col md:flex-row w-full gap-6">
             <div class="w-full md:w-1/4 bg-white p-4 rounded-xl shadow-lg h-fit">
                 <h2 class="text-xl font-bold text-primary-dark mb-4">Categorias</h2>
-                <div id="categorySidebar" class="space-y-2">
-                    </div>
+                <div id="categorySidebar" class="space-y-2"></div>
             </div>
 
             <div class="w-full md:w-3/4">
@@ -134,18 +134,16 @@
                     </button>
                 </div>
 
-                <div id="materialList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    </div>
+                <div id="materialList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </div>
         </div>
 
+        <!-- Modal: Cadastrar novo material -->
         <div id="cadastroModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
             <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-2xl font-semibold text-primary-dark">Cadastrar Novo Material</h3>
-                    <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharModal">
-                        &times;
-                    </button>
+                    <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharModal">&times;</button>
                 </div>
                 <form id="materialForm" class="space-y-4">
                     <input type="text" id="nome" placeholder="Nome do material" required
@@ -180,13 +178,12 @@
             </div>
         </div>
 
+        <!-- Modal: Editar material -->
         <div id="editarModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
             <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-2xl font-semibold text-primary-dark">Editar Material</h3>
-                    <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharModalEditar">
-                        &times;
-                    </button>
+                    <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharModalEditar">&times;</button>
                 </div>
                 <form id="editarForm" class="space-y-4">
                     <input type="text" id="editNome" placeholder="Nome do material" required
@@ -219,17 +216,82 @@
                 </form>
             </div>
         </div>
+
+        <!-- ======= Modal: Matching NF-e ======= -->
+        <div id="nfeMatchModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+          <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl mx-4">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-2xl font-semibold text-primary-dark">Conferir item da NF-e</h3>
+              <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharNfeMatch">&times;</button>
+            </div>
+
+            <div id="nfeItemBox" class="space-y-2 mb-4">
+              <p class="text-sm text-gray-500">Passo <span id="nfeStepIdx">1</span> de <span id="nfeStepTotal">1</span></p>
+              <div class="bg-secondary-light rounded-lg p-3">
+                <div class="text-sm text-gray-600">Item da nota:</div>
+                <div id="nfeItemNome" class="font-semibold text-text-dark"></div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 text-sm">
+                  <div><span class="text-gray-600">Qtd:</span> <span id="nfeItemQtd"></span></div>
+                  <div><span class="text-gray-600">Preço unit.:</span> R$ <span id="nfeItemPreco"></span></div>
+                  <div><span class="text-gray-600">Lote:</span> <span id="nfeItemLote"></span></div>
+                  <div><span class="text-gray-600">Validade:</span> <span id="nfeItemVal"></span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-3">
+              <label class="block text-sm text-gray-700">Sugerido do seu estoque (melhores correspondências):</label>
+              <select id="nfeCandidateSelect" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-primary-dark focus:border-primary-dark"></select>
+
+              <div class="flex gap-2">
+                <input id="nfeNewName" type="text" placeholder="(Opcional) Nome padronizado / novo produto"
+                       class="flex-1 border border-gray-300 rounded-lg p-2 focus:ring-primary-dark focus:border-primary-dark">
+                <select id="nfeNewCategory" class="w-60 border border-gray-300 rounded-lg p-2 focus:ring-primary-dark focus:border-primary-dark">
+                  <option value="">Categoria (se novo)</option>
+                  <option value="biosseguranca">Biossegurança</option>
+                  <option value="brocas">Brocas</option>
+                  <option value="cirurgia">Cirurgia</option>
+                  <option value="clinica_geral">Clínica Geral</option>
+                  <option value="dentistica">Dentística</option>
+                  <option value="endodontia">Endodontia</option>
+                  <option value="instrumental">Instrumental</option>
+                  <option value="material_limpeza">Material de Limpeza</option>
+                  <option value="ortodontia">Ortodontia</option>
+                  <option value="papelaria">Papelaria</option>
+                  <option value="protese">Prótese</option>
+                  <option value="implantodontia">Implantodontia</option>
+                </select>
+              </div>
+
+              <div class="text-xs text-gray-500">
+                Dica: se o “sugerido” não for o mesmo item, escolha outro no select ou escreva o nome padronizado e a categoria para criar um novo produto.
+              </div>
+            </div>
+
+            <div class="flex justify-between items-center mt-6">
+              <div class="text-sm text-gray-600">Ações para este item</div>
+              <div class="flex gap-2">
+                <button id="nfeBtnPular" class="bg-gray-200 text-text-dark py-2 px-3 rounded-lg hover:bg-gray-300">Pular</button>
+                <button id="nfeBtnMesmo" class="bg-primary-dark text-white py-2 px-3 rounded-lg hover:bg-opacity-90">É o mesmo</button>
+                <button id="nfeBtnCriar" class="bg-green-600 text-white py-2 px-3 rounded-lg hover:bg-green-700">Criar novo</button>
+                <button id="nfeBtnAvancar" class="bg-text-dark text-white py-2 px-3 rounded-lg hover:bg-opacity-90">Avançar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- ====================================== -->
+
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if Firebase SDK is loaded
+            // Check Firebase
             if (typeof firebase === 'undefined') {
                 showCustomModal('Erro', 'Firebase SDK não foi carregado. Verifique sua conexão ou tente novamente.', 'alert');
                 return;
             }
 
-            // Firebase configuration (replace with your actual config from __firebase_config if available)
+            // Firebase config
             const firebaseConfig = {
                 apiKey: "AIzaSyCDxJW_o6y-hmisQHOHVYPVJ8cag6hrKv0",
                 authDomain: "estoque-prime.firebaseapp.com",
@@ -240,12 +302,12 @@
                 measurementId: "G-04D19CYTTQ"
             };
 
-            // Initialize Firebase
+            // Init Firebase
             const app = firebase.initializeApp(firebaseConfig);
             const db = firebase.firestore();
             const auth = firebase.auth();
 
-            // Category mapping for display purposes
+            // Categorias (display)
             const categorias = {
                 biosseguranca: "Biossegurança",
                 brocas: "Brocas",
@@ -263,17 +325,10 @@
 
             let materiaisFiltrados = [];
             let termoDeBusca = "";
-            let categoriaSelecionada = "todos"; // New state for selected category
-            let isShowingPurchaseList = false; // New state to track if purchase list is active
+            let categoriaSelecionada = "todos";
+            let isShowingPurchaseList = false;
 
-            /**
-             * Displays a custom modal for alerts or confirmations.
-             * @param {string} title - The title of the modal.
-             * @param {string} message - The message content of the modal.
-             * @param {'alert'|'confirm'|'copy'} type - The type of modal ('alert' for OK button, 'confirm' for Yes/No buttons, 'copy' for text to be manually copied).
-             * @param {string} [copyText=''] - The text to be displayed for manual copying (only for 'copy' type).
-             * @returns {Promise<boolean>} - Resolves to true if 'Yes'/'OK' is clicked, false otherwise.
-             */
+            // ---------- Utilitários ----------
             function showCustomModal(title, message, type, copyText = '') {
                 return new Promise((resolve) => {
                     const modal = document.getElementById('customModal');
@@ -282,15 +337,15 @@
                     const modalActions = document.getElementById('modalActions');
 
                     modalTitle.textContent = title;
-                    modalMessage.innerHTML = ''; // Clear previous message content
-                    modalActions.innerHTML = ''; // Clear previous buttons
+                    modalMessage.innerHTML = '';
+                    modalActions.innerHTML = '';
 
                     if (type === 'copy') {
                         const textArea = document.createElement('textarea');
                         textArea.value = copyText;
                         textArea.readOnly = true;
                         textArea.className = 'w-full h-32 p-2 border border-gray-300 rounded-lg resize-none mb-4 font-mono text-sm';
-                        modalMessage.appendChild(document.createTextNode(message)); // Add message before textarea
+                        modalMessage.appendChild(document.createTextNode(message));
                         modalMessage.appendChild(document.createElement('br'));
                         modalMessage.appendChild(document.createElement('br'));
                         modalMessage.appendChild(textArea);
@@ -298,46 +353,29 @@
                         const closeButton = document.createElement('button');
                         closeButton.textContent = 'Fechar';
                         closeButton.className = 'bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition duration-200 ease-in-out transform hover:scale-105';
-                        closeButton.onclick = () => {
-                            modal.classList.add('hidden');
-                            resolve(false); // Resolve false as it's not a confirmation
-                        };
+                        closeButton.onclick = () => { modal.classList.add('hidden'); resolve(false); };
                         modalActions.appendChild(closeButton);
 
-                        // Select text automatically for easier copying (works on most devices)
-                        textArea.focus();
-                        textArea.select();
-                        // For iOS, setSelectionRange might be more reliable after select()
-                        textArea.setSelectionRange(0, textArea.value.length);
-
+                        textArea.focus(); textArea.select(); textArea.setSelectionRange(0, textArea.value.length);
                     } else if (type === 'alert') {
                         modalMessage.textContent = message;
                         const okButton = document.createElement('button');
                         okButton.textContent = 'OK';
                         okButton.className = 'bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition duration-200 ease-in-out transform hover:scale-105';
-                        okButton.onclick = () => {
-                            modal.classList.add('hidden');
-                            resolve(true);
-                        };
+                        okButton.onclick = () => { modal.classList.add('hidden'); resolve(true); };
                         modalActions.appendChild(okButton);
                     } else if (type === 'confirm') {
                         modalMessage.textContent = message;
                         const yesButton = document.createElement('button');
                         yesButton.textContent = 'Sim';
                         yesButton.className = 'bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200 ease-in-out transform hover:scale-105';
-                        yesButton.onclick = () => {
-                            modal.classList.add('hidden');
-                            resolve(true);
-                        };
+                        yesButton.onclick = () => { modal.classList.add('hidden'); resolve(true); };
                         modalActions.appendChild(yesButton);
 
                         const noButton = document.createElement('button');
                         noButton.textContent = 'Não';
                         noButton.className = 'bg-danger-red text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-200 ease-in-out transform hover:scale-105';
-                        noButton.onclick = () => {
-                            modal.classList.add('hidden');
-                            resolve(false);
-                        };
+                        noButton.onclick = () => { modal.classList.add('hidden'); resolve(false); };
                         modalActions.appendChild(noButton);
                     }
 
@@ -345,11 +383,6 @@
                 });
             }
 
-            /**
-             * Converts a File object to a Data URL (base64 string).
-             * @param {File} file - The file to convert.
-             * @returns {Promise<string>} - A promise that resolves with the Data URL.
-             */
             function converterParaDataURL(file) {
                 return new Promise((resolve, reject) => {
                     const reader = new FileReader();
@@ -359,42 +392,28 @@
                 });
             }
 
-            /**
-             * Loads materials from Firestore, filters them based on current state,
-             * and then updates the displayed list and category sidebar.
-             */
+            // ---------- Carregamento / Render ----------
             async function carregarMateriais() {
                 try {
                     const snapshot = await db.collection('materiais').get();
                     let todosMateriais = [];
                     snapshot.forEach(doc => todosMateriais.push(doc.data()));
 
-                    let materiaisParaProcessar = todosMateriais;
-
                     if (isShowingPurchaseList) {
-                        // If showing purchase list, override other filters
                         materiaisFiltrados = todosMateriais.filter(m => m.comprar === true);
-                        // Clear search and category selection for clarity in this mode
                         document.getElementById('searchInput').value = '';
                         termoDeBusca = '';
                         categoriaSelecionada = 'todos';
                     } else {
-                        // Apply search filter
-                        materiaisFiltrados = todosMateriais.filter(m =>
-                            m.nome.toLowerCase().includes(termoDeBusca.toLowerCase())
-                        );
-
-                        // Apply category filter
+                        materiaisFiltrados = todosMateriais.filter(m => m.nome.toLowerCase().includes(termoDeBusca.toLowerCase()));
                         if (categoriaSelecionada !== "todos") {
-                            materiaisFiltrados = materiaisFiltrados.filter(m =>
-                                m.categoria === categoriaSelecionada
-                            );
+                            materiaisFiltrados = materiaisFiltrados.filter(m => m.categoria === categoriaSelecionada);
                         }
                     }
 
                     atualizarLista(materiaisFiltrados);
-                    renderizarCategorias(todosMateriais); // Always render all categories in sidebar
-                    togglePurchaseListActionsVisibility(); // Update visibility of purchase list specific buttons
+                    renderizarCategorias(todosMateriais);
+                    togglePurchaseListActionsVisibility();
 
                 } catch (error) {
                     console.error("Erro ao carregar materiais:", error);
@@ -402,76 +421,46 @@
                 }
             }
 
-            /**
-             * Saves a material object to Firestore.
-             * @param {object} material - The material object to save.
-             */
             async function salvarMaterial(material) {
                 try {
                     await db.collection('materiais').doc(material.nome).set(material);
-                    console.log('Material salvo com sucesso:', material);
+                    console.log('Material salvo:', material);
                 } catch (error) {
                     console.error('Erro ao salvar material:', error);
                     showCustomModal("Erro", 'Erro ao salvar material: ' + error.message, 'alert');
                 }
             }
 
-            /**
-             * Renders the category sidebar.
-             * @param {Array<object>} allMaterials - All materials to extract categories from.
-             */
             function renderizarCategorias(allMaterials) {
                 const categorySidebar = document.getElementById('categorySidebar');
-                categorySidebar.innerHTML = ''; // Clear existing categories
+                categorySidebar.innerHTML = '';
 
                 const uniqueCategories = new Set();
                 allMaterials.forEach(m => uniqueCategories.add(m.categoria));
 
-                // Add "Todos" option
                 const allButton = document.createElement('button');
                 allButton.textContent = 'Todos';
                 allButton.className = `w-full text-left py-2 px-4 rounded-lg transition duration-200 ${categoriaSelecionada === 'todos' && !isShowingPurchaseList ? 'bg-primary-dark text-white' : 'bg-gray-200 text-text-dark hover:bg-gray-300'}`;
-                allButton.onclick = () => {
-                    categoriaSelecionada = 'todos';
-                    isShowingPurchaseList = false; // Disable purchase list filter
-                    carregarMateriais();
-                };
+                allButton.onclick = () => { categoriaSelecionada = 'todos'; isShowingPurchaseList = false; carregarMateriais(); };
                 categorySidebar.appendChild(allButton);
 
-                // Add other categories
                 Array.from(uniqueCategories).sort().forEach(catKey => {
                     const categoryButton = document.createElement('button');
                     categoryButton.textContent = categorias[catKey] || catKey;
                     categoryButton.className = `w-full text-left py-2 px-4 rounded-lg transition duration-200 ${categoriaSelecionada === catKey && !isShowingPurchaseList ? 'bg-primary-dark text-white' : 'bg-gray-200 text-text-dark hover:bg-gray-300'}`;
-                    categoryButton.onclick = () => {
-                        categoriaSelecionada = catKey;
-                        isShowingPurchaseList = false; // Disable purchase list filter
-                        carregarMateriais();
-                    };
+                    categoryButton.onclick = () => { categoriaSelecionada = catKey; isShowingPurchaseList = false; carregarMateriais(); };
                     categorySidebar.appendChild(categoryButton);
                 });
             }
 
-            /**
-             * Toggles the visibility of the "Copiar Lista" and "Mostrar Todos os Itens" buttons.
-             */
             function togglePurchaseListActionsVisibility() {
-                const purchaseListActionsContainer = document.getElementById('purchaseListActionsContainer');
-                if (isShowingPurchaseList) {
-                    purchaseListActionsContainer.classList.remove('hidden');
-                } else {
-                    purchaseListActionsContainer.classList.add('hidden');
-                }
+                const el = document.getElementById('purchaseListActionsContainer');
+                if (isShowingPurchaseList) el.classList.remove('hidden'); else el.classList.add('hidden');
             }
 
-
-            /**
-             * Updates the material list display based on the provided materials array.
-             * @param {Array<object>} materiais - An array of material objects to display.
-             */
             function atualizarLista(materiais) {
                 const lista = document.getElementById('materialList');
-                lista.innerHTML = ''; // Clear existing items
+                lista.innerHTML = '';
 
                 if (materiais.length === 0) {
                     lista.innerHTML = '<p class="text-center text-gray-600 col-span-full">Nenhum material encontrado para esta busca/categoria.</p>';
@@ -482,7 +471,6 @@
                     const itemDiv = document.createElement('div');
                     itemDiv.className = `material-item bg-white rounded-lg shadow-md flex flex-col transition duration-200 ease-in-out hover:shadow-lg ${material.quantidade < material.quantidadeMinima ? 'border-2 border-danger-red' : ''}`;
 
-                    // Product Image
                     const imgContainer = document.createElement('div');
                     imgContainer.className = 'w-full h-48 bg-white flex items-center justify-center relative';
                     if (material.imagem) {
@@ -492,34 +480,31 @@
                         img.className = 'w-full h-full object-contain';
                         img.onerror = () => {
                             console.error('Erro ao carregar imagem:', material.imagem);
-                            img.src = 'https://placehold.co/300x300/BFBFBF/585856?text=Sem+Imagem'; // Placeholder image
-                            img.className = 'w-24 h-24 object-contain'; // Ensure placeholder also uses object-contain
+                            img.src = 'https://placehold.co/300x300/BFBFBF/585856?text=Sem+Imagem';
+                            img.className = 'w-24 h-24 object-contain';
                         };
                         imgContainer.appendChild(img);
                     } else {
-                         const placeholderImg = document.createElement('img');
-                         placeholderImg.src = 'https://placehold.co/300x300/BFBFBF/585856?text=Sem+Imagem'; // Placeholder image
-                         placeholderImg.alt = `Sem imagem para ${material.nome}`;
-                         placeholderImg.className = 'w-24 h-24 object-contain';
-                         imgContainer.appendChild(placeholderImg);
+                        const placeholderImg = document.createElement('img');
+                        placeholderImg.src = 'https://placehold.co/300x300/BFBFBF/585856?text=Sem+Imagem';
+                        placeholderImg.alt = `Sem imagem para ${material.nome}`;
+                        placeholderImg.className = 'w-24 h-24 object-contain';
+                        imgContainer.appendChild(placeholderImg);
                     }
                     itemDiv.appendChild(imgContainer);
 
-                    // Product Info
                     const info = document.createElement('div');
                     info.className = 'p-4 flex-grow';
                     info.innerHTML = `
                         <h3 class="text-lg font-semibold text-text-dark mb-1">${material.nome}</h3>
                         <p class="text-sm text-gray-700">Categoria: ${categorias[material.categoria] || material.categoria}</p>
                         <p class="text-xs text-gray-500 mt-1">Modificado em: ${material.ultimaModificacao || 'N/A'}</p>
-                        `;
+                    `;
                     itemDiv.appendChild(info);
 
-                    // Controls Section
                     const controls = document.createElement('div');
                     controls.className = 'p-4 bg-gray-50 border-t border-gray-100 flex flex-col space-y-3';
 
-                    // Quantity controls
                     const quantityControlDiv = document.createElement('div');
                     quantityControlDiv.className = 'flex items-center justify-between gap-2';
                     quantityControlDiv.innerHTML = `<span class="text-text-dark font-medium">Quantidade:</span>`;
@@ -546,17 +531,16 @@
                     btnAdd.className = 'bg-primary-dark text-white p-1 rounded-full text-base font-bold hover:bg-opacity-90 transition duration-200 w-7 h-7 flex items-center justify-center';
                     btnAdd.onclick = () => alterarQuantidade(material.nome, 1);
                     qtyAdjustDiv.appendChild(btnAdd);
+
                     quantityControlDiv.appendChild(qtyAdjustDiv);
                     controls.appendChild(quantityControlDiv);
 
-                    // Buy button
                     const btnComprar = document.createElement('button');
                     btnComprar.textContent = material.comprar ? 'Na Lista de Compras' : 'Adicionar à Lista';
                     btnComprar.className = `w-full py-2 px-4 rounded-lg font-semibold transition duration-200 transform hover:scale-105 ${material.comprar ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-primary-dark text-white hover:bg-opacity-90'}`;
                     btnComprar.onclick = () => toggleComprar(material.nome);
                     controls.appendChild(btnComprar);
 
-                    // Options dropdown (Edit/Delete)
                     const optionsDropdownDiv = document.createElement('div');
                     optionsDropdownDiv.className = 'relative inline-block text-left w-full';
 
@@ -565,7 +549,6 @@
                     btnOptions.className = 'w-full bg-gray-200 text-text-dark py-2 px-3 rounded-lg text-sm hover:bg-gray-300 transition duration-200 transform hover:scale-105 mt-2';
                     btnOptions.onclick = (e) => {
                         e.stopPropagation();
-                        // Close all other dropdowns
                         document.querySelectorAll('.dropdown-content').forEach(otherDropdown => {
                             if (otherDropdown !== dropdownContent && !otherDropdown.classList.contains('hidden')) {
                                 otherDropdown.classList.add('hidden');
@@ -582,19 +565,13 @@
                     const btnEdit = document.createElement('button');
                     btnEdit.textContent = 'Editar';
                     btnEdit.className = 'block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-text-dark rounded-t-md';
-                    btnEdit.onclick = () => {
-                        abrirModalEditar(material.nome);
-                        dropdownContent.classList.add('hidden');
-                    };
+                    btnEdit.onclick = () => { abrirModalEditar(material.nome); dropdownContent.classList.add('hidden'); };
                     dropdownContent.appendChild(btnEdit);
 
                     const btnDelete = document.createElement('button');
                     btnDelete.textContent = 'Excluir';
                     btnDelete.className = 'block w-full text-left px-4 py-2 text-sm text-danger-red hover:bg-red-100 hover:text-red-800 rounded-b-md';
-                    btnDelete.onclick = () => {
-                        confirmarExclusao(material.nome);
-                        dropdownContent.classList.add('hidden');
-                    };
+                    btnDelete.onclick = () => { confirmarExclusao(material.nome); dropdownContent.classList.add('hidden'); };
                     dropdownContent.appendChild(btnDelete);
 
                     optionsDropdownDiv.appendChild(dropdownContent);
@@ -605,30 +582,14 @@
                 });
             }
 
-            /**
-             * Opens the add new material modal.
-             */
-            function abrirModal() {
-                document.getElementById('cadastroModal').classList.remove('hidden');
-            }
+            function abrirModal() { document.getElementById('cadastroModal').classList.remove('hidden'); }
+            function fecharModal() { document.getElementById('cadastroModal').classList.add('hidden'); document.getElementById('materialForm').reset(); }
 
-            /**
-             * Closes the add new material modal and resets the form.
-             */
-            function fecharModal() {
-                document.getElementById('cadastroModal').classList.add('hidden');
-                document.getElementById('materialForm').reset();
-            }
-
-            /**
-             * Opens the edit material modal and populates it with existing material data.
-             * @param {string} nome - The name of the material to edit.
-             */
             function abrirModalEditar(nome) {
                 const material = materiaisFiltrados.find(m => m.nome === nome);
                 if (material) {
                     document.getElementById('editNome').value = material.nome;
-                    document.getElementById('originalNome').value = material.nome; // Store original name
+                    document.getElementById('originalNome').value = material.nome;
                     document.getElementById('editCategoria').value = material.categoria;
                     document.getElementById('editQuantidadeMinima').value = material.quantidadeMinima;
                     document.getElementById('editarModal').classList.remove('hidden');
@@ -636,16 +597,8 @@
                     showCustomModal("Erro", "Material não encontrado para edição.", 'alert');
                 }
             }
+            function fecharModalEditar() { document.getElementById('editarModal').classList.add('hidden'); document.getElementById('editarForm').reset(); }
 
-            /**
-             * Closes the edit material modal and resets the form.
-             */
-            function fecharModalEditar() {
-                document.getElementById('editarModal').classList.add('hidden');
-                document.getElementById('editarForm').reset();
-            }
-
-            // Event listener for editing material form submission
             document.getElementById('editarForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 const originalNome = document.getElementById('originalNome').value;
@@ -669,8 +622,8 @@
 
                     if (arquivo) {
                         const dataURL = await converterParaDataURL(arquivo);
-                        const tamanhoBytes = (dataURL.length * 3) / 4 - 2; // Approximate size in bytes
-                        if (tamanhoBytes > 500000) { // 500 KB limit
+                        const tamanhoBytes = (dataURL.length * 3) / 4 - 2;
+                        if (tamanhoBytes > 500000) {
                             showCustomModal('Aviso', 'A imagem é muito grande! Use uma imagem menor (menos de 500 KB).', 'alert');
                             return;
                         }
@@ -678,24 +631,16 @@
                     }
 
                     if (newNome !== originalNome) {
-                        // Check if new name already exists
                         const existingDoc = await db.collection('materiais').doc(newNome).get();
                         if (existingDoc.exists) {
-                            showCustomModal("Erro", `Já existe um material com o nome "${newNome}". Por favor, escolha outro nome.`, 'alert');
+                            showCustomModal("Erro", `Já existe um material com o nome "${newNome}".`, 'alert');
                             return;
                         }
-
-                        // Create new document with new name
                         const newMaterialData = { ...materialToUpdate, ...updateData, nome: newNome };
                         await db.collection('materiais').doc(newNome).set(newMaterialData);
-
-                        // Delete old document
                         await db.collection('materiais').doc(originalNome).delete();
-                        console.log(`Material "${originalNome}" renomeado para "${newNome}" com sucesso!`);
                     } else {
-                        // Update existing document if name hasn't changed
                         await db.collection('materiais').doc(originalNome).update(updateData);
-                        console.log("Material atualizado com sucesso!");
                     }
 
                     fecharModalEditar();
@@ -706,18 +651,14 @@
                 }
             });
 
-            /**
-             * Clears all 'comprar' (to buy) markings on materials.
-             */
             async function limparMarcacoes() {
-                const confirmed = await showCustomModal("Confirmar", "Tem certeza de que deseja limpar todas as marcações de compra?", 'confirm');
+                const confirmed = await showCustomModal("Confirmar", "Deseja limpar todas as marcações de compra?", 'confirm');
                 if (confirmed) {
                     try {
                         const snapshot = await db.collection('materiais').get();
                         const batch = db.batch();
                         snapshot.forEach(doc => batch.update(doc.ref, { comprar: false }));
                         await batch.commit();
-                        console.log("Marcações de compra limpas com sucesso!");
                         carregarMateriais();
                     } catch (error) {
                         console.error("Erro ao limpar marcações:", error);
@@ -726,108 +667,73 @@
                 }
             }
 
-            /**
-             * Copies the list of materials marked for purchase to the clipboard.
-             */
             async function copiarListaCompras() {
                 try {
                     const snapshot = await db.collection('materiais').where("comprar", "==", true).get();
-                    if (snapshot.empty) {
-                        showCustomModal("Aviso", "Nenhum item marcado para compra.", 'alert');
-                        return;
-                    }
+                    if (snapshot.empty) { showCustomModal("Aviso", "Nenhum item marcado para compra.", 'alert'); return; }
                     let itensPorCategoria = {};
                     snapshot.forEach(doc => {
-                        let material = doc.data();
-                        let categoria = categorias[material.categoria] || "Outros"; // Use mapped category name
+                        let m = doc.data();
+                        let categoria = categorias[m.categoria] || "Outros";
                         if (!itensPorCategoria[categoria]) itensPorCategoria[categoria] = [];
-                        itensPorCategoria[categoria].push(material.nome + " (Qtd: " + material.quantidade + ")");
+                        itensPorCategoria[categoria].push(m.nome + " (Qtd: " + m.quantidade + ")");
                     });
 
-                    let listaTexto = Object.keys(itensPorCategoria).sort().map(categoria => {
-                        let itensOrdenados = itensPorCategoria[categoria].sort();
-                        return `🔹 ${categoria.toUpperCase()}\n- ${itensOrdenados.join("\n- ")}`;
+                    let listaTexto = Object.keys(itensPorCategoria).sort().map(cat => {
+                        let itensOrdenados = itensPorCategoria[cat].sort();
+                        return `🔹 ${cat.toUpperCase()}\n- ${itensOrdenados.join("\n- ")}`;
                     }).join("\n\n");
 
-                    // Attempt to use navigator.clipboard.writeText first (modern approach)
                     if (navigator.clipboard && navigator.clipboard.writeText) {
-                        try {
-                            await navigator.clipboard.writeText(listaTexto);
-                            showCustomModal("Sucesso", "Lista de compras copiada com sucesso!", 'alert');
-                            console.log("Lista de compras copiada (navigator.clipboard):", listaTexto);
-                            return; // Exit if successful
-                        } catch (err) {
-                            console.warn('Falha ao usar navigator.clipboard.writeText:', err);
-                            // Fallback to custom modal if navigator.clipboard fails
-                        }
+                        try { await navigator.clipboard.writeText(listaTexto); showCustomModal("Sucesso", "Lista de compras copiada!", 'alert'); return; }
+                        catch (_) {}
                     }
-
-                    // Fallback to custom modal for manual copying
-                    showCustomModal("Copiar Lista de Compras", "Por favor, selecione o texto abaixo e copie-o manualmente:", 'copy', listaTexto);
-
+                    showCustomModal("Copiar Lista de Compras", "Selecione e copie o texto:", 'copy', listaTexto);
                 } catch (error) {
-                    console.error("Erro geral ao copiar a lista:", error);
+                    console.error("Erro ao copiar lista:", error);
                     showCustomModal("Erro", "Erro ao copiar a lista: " + error.message, 'alert');
                 }
             }
 
-            /**
-             * Initiates a search for materials based on the input field.
-             */
             async function buscarMateriais() {
                 termoDeBusca = document.getElementById('searchInput').value.toLowerCase().trim();
-                isShowingPurchaseList = false; // Disable purchase list filter
+                isShowingPurchaseList = false;
                 carregarMateriais();
             }
 
-            /**
-             * Generates an Excel report of all materials.
-             */
             async function gerarRelatorio() {
                 try {
                     const snapshot = await db.collection('materiais').get();
-                    if (snapshot.empty) {
-                        showCustomModal("Aviso", "Nenhum material encontrado para gerar o relatório.", 'alert');
-                        return;
-                    }
-
+                    if (snapshot.empty) { showCustomModal("Aviso", "Nenhum material encontrado.", 'alert'); return; }
                     const dados = [];
                     snapshot.forEach(doc => {
-                        const material = doc.data();
+                        const m = doc.data();
                         dados.push({
-                            Nome: material.nome,
-                            Categoria: categorias[material.categoria] || material.categoria,
-                            Quantidade: material.quantidade,
-                            "Quantidade Mínima": material.quantidadeMinima,
-                            "Marcado para Compra": material.comprar ? "Sim" : "Não",
-                            "Última Modificação": material.ultimaModificacao || "N/A",
+                            Nome: m.nome,
+                            Categoria: categorias[m.categoria] || m.categoria,
+                            Quantidade: m.quantidade,
+                            "Quantidade Mínima": m.quantidadeMinima,
+                            "Marcado para Compra": m.comprar ? "Sim" : "Não",
+                            "Última Modificação": m.ultimaModificacao || "N/A",
                         });
                     });
-
                     const ws = XLSX.utils.json_to_sheet(dados);
                     const wb = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(wb, ws, "Estoque");
                     XLSX.writeFile(wb, "Relatorio_Estoque_Odontologico.xlsx");
-                    console.log("Relatório gerado com sucesso!");
                 } catch (error) {
                     console.error("Erro ao gerar relatório:", error);
                     showCustomModal("Erro", "Erro ao gerar relatório: " + error.message, 'alert');
                 }
             }
 
-            /**
-             * Handles user logout.
-             */
             function logout() {
-                auth.signOut().then(() => {
-                    console.log('Usuário desconectado com sucesso.');
-                }).catch(error => {
+                auth.signOut().catch(error => {
                     console.error('Erro ao desconectar:', error);
                     showCustomModal("Erro", 'Falha ao desconectar: ' + error.message, 'alert');
                 });
             }
 
-            // Event listener for adding new material form submission
             document.getElementById('materialForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 const nome = document.getElementById('nome').value.trim();
@@ -836,18 +742,11 @@
                 const categoria = document.getElementById('categoria').value;
                 const arquivo = document.getElementById('imagem').files[0];
 
-                // Check if material with this name already exists
                 const existingDoc = await db.collection('materiais').doc(nome).get();
-                if (existingDoc.exists) {
-                    showCustomModal("Erro", `Já existe um material com o nome "${nome}". Por favor, escolha outro nome.`, 'alert');
-                    return;
-                }
+                if (existingDoc.exists) { showCustomModal("Erro", `Já existe "${nome}".`, 'alert'); return; }
 
                 const material = {
-                    nome: nome,
-                    quantidade: quantidade,
-                    quantidadeMinima: quantidadeMinima,
-                    categoria: categoria,
+                    nome, quantidade, quantidadeMinima, categoria,
                     imagem: null,
                     ultimaModificacao: new Date().toLocaleString('pt-BR'),
                     comprar: false
@@ -856,11 +755,8 @@
                 if (arquivo) {
                     try {
                         const dataURL = await converterParaDataURL(arquivo);
-                        const tamanhoBytes = (dataURL.length * 3) / 4 - 2; // Approximate size in bytes
-                        if (tamanhoBytes > 500000) { // 500 KB limit
-                            showCustomModal('Aviso', 'A imagem é muito grande! Use uma imagem menor (menos de 500 KB).', 'alert');
-                            return;
-                        }
+                        const tamanhoBytes = (dataURL.length * 3) / 4 - 2;
+                        if (tamanhoBytes > 500000) { showCustomModal('Aviso', 'Imagem > 500 KB.', 'alert'); return; }
                         material.imagem = dataURL;
                     } catch (error) {
                         console.error('Erro ao converter imagem:', error);
@@ -874,11 +770,6 @@
                 fecharModal();
             });
 
-            /**
-             * Alters the quantity of a material by a given value.
-             * @param {string} nome - The name of the material.
-             * @param {number} valor - The amount to add or subtract from the quantity.
-             */
             async function alterarQuantidade(nome, valor) {
                 const material = materiaisFiltrados.find(m => m.nome === nome);
                 if (material && material.quantidade + valor >= 0) {
@@ -890,12 +781,6 @@
                     showCustomModal('Aviso', 'A quantidade não pode ser negativa.', 'alert');
                 }
             }
-
-            /**
-             * Alters the quantity of a material directly from an input field.
-             * @param {string} nome - The name of the material.
-             * @param {number} novaQuantidade - The new quantity value.
-             */
             async function alterarQuantidadeDireta(nome, novaQuantidade) {
                 const material = materiaisFiltrados.find(m => m.nome === nome);
                 if (material && novaQuantidade >= 0) {
@@ -907,28 +792,13 @@
                     showCustomModal('Aviso', 'A quantidade não pode ser negativa.', 'alert');
                 }
             }
-
-            /**
-             * Confirms and then deletes a material.
-             * @param {string} nome - The name of the material to delete.
-             */
             async function confirmarExclusao(nome) {
-                const confirmed = await showCustomModal("Confirmar Exclusão", `Deseja realmente excluir ${nome}?`, 'confirm');
+                const confirmed = await showCustomModal("Confirmar Exclusão", `Excluir ${nome}?`, 'confirm');
                 if (confirmed) {
-                    try {
-                        await db.collection('materiais').doc(nome).delete();
-                        await carregarMateriais();
-                    } catch (error) {
-                        console.error("Erro ao excluir material:", error);
-                        showCustomModal("Erro", "Erro ao excluir material: " + error.message, 'alert');
-                    }
+                    try { await db.collection('materiais').doc(nome).delete(); await carregarMateriais(); }
+                    catch (error) { console.error("Erro ao excluir:", error); showCustomModal("Erro", "Erro ao excluir: " + error.message, 'alert'); }
                 }
             }
-
-            /**
-             * Toggles the 'comprar' (to buy) status of a material.
-             * @param {string} nome - The name of the material.
-             */
             async function toggleComprar(nome) {
                 const material = materiaisFiltrados.find(m => m.nome === nome);
                 if (material) {
@@ -938,7 +808,286 @@
                 }
             }
 
-            // Event listener for login form submission
+            // ---------- NF-e: Parsing, matching e gravação ----------
+            let nfeItensExtraidos = [];   // [{nome, qtd, preco, lote, validade, cod, ean}]
+            let nfeStep = 0;              // índice do item atual
+            let materiaisIndex = [];      // cache p/ matching
+
+            // Elementos NF-e
+            const btnImportarNfe = document.getElementById('btnImportarNfe');
+            const inputXmlNfe = document.getElementById('inputXmlNfe');
+
+            const nfeMatchModal = document.getElementById('nfeMatchModal');
+            const btnFecharNfeMatch = document.getElementById('btnFecharNfeMatch');
+
+            const nfeStepIdx = document.getElementById('nfeStepIdx');
+            const nfeStepTotal = document.getElementById('nfeStepTotal');
+            const nfeItemNome = document.getElementById('nfeItemNome');
+            const nfeItemQtd  = document.getElementById('nfeItemQtd');
+            const nfeItemPreco= document.getElementById('nfeItemPreco');
+            const nfeItemLote = document.getElementById('nfeItemLote');
+            const nfeItemVal  = document.getElementById('nfeItemVal');
+
+            const nfeCandidateSelect = document.getElementById('nfeCandidateSelect');
+            const nfeNewName = document.getElementById('nfeNewName');
+            const nfeNewCategory = document.getElementById('nfeNewCategory');
+
+            const nfeBtnMesmo = document.getElementById('nfeBtnMesmo');
+            const nfeBtnCriar = document.getElementById('nfeBtnCriar');
+            const nfeBtnAvancar = document.getElementById('nfeBtnAvancar');
+            const nfeBtnPular = document.getElementById('nfeBtnPular');
+
+            // Eventos NF-e
+            btnImportarNfe.addEventListener('click', () => inputXmlNfe.click());
+            inputXmlNfe.addEventListener('change', onPickXmlFile);
+            btnFecharNfeMatch.addEventListener('click', () => nfeMatchModal.classList.add('hidden'));
+
+            nfeBtnPular.addEventListener('click', () => avancarItem());
+            nfeBtnAvancar.addEventListener('click', () => avancarItem());
+
+            nfeBtnMesmo.addEventListener('click', async () => {
+              const item = nfeItensExtraidos[nfeStep];
+              const selectedDocId = nfeCandidateSelect.value;
+              if (!selectedDocId) {
+                showCustomModal("Aviso", "Selecione um item do estoque ou use 'Criar novo'.", "alert");
+                return;
+              }
+              await registrarEntradaEmMaterialExistente(selectedDocId, item);
+              avancarItem(true);
+            });
+
+            nfeBtnCriar.addEventListener('click', async () => {
+              const item = nfeItensExtraidos[nfeStep];
+              const nomeNovo = (nfeNewName.value || "").trim();
+              const categoriaNova = nfeNewCategory.value;
+
+              if (!nomeNovo) { showCustomModal("Aviso", "Informe um nome padronizado.", "alert"); return; }
+              if (!categoriaNova) { showCustomModal("Aviso", "Selecione a categoria.", "alert"); return; }
+
+              const docRef = db.collection('materiais').doc(nomeNovo);
+              const exists = await docRef.get();
+
+              if (!exists.exists) {
+                const novoMaterial = {
+                  nome: nomeNovo,
+                  categoria: categoriaNova,
+                  quantidade: 0,
+                  quantidadeMinima: 0,
+                  imagem: null,
+                  ultimaModificacao: new Date().toLocaleString('pt-BR'),
+                  comprar: false
+                };
+                await docRef.set(novoMaterial);
+              }
+              await registrarEntradaEmMaterialExistente(nomeNovo, item);
+              avancarItem(true);
+            });
+
+            function avancarItem() {
+              nfeStep++;
+              if (nfeStep >= nfeItensExtraidos.length) {
+                nfeMatchModal.classList.add('hidden');
+                carregarMateriais();
+                showCustomModal("Sucesso", "Processamento da NF-e concluído!", "alert");
+              } else {
+                renderNfeMatchStep();
+              }
+            }
+
+            async function carregarMateriaisIndex() {
+              const snapshot = await db.collection('materiais').get();
+              materiaisIndex = [];
+              snapshot.forEach(doc => {
+                const d = doc.data();
+                materiaisIndex.push({
+                  id: doc.id,
+                  nome: d.nome || doc.id,
+                  categoria: d.categoria || '',
+                });
+              });
+            }
+
+            async function onPickXmlFile(evt) {
+              const file = evt.target.files && evt.target.files[0];
+              if (!file) return;
+
+              try {
+                await carregarMateriaisIndex();
+                const xmlStr = await file.text();
+                nfeItensExtraidos = extrairItensDaNfe(xmlStr);
+                if (!nfeItensExtraidos.length) {
+                  showCustomModal("Aviso", "Não encontrei itens na NF-e.", "alert");
+                  return;
+                }
+                nfeStep = 0;
+                abrirModalMatching();
+                renderNfeMatchStep();
+              } catch (e) {
+                console.error(e);
+                showCustomModal("Erro", "Falha ao processar a NF-e: " + e.message, "alert");
+              } finally {
+                inputXmlNfe.value = '';
+              }
+            }
+
+            function abrirModalMatching() {
+              nfeMatchModal.classList.remove('hidden');
+              nfeStepTotal.textContent = nfeItensExtraidos.length;
+            }
+
+            function renderNfeMatchStep() {
+              const item = nfeItensExtraidos[nfeStep];
+              nfeStepIdx.textContent = String(nfeStep + 1);
+
+              nfeItemNome.textContent = item.nome || '(sem nome)';
+              nfeItemQtd.textContent  = item.qtd ?? '';
+              nfeItemPreco.textContent= (item.preco ?? 0).toFixed(2);
+              nfeItemLote.textContent = item.lote || '-';
+              nfeItemVal.textContent  = item.validade || '-';
+
+              nfeNewName.value = '';
+              nfeNewCategory.value = '';
+
+              const candidates = sugerirMateriais(item.nome, materiaisIndex, 10);
+              nfeCandidateSelect.innerHTML = '';
+              const optEmpty = document.createElement('option');
+              optEmpty.value = '';
+              optEmpty.textContent = '— Selecione um item do estoque —';
+              nfeCandidateSelect.appendChild(optEmpty);
+
+              candidates.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = `${c.nome} ${c.score < 1 ? `(simil.: ${(c.score*100).toFixed(0)}%)` : ''}`;
+                nfeCandidateSelect.appendChild(opt);
+              });
+            }
+
+            // Parser NF-e (4.00)
+            function extrairItensDaNfe(xmlStr) {
+              const parser = new DOMParser();
+              const xml = parser.parseFromString(xmlStr, "text/xml");
+              const ns = "http://www.portalfiscal.inf.br/nfe";
+              const dets = xml.getElementsByTagNameNS(ns, 'det');
+              const itens = [];
+
+              function getTextNS(parent, tag) {
+                const el = parent.getElementsByTagNameNS(ns, tag)[0];
+                return (el && el.textContent || '').trim() || null;
+              }
+
+              for (let i = 0; i < dets.length; i++) {
+                const det = dets[i];
+                const prod = det.getElementsByTagNameNS(ns, 'prod')[0];
+                if (!prod) continue;
+
+                const xProd = getTextNS(prod, 'xProd');
+                const qCom  = parseFloat((getTextNS(prod, 'qCom') || '0').replace(',', '.')) || 0;
+                const vUn   = parseFloat((getTextNS(prod, 'vUnCom') || '0').replace(',', '.')) || 0;
+                const vProd = parseFloat((getTextNS(prod, 'vProd') || '0').replace(',', '.')) || 0;
+                const cProd = getTextNS(prod, 'cProd');
+                let ean   = getTextNS(prod, 'cEAN');
+                if (!ean) ean = getTextNS(prod, 'cEANTrib');
+
+                const rastro = prod.getElementsByTagNameNS(ns, 'rastro')[0];
+                const nLote = rastro ? getTextNS(rastro, 'nLote') : null;
+                const dVal  = rastro ? getTextNS(rastro, 'dVal')  : null;
+
+                itens.push({
+                  cod: cProd,
+                  ean: ean,
+                  nome: xProd,
+                  qtd: qCom,
+                  preco: (qCom > 0 ? vProd / qCom : vUn) || vUn,
+                  lote: nLote,
+                  validade: dVal
+                });
+              }
+              return itens;
+            }
+
+            function stripAccents(s) {
+              return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            }
+            function norm(s) {
+              return stripAccents(String(s || '').toLowerCase())
+                .replace(/[^a-z0-9\s]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+            }
+
+            function similarity(a, b) {
+              a = norm(a); b = norm(b);
+              if (!a || !b) return 0;
+              const ta = new Set(a.split(' '));
+              const tb = new Set(b.split(' '));
+              const inter = [...ta].filter(x => tb.has(x)).length;
+              const uni = new Set([...ta, ...tb]).size;
+              let score = inter / (uni || 1);
+              if (a.includes(b) || b.includes(a)) score += 0.15;
+              return Math.min(1, Math.max(0, score));
+            }
+
+            function sugerirMateriais(nomeNota, base, topN = 5) {
+              const scored = base.map(m => ({...m, score: similarity(nomeNota, m.nome)}));
+              scored.sort((x, y) => y.score - x.score);
+              return scored.slice(0, topN);
+            }
+
+            async function registrarEntradaEmMaterialExistente(docId, item) {
+              const ref = db.collection('materiais').doc(docId);
+              const snap = await ref.get();
+              if (!snap.exists) throw new Error(`Documento "${docId}" não encontrado.`);
+
+              const atual = snap.data() || {};
+              const novaQtd = (atual.quantidade || 0) + (item.qtd || 0);
+
+              const entrada = {
+                tipo: 'entrada',
+                origem: 'nfe',
+                data: new Date().toISOString(),
+                nfeItemNome: item.nome,
+                qtd: item.qtd || 0,
+                precoUnit: item.preco || 0,
+                lote: item.lote || null,
+                validade: item.validade || null,
+                ean: item.ean || null,
+                codProdNfe: item.cod || null
+              };
+
+              await ref.update({
+                quantidade: novaQtd,
+                ultimaModificacao: new Date().toLocaleString('pt-BR')
+              }).catch(async err => {
+                if (String(err).includes('No document to update')) {
+                  await ref.set({
+                    nome: docId,
+                    categoria: 'clinica_geral',
+                    quantidade: novaQtd,
+                    quantidadeMinima: 0,
+                    imagem: null,
+                    ultimaModificacao: new Date().toLocaleString('pt-BR'),
+                    comprar: false
+                  });
+                } else { throw err; }
+              });
+
+              await ref.collection('movimentacoes').add(entrada);
+
+              if (item.lote || item.validade) {
+                const lotekey = (item.lote || 's/lote') + '|' + (item.validade || 's/valid');
+                await ref.collection('lotes').doc(lotekey).set({
+                  lote: item.lote || null,
+                  validade: item.validade || null,
+                  ean: item.ean || null,
+                  ultimaEntradaEm: new Date().toISOString(),
+                  quantidade: firebase.firestore.FieldValue.increment(item.qtd || 0),
+                }, { merge: true });
+              }
+            }
+            // ---------- Fim NF-e ----------
+
+            // Auth
             document.getElementById('loginForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 const email = document.getElementById('email').value;
@@ -956,7 +1105,6 @@
                     });
             });
 
-            // Firebase authentication state change listener
             auth.onAuthStateChanged(user => {
                 if (user) {
                     document.getElementById('loginContainer').classList.add('hidden');
@@ -968,47 +1116,30 @@
                 }
             });
 
-            // Event Listeners for UI interactions
+            // Listeners UI
             document.getElementById('btnAbrirModal').addEventListener('click', abrirModal);
             document.getElementById('btnFecharModal').addEventListener('click', fecharModal);
             document.getElementById('btnFecharModalEditar').addEventListener('click', fecharModalEditar);
             document.getElementById('btnLogout').addEventListener('click', logout);
             document.getElementById('btnLimparMarcacoes').addEventListener('click', limparMarcacoes);
 
-            // New event listener for "Lista de Compras" button
-            document.getElementById('btnListaCompras').addEventListener('click', () => {
-                isShowingPurchaseList = true;
-                carregarMateriais();
-            });
-
-            // New event listener for "Mostrar Todos os Itens" button
+            document.getElementById('btnListaCompras').addEventListener('click', () => { isShowingPurchaseList = true; carregarMateriais(); });
             document.getElementById('btnMostrarTodos').addEventListener('click', () => {
                 isShowingPurchaseList = false;
-                document.getElementById('searchInput').value = ''; // Clear search input
-                termoDeBusca = ''; // Clear search term
-                categoriaSelecionada = 'todos'; // Reset category selection
+                document.getElementById('searchInput').value = '';
+                termoDeBusca = '';
+                categoriaSelecionada = 'todos';
                 carregarMateriais();
             });
 
-            // "Copiar Lista" button now inside the purchase list container
             document.getElementById('btnCopiarLista').addEventListener('click', copiarListaCompras);
-
-
             document.getElementById('btnBuscar').addEventListener('click', buscarMateriais);
             document.getElementById('btnGerarRelatorio').addEventListener('click', gerarRelatorio);
 
-            // Event listener for Advanced Options button
             document.getElementById('btnAdvancedOptions').addEventListener('click', function() {
-                const advancedOptions = document.getElementById('advancedOptionsContainer');
-                advancedOptions.classList.toggle('hidden');
+                document.getElementById('advancedOptionsContainer').classList.toggle('hidden');
             });
 
-            // Removed event listeners for AI description generation buttons
-            // document.getElementById('btnGerarDescricao').addEventListener('click', async () => { ... });
-            // document.getElementById('btnGerarDescricaoEditar').addEventListener('click', async () => { ... });
-
-
-            // Close dropdowns when clicking outside
             document.addEventListener('click', function(event) {
                 document.querySelectorAll('.dropdown-content').forEach(dropdown => {
                     if (!dropdown.classList.contains('hidden') && !dropdown.parentElement.contains(event.target)) {
