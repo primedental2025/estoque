@@ -1,226 +1,306 @@
 <!DOCTYPE html>
 <html lang="pt-br">
->
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Compras - Prime Dental</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: {
-                        'primary-dark': '#8B456C',
-                        'secondary-light': '#F0E6F0',
-                        'background-light': '#FFFFFF',
-                        'text-dark': '#333333',
-                        'danger-red': '#CD5C5C'
-                    }
-                }
-            }
-        }
-    </script>
-
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel de Estoque - Prime Dental</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+  </style>
 </head>
 
-<body class="bg-background-light font-sans min-h-screen p-4">
+<body class="bg-gray-50 font-sans flex flex-col items-center p-4">
 
-    <div id="loginContainer" class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md mx-auto hidden">
-        <h2 class="text-3xl font-bold text-center text-primary-dark mb-6">Login - Controle de Compras</h2>
-        <form id="loginForm" class="space-y-4">
-            <input type="email" id="email" placeholder="E-mail" required
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
-            <input type="password" id="password" placeholder="Senha" required
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
-            <button type="submit"
-                class="w-full bg-primary-dark text-white py-2 rounded-lg hover:bg-opacity-90 transition">Entrar</button>
-        </form>
+  <!-- LOGIN -->
+  <div id="loginContainer" class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md hidden">
+    <h2 class="text-3xl font-bold text-center text-rose-700 mb-6">Login - Controle de Estoque</h2>
+    <form id="loginForm" class="space-y-4">
+      <input id="email" type="email" placeholder="E-mail" required class="w-full border border-gray-300 p-2 rounded-lg">
+      <input id="password" type="password" placeholder="Senha" required class="w-full border border-gray-300 p-2 rounded-lg">
+      <button type="submit" class="w-full bg-rose-700 text-white py-2 rounded-lg hover:bg-rose-800">Entrar</button>
+    </form>
+  </div>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div id="mainContainer" class="hidden w-full max-w-7xl bg-white shadow-lg rounded-xl p-6">
+
+    <!-- CABEÇALHO -->
+    <div class="flex flex-wrap gap-3 mb-6 items-center justify-center bg-rose-50 p-4 rounded-lg shadow-sm">
+      <input id="searchInput" type="text" placeholder="Buscar item..." class="flex-1 min-w-[200px] p-2 border rounded-lg focus:ring-rose-700 focus:border-rose-700">
+      <button id="btnBuscar" class="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800">Buscar</button>
+      <button id="btnListaCompras" class="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800">Lista de Compras</button>
+      <button id="btnAdvancedOptions" class="bg-rose-700 text-white px-4 py-2 rounded-lg hover:bg-rose-800">Avançado</button>
     </div>
 
-    <div id="mainContainer" class="container bg-white p-6 rounded-xl shadow-lg max-w-7xl hidden">
-        <div class="flex flex-wrap items-center justify-center gap-3 mb-6 bg-secondary-light p-4 rounded-lg">
-            <input id="searchInput" type="text" placeholder="Buscar item..."
-                class="flex-1 min-w-[150px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark">
-            <button id="btnBuscar"
-                class="bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition">Buscar</button>
-            <button id="btnListaCompras"
-                class="bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition">Lista de Compras</button>
-            <button id="btnGerarRelatorio"
-                class="bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition">Gerar Relatório</button>
-            <button id="btnLogout"
-                class="bg-danger-red text-white py-2 px-4 rounded-lg hover:bg-red-700 transition">Sair</button>
-        </div>
+    <!-- PAINEL AVANÇADO -->
+    <div id="advancedOptionsContainer" class="hidden bg-rose-50 p-4 rounded-lg mb-6 flex flex-wrap gap-3 justify-center">
+      <button id="btnAbrirModal" class="bg-rose-700 text-white px-4 py-2 rounded-lg hover:bg-rose-800">Adicionar Novo Item</button>
+      <button id="btnImportarXML" class="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800">Importar XML</button>
+      <button id="btnImportarExcel" class="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800">Importar Planilha</button>
+      <button id="btnGerarRelatorio" class="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800">Gerar Relatório</button>
+      <button id="btnLogout" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Sair</button>
+    </div>
 
+    <div class="flex flex-col md:flex-row gap-6">
+
+      <!-- CATEGORIAS -->
+      <div id="categorySidebar" class="w-full md:w-1/4 bg-white border rounded-lg p-4 shadow-sm">
+        <h3 class="text-xl font-semibold text-rose-700 mb-4">Categorias</h3>
+        <!-- categorias são inseridas via script -->
+      </div>
+
+      <!-- LISTA DE MATERIAIS -->
+      <div class="w-full md:w-3/4">
         <div id="materialList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      </div>
     </div>
+  </div>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCDxJW_o6y-hmisQHOHVYPVJ8cag6hrKv0",
-            authDomain: "estoque-prime.firebaseapp.com",
-            projectId: "estoque-prime",
-            storageBucket: "estoque-prime.firebasestorage.app",
-            messagingSenderId: "1092019247496",
-            appId: "1:1092019247496:web:92076afda68ccbc23d823d",
-            measurementId: "G-04D19CYTTQ"
-        };
+  <!-- MODAIS GERAIS -->
+  <div id="modalOverlay" class="hidden fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+    <div id="modalContent" class="bg-white p-6 rounded-lg w-full max-w-md shadow-xl">
+      <h3 id="modalTitle" class="text-xl font-semibold text-rose-700 mb-4"></h3>
+      <div id="modalBody" class="space-y-2"></div>
+      <div class="flex justify-end mt-4">
+        <button id="modalClose" class="bg-rose-700 text-white px-4 py-2 rounded-lg hover:bg-rose-800">Fechar</button>
+      </div>
+    </div>
+  </div>
 
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const firebaseConfig = {
+        apiKey: "AIzaSyCDxJW_o6y-hmisQHOHVYPVJ8cag6hrKv0",
+        authDomain: "estoque-prime.firebaseapp.com",
+        projectId: "estoque-prime",
+        storageBucket: "estoque-prime.appspot.com",
+        messagingSenderId: "1092019247496",
+        appId: "1:1092019247496:web:92076afda68ccbc23d823d"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+      const auth = firebase.auth();
 
-        let materiais = [];
-        const categorias = {
-            biosseguranca: "Biossegurança",
-            brocas: "Brocas",
-            cirurgia: "Cirurgia",
-            clinica_geral: "Clínica Geral",
-            dentistica: "Dentística",
-            endodontia: "Endodontia",
-            instrumental: "Instrumental",
-            material_limpeza: "Material de Limpeza",
-            ortodontia: "Ortodontia",
-            papelaria: "Papelaria",
-            protese: "Prótese",
-            implantodontia: "Implantodontia"
-        };
+      const categorias = {
+        biosseguranca: "Biossegurança",
+        brocas: "Brocas",
+        cirurgia: "Cirurgia",
+        clinica_geral: "Clínica Geral",
+        dentistica: "Dentística",
+        endodontia: "Endodontia",
+        instrumental: "Instrumental",
+        material_limpeza: "Material de Limpeza",
+        ortodontia: "Ortodontia",
+        papelaria: "Papelaria",
+        protese: "Prótese",
+        implantodontia: "Implantodontia"
+      };
 
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                document.getElementById("loginContainer").classList.add("hidden");
-                document.getElementById("mainContainer").classList.remove("hidden");
-                carregarMateriais();
-            } else {
-                document.getElementById("loginContainer").classList.remove("hidden");
-                document.getElementById("mainContainer").classList.add("hidden");
-            }
+      let todosMateriais = [];
+      let categoriaSelecionada = 'todos';
+      let mostrandoListaCompras = false;
+
+      async function carregarMateriais() {
+        const snapshot = await db.collection('materiais').get();
+        todosMateriais = snapshot.docs.map(doc => doc.data());
+        atualizarCategorias();
+        atualizarLista();
+      }
+
+      function atualizarCategorias() {
+        const sidebar = document.getElementById('categorySidebar');
+        sidebar.innerHTML = '';
+        const btnTodos = criarBotaoCategoria('Todos', 'todos');
+        sidebar.appendChild(btnTodos);
+        Object.entries(categorias).forEach(([key, value]) => {
+          const btn = criarBotaoCategoria(value, key);
+          sidebar.appendChild(btn);
         });
+      }
 
-        document.getElementById("loginForm").addEventListener("submit", e => {
-            e.preventDefault();
-            const email = email.value;
-            const password = password.value;
-            auth.signInWithEmailAndPassword(email, password);
-        });
+      function criarBotaoCategoria(nome, valor) {
+        const btn = document.createElement('button');
+        btn.textContent = nome;
+        btn.className = `w-full text-left p-2 rounded-lg mb-1 transition ${categoriaSelecionada===valor?'bg-rose-700 text-white':'bg-gray-200 hover:bg-gray-300'}`;
+        btn.onclick = () => { categoriaSelecionada = valor; mostrandoListaCompras = false; atualizarLista(); };
+        return btn;
+      }
 
-        async function carregarMateriais() {
-            const snapshot = await db.collection("materiais").get();
-            materiais = snapshot.docs.map(doc => doc.data());
-            atualizarLista(materiais);
+      function atualizarLista() {
+        const lista = document.getElementById('materialList');
+        lista.innerHTML = '';
+        let materiaisFiltrados = todosMateriais;
+
+        if (categoriaSelecionada !== 'todos') {
+          materiaisFiltrados = materiaisFiltrados.filter(m => m.categoria === categoriaSelecionada);
+        }
+        if (mostrandoListaCompras) {
+          materiaisFiltrados = materiaisFiltrados.filter(m => m.comprar);
         }
 
-        function atualizarLista(materiais) {
-            const lista = document.getElementById("materialList");
-            lista.innerHTML = "";
-            materiais.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(m => {
-                const card = document.createElement("div");
-                card.className = "bg-white rounded-lg shadow-md p-4 flex flex-col items-center";
-
-                const img = document.createElement("img");
-                img.src = m.imagem || "https://placehold.co/300x300/BFBFBF/585856?text=Sem+Imagem";
-                img.className = "w-32 h-32 object-contain mb-3";
-
-                const nome = document.createElement("h3");
-                nome.textContent = m.nome;
-                nome.className = "text-lg font-semibold text-text-dark text-center";
-
-                const categoria = document.createElement("p");
-                categoria.textContent = `Categoria: ${categorias[m.categoria] || m.categoria}`;
-                categoria.className = "text-sm text-gray-600 mb-2";
-
-                const detalhes = document.createElement("div");
-                detalhes.className = "text-sm text-gray-700 text-left w-full space-y-1";
-                detalhes.innerHTML = `
-                    <p>Quantidade: <strong>${m.quantidade ?? '-'}</strong></p>
-                    <p>Última compra: <strong>${m.ultimaCompra ?? '-'}</strong></p>
-                    <p>Preço de compra: <strong>${m.precoCompra ? 'R$ ' + m.precoCompra.toFixed(2) : '-'}</strong></p>
-                    <p>Validade mais próxima: <strong>${m.validadeProxima ?? '-'}</strong></p>
-                    <p>Lista de compra: <strong>${m.dataMarcadoCompra ? formatarData(m.dataMarcadoCompra) : ''}</strong></p>
-                `;
-
-                const btnCompra = document.createElement("button");
-                btnCompra.textContent = m.comprar ? "Na Lista de Compras" : "Adicionar à Lista";
-                btnCompra.className = `w-full py-2 mt-3 rounded-lg font-semibold transition ${m.comprar ? "bg-green-600 text-white" : "bg-primary-dark text-white hover:bg-opacity-90"}`;
-                btnCompra.onclick = () => toggleListaCompra(m.nome);
-
-                card.append(img, nome, categoria, detalhes, btnCompra);
-                lista.appendChild(card);
-            });
+        if (materiaisFiltrados.length === 0) {
+          lista.innerHTML = `<p class="col-span-full text-center text-gray-500">Nenhum material encontrado.</p>`;
+          return;
         }
 
-        function formatarData(dataISO) {
-            const data = new Date(dataISO);
-            return data.toLocaleDateString("pt-BR");
-        }
+        materiaisFiltrados.forEach(m => {
+          const card = document.createElement('div');
+          card.className = 'bg-white rounded-lg shadow-md p-4 flex flex-col';
 
-        async function toggleListaCompra(nome) {
-            const docRef = db.collection("materiais").doc(nome);
-            const docSnap = await docRef.get();
-            if (!docSnap.exists) return;
+          const img = document.createElement('img');
+          img.src = m.imagem || 'https://placehold.co/300x300/BFBFBF/585856?text=Sem+Imagem';
+          img.className = 'w-full h-40 object-contain mb-3';
+          card.appendChild(img);
 
-            const m = docSnap.data();
-            const novoStatus = !m.comprar;
-            const dataMarcadoCompra = novoStatus ? new Date().toISOString() : null;
+          card.innerHTML += `
+            <h3 class="text-lg font-semibold text-gray-800">${m.nome}</h3>
+            <p class="text-sm text-gray-600">Categoria: ${categorias[m.categoria] || m.categoria}</p>
+            <p class="text-sm text-gray-600">Quantidade: ${m.quantidade || '-'}</p>
+            <p class="text-sm text-gray-600">Última compra: ${m.ultimaCompra || '-'}</p>
+            <p class="text-sm text-gray-600">Preço de compra: ${m.precoCompra ? 'R$ ' + m.precoCompra.toFixed(2) : '-'}</p>
+            <p class="text-sm text-gray-600">Validade mais próxima: ${m.validade || '-'}</p>
+            <p class="text-sm text-gray-600">Lista de compra: ${m.dataListaCompra || '-'}</p>
+          `;
 
-            await docRef.update({
-                comprar: novoStatus,
-                dataMarcadoCompra: dataMarcadoCompra
+          const btnComprar = document.createElement('button');
+          btnComprar.textContent = m.comprar ? 'Na Lista de Compras' : 'Adicionar à Lista';
+          btnComprar.className = `mt-2 py-2 px-3 rounded-lg font-semibold text-white ${m.comprar ? 'bg-green-600 hover:bg-green-700' : 'bg-rose-700 hover:bg-rose-800'}`;
+          btnComprar.onclick = async () => {
+            m.comprar = !m.comprar;
+            m.dataListaCompra = m.comprar ? new Date().toLocaleDateString('pt-BR') : '-';
+            await db.collection('materiais').doc(m.nome).update({
+              comprar: m.comprar,
+              dataListaCompra: m.dataListaCompra
             });
             carregarMateriais();
+          };
+          card.appendChild(btnComprar);
+
+          // Dropdown Editar
+          const menuDiv = document.createElement('div');
+          menuDiv.className = 'relative mt-2';
+          const btnEditar = document.createElement('button');
+          btnEditar.innerHTML = 'Editar ⌄';
+          btnEditar.className = 'w-full bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300';
+          const dropdown = document.createElement('div');
+          dropdown.className = 'hidden absolute w-full bg-white border rounded-lg mt-1 shadow-lg z-10';
+          ['Registrar Compra','Histórico de Compras','Editar Atributos'].forEach(opcao=>{
+            const opt = document.createElement('button');
+            opt.textContent = opcao;
+            opt.className = 'block w-full text-left px-4 py-2 text-sm hover:bg-rose-50';
+            opt.onclick = ()=>abrirModal(opcao,m);
+            dropdown.appendChild(opt);
+          });
+          btnEditar.onclick = ()=> dropdown.classList.toggle('hidden');
+          menuDiv.appendChild(btnEditar);
+          menuDiv.appendChild(dropdown);
+          card.appendChild(menuDiv);
+
+          lista.appendChild(card);
+        });
+      }
+
+      function abrirModal(tipo, material) {
+        const overlay = document.getElementById('modalOverlay');
+        const title = document.getElementById('modalTitle');
+        const body = document.getElementById('modalBody');
+        overlay.classList.remove('hidden');
+        title.textContent = tipo;
+        body.innerHTML = '';
+
+        if (tipo === 'Histórico de Compras') {
+          if (!material.historico || material.historico.length === 0) {
+            body.innerHTML = '<p class="text-gray-600">Nenhum registro de compra.</p>';
+          } else {
+            material.historico.forEach(h=>{
+              const p=document.createElement('p');
+              p.textContent=`${h.data} - ${h.loja||''} - NF:${h.notaFiscal||''} - ${h.quantidade} un - R$${h.preco}`;
+              body.appendChild(p);
+            });
+          }
         }
 
-        document.getElementById("btnBuscar").addEventListener("click", async () => {
-            const termo = document.getElementById("searchInput").value.toLowerCase();
-            const filtrados = materiais.filter(m => m.nome.toLowerCase().includes(termo));
-            atualizarLista(filtrados);
-        });
+        if (tipo === 'Registrar Compra') {
+          body.innerHTML = `
+            <input id="compraData" type="date" class="w-full border p-2 rounded-lg">
+            <input id="compraLoja" placeholder="Loja" class="w-full border p-2 rounded-lg">
+            <input id="compraNota" placeholder="Número da Nota Fiscal" class="w-full border p-2 rounded-lg">
+            <input id="compraQtd" type="number" placeholder="Quantidade" class="w-full border p-2 rounded-lg">
+            <input id="compraPreco" type="number" placeholder="Preço unitário" step="0.01" class="w-full border p-2 rounded-lg">
+            <input id="compraValidade" type="date" class="w-full border p-2 rounded-lg" placeholder="Validade">
+            <button id="btnSalvarCompra" class="w-full bg-rose-700 text-white py-2 rounded-lg mt-3 hover:bg-rose-800">Salvar</button>
+          `;
+          document.getElementById('btnSalvarCompra').onclick = async ()=>{
+            const novaCompra = {
+              data: document.getElementById('compraData').value,
+              loja: document.getElementById('compraLoja').value,
+              notaFiscal: document.getElementById('compraNota').value,
+              quantidade: parseInt(document.getElementById('compraQtd').value),
+              preco: parseFloat(document.getElementById('compraPreco').value),
+              validade: document.getElementById('compraValidade').value
+            };
+            const historico = material.historico || [];
+            historico.push(novaCompra);
+            await db.collection('materiais').doc(material.nome).update({
+              historico,
+              ultimaCompra: novaCompra.data,
+              precoCompra: novaCompra.preco,
+              validade: novaCompra.validade,
+              quantidade: novaCompra.quantidade
+            });
+            overlay.classList.add('hidden');
+            carregarMateriais();
+          };
+        }
 
-        document.getElementById("btnListaCompras").addEventListener("click", async () => {
-            const filtrados = materiais.filter(m => m.comprar);
-            atualizarLista(filtrados);
-        });
+        if (tipo === 'Editar Atributos') {
+          body.innerHTML = `
+            <input id="editNome" value="${material.nome}" class="w-full border p-2 rounded-lg">
+            <select id="editCategoria" class="w-full border p-2 rounded-lg">
+              ${Object.entries(categorias).map(([k,v])=>`<option value="${k}" ${material.categoria===k?'selected':''}>${v}</option>`).join('')}
+            </select>
+            <button id="btnSalvarEdicao" class="w-full bg-rose-700 text-white py-2 rounded-lg mt-3 hover:bg-rose-800">Salvar Alterações</button>
+          `;
+          document.getElementById('btnSalvarEdicao').onclick = async ()=>{
+            const novoNome = document.getElementById('editNome').value;
+            const novaCat = document.getElementById('editCategoria').value;
+            await db.collection('materiais').doc(material.nome).update({
+              nome: novoNome, categoria: novaCat
+            });
+            overlay.classList.add('hidden');
+            carregarMateriais();
+          };
+        }
 
-        document.getElementById("btnLogout").addEventListener("click", () => auth.signOut());
+        document.getElementById('modalClose').onclick = ()=>overlay.classList.add('hidden');
+      }
 
-        // GERAR RELATÓRIO COMPLETO
-        document.getElementById("btnGerarRelatorio").addEventListener("click", async () => {
-            const snapshot = await db.collection("materiais").get();
-            const dados = [];
+      // Login
+      document.getElementById('loginForm').addEventListener('submit', e=>{
+        e.preventDefault();
+        auth.signInWithEmailAndPassword(
+          document.getElementById('email').value,
+          document.getElementById('password').value
+        ).then(()=>carregarMateriais());
+      });
 
-            for (const doc of snapshot.docs) {
-                const mat = doc.data();
-                let ultimaCompraData = mat.ultimaCompra || "-";
-                let preco = mat.precoCompra ? "R$ " + mat.precoCompra.toFixed(2) : "-";
-                let validade = mat.validadeProxima || "-";
-                let loja = mat.lojaUltima || "-";
-                let nota = mat.notaUltima || "-";
-                let dataLista = mat.dataMarcadoCompra ? formatarData(mat.dataMarcadoCompra) : "";
+      auth.onAuthStateChanged(user=>{
+        document.getElementById('loginContainer').classList.toggle('hidden',!!user);
+        document.getElementById('mainContainer').classList.toggle('hidden',!user);
+        if(user) carregarMateriais();
+      });
 
-                dados.push({
-                    Nome: mat.nome,
-                    Categoria: categorias[mat.categoria] || mat.categoria,
-                    Quantidade: mat.quantidade ?? "-",
-                    "Última Compra": ultimaCompraData,
-                    "Preço de Compra": preco,
-                    "Validade": validade,
-                    "Loja": loja,
-                    "Nota Fiscal": nota,
-                    "Lista de Compra": dataLista
-                });
-            }
-
-            const ws = XLSX.utils.json_to_sheet(dados);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Relatorio Compras");
-            XLSX.writeFile(wb, "Relatorio_Compras_PrimeDental.xlsx");
-        });
-    </script>
+      document.getElementById('btnBuscar').onclick = ()=>atualizarLista();
+      document.getElementById('btnListaCompras').onclick = ()=>{ mostrandoListaCompras=!mostrandoListaCompras; atualizarLista(); };
+      document.getElementById('btnAdvancedOptions').onclick = ()=>document.getElementById('advancedOptionsContainer').classList.toggle('hidden');
+    });
+  </script>
 </body>
 </html>
