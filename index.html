@@ -1,1273 +1,226 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Controle de Estoque - Consultório Odontológico</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { sans: ['Inter','sans-serif'] },
-          colors: {
-            'primary-dark':'#8B456C',
-            'secondary-light':'#F0E6F0',
-            'background-light':'#FFFFFF',
-            'text-dark':'#333333',
-            'danger-red':'#CD5C5C',
-          }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Compras - Prime Dental</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        'primary-dark': '#8B456C',
+                        'secondary-light': '#F0E6F0',
+                        'background-light': '#FFFFFF',
+                        'text-dark': '#333333',
+                        'danger-red': '#CD5C5C'
+                    }
+                }
+            }
         }
-      }
-    }
-  </script>
-  <!-- Firebase compat -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <!-- XLSX -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <style>
-    ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#f1f1f1;border-radius:10px}
-    ::-webkit-scrollbar-thumb{background:#888;border-radius:10px}::-webkit-scrollbar-thumb:hover{background:#555}
-  </style>
+    </script>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
-<body class="font-sans bg-background-light min-h-screen flex flex-col items-center p-4">
 
-  <!-- Modal base -->
-  <div id="customModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-    <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
-      <h3 id="modalTitle" class="text-xl font-semibold mb-4 text-text-dark"></h3>
-      <p id="modalMessage" class="mb-6 text-gray-700"></p>
-      <div id="modalActions" class="flex justify-center space-x-4"></div>
-    </div>
-  </div>
+<body class="bg-background-light font-sans min-h-screen p-4">
 
-  <!-- Login -->
-  <div id="loginContainer" class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md hidden">
-    <h2 class="text-3xl font-bold text-center text-primary-dark mb-6">Login - Controle de Estoque</h2>
-    <form id="loginForm" class="space-y-4">
-      <input type="email" id="email" placeholder="E-mail" required
-             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
-      <input type="password" id="password" placeholder="Senha" required
-             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
-      <button type="submit"
-              class="w-full bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-primary-dark transition">
-        Entrar
-      </button>
-    </form>
-  </div>
-
-  <!-- Main -->
-  <div id="mainContainer" class="container bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-6xl hidden">
-    <div class="flex flex-wrap items-center justify-center gap-3 md:gap-4 p-4 bg-secondary-light rounded-lg mb-6 shadow-sm">
-      <input type="text" id="searchInput" placeholder="Buscar material..."
-             class="flex-1 min-w-[150px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
-      <button id="btnBuscar"
-              class="flex-1 min-w-[100px] bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-text-dark transition">
-        Buscar
-      </button>
-      <button id="btnListaCompras"
-              class="flex-1 min-w-[150px] bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-text-dark transition">
-        Lista de Compras
-      </button>
-      <button id="btnLimparMarcacoes"
-              class="flex-1 min-w-[150px] bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-text-dark transition">
-        Limpar Marcações
-      </button>
-      <button id="btnAdvancedOptions"
-              class="flex-1 min-w-[150px] bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-primary-dark transition">
-        Avançado
-      </button>
+    <div id="loginContainer" class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md mx-auto hidden">
+        <h2 class="text-3xl font-bold text-center text-primary-dark mb-6">Login - Controle de Compras</h2>
+        <form id="loginForm" class="space-y-4">
+            <input type="email" id="email" placeholder="E-mail" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+            <input type="password" id="password" placeholder="Senha" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+            <button type="submit"
+                class="w-full bg-primary-dark text-white py-2 rounded-lg hover:bg-opacity-90 transition">Entrar</button>
+        </form>
     </div>
 
-    <!-- Avançado -->
-    <div id="advancedOptionsContainer" class="flex flex-wrap items-center justify-center gap-3 md:gap-4 p-4 bg-secondary-light rounded-lg mb-6 shadow-sm hidden">
-      <button id="btnAbrirModal"
-              class="flex-1 min-w-[150px] bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-primary-dark transition">
-        Adicionar Novo Item
-      </button>
-      <button id="btnGerarRelatorio"
-              class="flex-1 min-w-[150px] bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-text-dark transition">
-        Gerar Relatório
-      </button>
-      <button id="btnLogout"
-              class="flex-1 min-w-[100px] bg-danger-red text-white py-2 px-4 rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 transition">
-        Sair
-      </button>
-
-      <!-- Importações -->
-      <input id="inputXmlNfe" type="file" accept=".xml" class="hidden">
-      <button id="btnImportarNfe"
-              class="flex-1 min-w-[180px] bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-primary-dark transition">
-        Importar NF-e (XML)
-      </button>
-
-      <!-- Importar planilha -->
-      <input id="inputPlanilha" type="file" accept=".xlsx,.xls,.csv" class="hidden">
-      <button id="btnImportarPlanilha"
-              class="flex-1 min-w-[200px] bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-text-dark transition">
-        Importar compras (XLSX/CSV)
-      </button>
-    </div>
-
-    <div class="flex flex-col md:flex-row w-full gap-6">
-      <div class="w-full md:w-1/4 bg-white p-4 rounded-xl shadow-lg h-fit">
-        <h2 class="text-xl font-bold text-primary-dark mb-4">Categorias</h2>
-        <div id="categorySidebar" class="space-y-2"></div>
-      </div>
-
-      <div class="w-full md:w-3/4">
-        <div id="purchaseListActionsContainer" class="flex flex-wrap items-center justify-end gap-3 p-4 bg-secondary-light rounded-lg mb-6 shadow-sm hidden">
-          <button id="btnCopiarLista" class="bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-text-dark transition">
-            Copiar Lista
-          </button>
-          <button id="btnMostrarTodos" class="bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-primary-dark transition">
-            Mostrar Todos os Itens
-          </button>
+    <div id="mainContainer" class="container bg-white p-6 rounded-xl shadow-lg max-w-7xl hidden">
+        <div class="flex flex-wrap items-center justify-center gap-3 mb-6 bg-secondary-light p-4 rounded-lg">
+            <input id="searchInput" type="text" placeholder="Buscar item..."
+                class="flex-1 min-w-[150px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark">
+            <button id="btnBuscar"
+                class="bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition">Buscar</button>
+            <button id="btnListaCompras"
+                class="bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition">Lista de Compras</button>
+            <button id="btnGerarRelatorio"
+                class="bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition">Gerar Relatório</button>
+            <button id="btnLogout"
+                class="bg-danger-red text-white py-2 px-4 rounded-lg hover:bg-red-700 transition">Sair</button>
         </div>
 
         <div id="materialList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-      </div>
     </div>
 
-    <!-- Modal: cadastrar -->
-    <div id="cadastroModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
-      <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-2xl font-semibold text-primary-dark">Cadastrar Novo Material</h3>
-          <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharModal">&times;</button>
-        </div>
-        <form id="materialForm" class="space-y-4">
-          <input type="text" id="nome" placeholder="Nome do material" required
-                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
-          <input type="number" id="quantidade" placeholder="Quantidade inicial" min="0" required
-                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
-          <input type="number" id="quantidadeMinima" placeholder="Quantidade mínima" min="0" required
-                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
-          <select id="categoria" required
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
-            <option value="">Selecione uma categoria</option>
-            <option value="biosseguranca">Biossegurança</option>
-            <option value="brocas">Brocas</option>
-            <option value="cirurgia">Cirurgia</option>
-            <option value="clinica_geral">Clínica Geral</option>
-            <option value="dentistica">Dentística</option>
-            <option value="endodontia">Endodontia</option>
-            <option value="instrumental">Instrumental</option>
-            <option value="material_limpeza">Material de Limpeza</option>
-            <option value="ortodontia">Ortodontia</option>
-            <option value="papelaria">Papelaria</option>
-            <option value="protese">Prótese</option>
-            <option value="implantodontia">Implantodontia</option>
-          </select>
-          <input type="file" id="imagem" accept="image/*"
-                 class="w-full px-4 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-primary-dark hover:file:bg-blue-100">
-          <button type="submit"
-                  class="w-full bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-primary-dark transition">
-            Cadastrar
-          </button>
-        </form>
-      </div>
-    </div>
-
-    <!-- Modal: editar material (sem campos de compra) -->
-    <div id="editarModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
-      <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-2xl font-semibold text-primary-dark">Editar Material</h3>
-          <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharModalEditar">&times;</button>
-        </div>
-        <form id="editarForm" class="space-y-4">
-          <input type="text" id="editNome" placeholder="Nome do material" required
-                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
-          <input type="hidden" id="originalNome">
-          <input type="number" id="editQuantidade" placeholder="Quantidade" min="0"
-                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
-          <select id="editCategoria"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
-            <option value="">Selecione uma categoria</option>
-            <option value="biosseguranca">Biossegurança</option>
-            <option value="brocas">Brocas</option>
-            <option value="cirurgia">Cirurgia</option>
-            <option value="clinica_geral">Clínica Geral</option>
-            <option value="dentistica">Dentística</option>
-            <option value="endodontia">Endodontia</option>
-            <option value="instrumental">Instrumental</option>
-            <option value="material_limpeza">Material de Limpeza</option>
-            <option value="ortodontia">Ortodontia</option>
-            <option value="papelaria">Papelaria</option>
-            <option value="protese">Prótese</option>
-            <option value="implantodontia">Implantodontia</option>
-          </select>
-          <input type="number" id="editQuantidadeMinima" placeholder="Quantidade mínima" min="0"
-                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
-          <input type="file" id="editImagem" accept="image/*"
-                 class="w-full px-4 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-primary-dark hover:file:bg-blue-100">
-          <button type="submit"
-                  class="w-full bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-primary-dark transition">
-            Salvar Alterações
-          </button>
-        </form>
-      </div>
-    </div>
-
-    <!-- Modal: assistente de equivalência -->
-    <div id="nfeMatchModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-      <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl mx-4">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-2xl font-semibold text-primary-dark">Conferir item importado</h3>
-          <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharNfeMatch">&times;</button>
-        </div>
-        <div class="space-y-2 mb-4">
-          <p class="text-sm text-gray-500">Passo <span id="nfeStepIdx">1</span> de <span id="nfeStepTotal">1</span></p>
-          <div class="bg-secondary-light rounded-lg p-3">
-            <div class="text-sm text-gray-600">Item importado:</div>
-            <div id="nfeItemNome" class="font-semibold text-text-dark"></div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 text-sm">
-              <div><span class="text-gray-600">Qtd:</span> <span id="nfeItemQtd"></span></div>
-              <div><span class="text-gray-600">Preço unit.:</span> R$ <span id="nfeItemPreco"></span></div>
-              <div><span class="text-gray-600">Lote:</span> <span id="nfeItemLote"></span></div>
-              <div><span class="text-gray-600">Validade:</span> <span id="nfeItemVal"></span></div>
-            </div>
-          </div>
-        </div>
-        <div class="space-y-3">
-          <label class="block text-sm text-gray-700">Sugerido do seu estoque (melhores correspondências):</label>
-          <select id="nfeCandidateSelect" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-primary-dark focus:border-primary-dark"></select>
-          <div class="flex gap-2">
-            <input id="nfeNewName" type="text" placeholder="(Opcional) Nome padronizado / novo produto"
-                   class="flex-1 border border-gray-300 rounded-lg p-2 focus:ring-primary-dark focus:border-primary-dark">
-            <select id="nfeNewCategory" class="w-60 border border-gray-300 rounded-lg p-2 focus:ring-primary-dark focus:border-primary-dark">
-              <option value="">Categoria (se novo)</option>
-              <option value="biosseguranca">Biossegurança</option>
-              <option value="brocas">Brocas</option>
-              <option value="cirurgia">Cirurgia</option>
-              <option value="clinica_geral">Clínica Geral</option>
-              <option value="dentistica">Dentística</option>
-              <option value="endodontia">Endodontia</option>
-              <option value="instrumental">Instrumental</option>
-              <option value="material_limpeza">Material de Limpeza</option>
-              <option value="ortodontia">Ortodontia</option>
-              <option value="papelaria">Papelaria</option>
-              <option value="protese">Prótese</option>
-              <option value="implantodontia">Implantodontia</option>
-            </select>
-          </div>
-          <div class="text-xs text-gray-500">
-            Se o sugerido não for o mesmo item, escolha outro no select ou informe nome/categoria para criar um novo.
-          </div>
-        </div>
-        <div class="flex justify-between items-center mt-6">
-          <div class="text-sm text-gray-600">Ações para este item</div>
-          <div class="flex gap-2">
-            <button id="nfeBtnPular" class="bg-gray-200 text-text-dark py-2 px-3 rounded-lg hover:bg-gray-300">Pular</button>
-            <button id="nfeBtnMesmo" class="bg-primary-dark text-white py-2 px-3 rounded-lg hover:bg-opacity-90">É o mesmo</button>
-            <button id="nfeBtnCriar" class="bg-green-600 text-white py-2 px-3 rounded-lg hover:bg-green-700">Criar novo</button>
-            <button id="nfeBtnAvancar" class="bg-text-dark text-white py-2 px-3 rounded-lg hover:bg-opacity-90">Avançar</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal: Registrar compra (manual) -->
-    <div id="compraModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-      <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-2xl font-semibold text-primary-dark">Registrar compra</h3>
-          <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharCompra">&times;</button>
-        </div>
-        <form id="compraForm" class="space-y-4">
-          <input type="text" id="compraNome" readonly class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100">
-          <input type="date" id="compraData" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-          <input type="number" step="any" min="0" id="compraQtd" placeholder="Quantidade" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-          <input type="number" step="0.01" min="0" id="compraPreco" placeholder="Preço unitário (R$)" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-          <input type="text" id="compraLote" placeholder="Lote (opcional)" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-          <input type="date" id="compraValidade" placeholder="Validade (opcional)" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-          <input type="text" id="compraLoja" placeholder="Loja (opcional)" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-          <input type="text" id="compraNF" placeholder="Número da NF (opcional)" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-          <button type="submit" class="w-full bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-primary-dark transition">
-            Salvar compra
-          </button>
-        </form>
-      </div>
-    </div>
-
-    <!-- Modal: Histórico de compras -->
-    <div id="historicoModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-      <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl mx-4">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-2xl font-semibold text-primary-dark">Histórico de compras</h3>
-          <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharHistorico">&times;</button>
-        </div>
-        <div class="mb-3 text-sm text-gray-600"><span id="historicoTitulo"></span></div>
-        <div class="overflow-auto max-h-[60vh]">
-          <table class="min-w-full border">
-            <thead class="bg-secondary-light">
-              <tr>
-                <th class="p-2 text-left border">Data</th>
-                <th class="p-2 text-right border">Qtd</th>
-                <th class="p-2 text-right border">Preço unit.</th>
-                <th class="p-2 text-right border">Total</th>
-                <th class="p-2 text-left border">Lote</th>
-                <th class="p-2 text-left border">Validade</th>
-                <th class="p-2 text-left border">Loja</th>
-                <th class="p-2 text-left border">NF</th>
-                <th class="p-2 text-left border">Origem</th>
-                <th class="p-2 text-left border">Ações</th>
-              </tr>
-            </thead>
-            <tbody id="historicoTabela" class="text-sm"></tbody>
-          </table>
-        </div>
-        <div class="mt-4 flex justify-end gap-2">
-          <button id="btnExportarHistorico" class="bg-text-dark text-white py-2 px-3 rounded-lg hover:bg-opacity-90">Baixar CSV</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal: Editar compra -->
-    <div id="editarCompraModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-      <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-2xl font-semibold text-primary-dark">Editar compra</h3>
-          <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharEditarCompra">&times;</button>
-        </div>
-        <form id="editarCompraForm" class="space-y-4">
-          <input type="date" id="editCompraData" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-          <input type="number" step="any" min="0" id="editCompraQtd" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-          <input type="number" step="0.01" min="0" id="editCompraPreco" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-          <input type="text" id="editCompraLote" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Lote (opcional)">
-          <input type="date" id="editCompraValidade" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Validade (opcional)">
-          <input type="text" id="editCompraLoja" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Loja (opcional)">
-          <input type="text" id="editCompraNF" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Número da NF (opcional)">
-          <button type="submit" class="w-full bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90">Salvar</button>
-        </form>
-      </div>
-    </div>
-
-  </div>
-
-  <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Firebase
-    if (typeof firebase === 'undefined') { alert('Firebase SDK não carregou.'); return; }
-    const firebaseConfig = {
-      apiKey: "AIzaSyCDxJW_o6y-hmisQHOHVYPVJ8cag6hrKv0",
-      authDomain: "estoque-prime.firebaseapp.com",
-      projectId: "estoque-prime",
-      storageBucket: "estoque-prime.firebasestorage.app",
-      messagingSenderId: "1092019247496",
-      appId: "1:1092019247496:web:92076afda68ccbc23d823d",
-      measurementId: "G-04D19CYTTQ"
-    };
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-
-    // categorias
-    const categorias = {
-      biosseguranca:"Biossegurança", brocas:"Brocas", cirurgia:"Cirurgia", clinica_geral:"Clínica Geral",
-      dentistica:"Dentística", endodontia:"Endodontia", instrumental:"Instrumental", material_limpeza:"Material de Limpeza",
-      ortodontia:"Ortodontia", papelaria:"Papelaria", protese:"Prótese", implantodontia:"Implantodontia"
-    };
-
-    let materiaisFiltrados = [];
-    let termoDeBusca = "";
-    let categoriaSelecionada = "todos";
-    let isShowingPurchaseList = false;
-
-    // Estado do histórico
-    let historicoContext = { nome: null, compras: [], editId: null };
-
-    // utils
-    function showCustomModal(title, message, type, copyText='') {
-      return new Promise((resolve) => {
-        const modal = document.getElementById('customModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalMessage = document.getElementById('modalMessage');
-        const modalActions = document.getElementById('modalActions');
-        modalTitle.textContent = title; modalMessage.innerHTML=''; modalActions.innerHTML='';
-        if (type==='alert') {
-          modalMessage.textContent = message;
-          const ok=document.createElement('button'); ok.textContent='OK';
-          ok.className='bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition';
-          ok.onclick=()=>{ modal.classList.add('hidden'); resolve(true); }; modalActions.appendChild(ok);
-        } else if (type==='confirm') {
-          modalMessage.textContent = message;
-          const yes=document.createElement('button'); yes.textContent='Sim';
-          yes.className='bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition';
-          yes.onclick=()=>{ modal.classList.add('hidden'); resolve(true); }; modalActions.appendChild(yes);
-          const no=document.createElement('button'); no.textContent='Não';
-          no.className='bg-danger-red text-white py-2 px-4 rounded-lg hover:bg-red-700 transition';
-          no.onclick=()=>{ modal.classList.add('hidden'); resolve(false); }; modalActions.appendChild(no);
-        } else if (type==='copy') {
-          modalMessage.textContent = message;
-          const ta=document.createElement('textarea'); ta.value=copyText; ta.readOnly=true;
-          ta.className='w-full h-32 p-2 border border-gray-300 rounded-lg resize-none mb-4 font-mono text-sm';
-          modalMessage.appendChild(ta);
-          const close=document.createElement('button'); close.textContent='Fechar';
-          close.className='bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition';
-          close.onclick=()=>{ modal.classList.add('hidden'); resolve(false); }; modalActions.appendChild(close);
-          ta.focus(); ta.select(); ta.setSelectionRange(0, ta.value.length);
-        }
-        modal.classList.remove('hidden');
-      });
-    }
-    function converterParaDataURL(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=e=>rej(e);r.readAsDataURL(file);});}
-    const fmtMoeda = (v)=> (v==null?'-':Number(v).toFixed(2).replace('.',',')); 
-    function toBRDate(dStr){
-      if(!dStr) return 'N/A';
-      const d = new Date(dStr);
-      if(!isNaN(d)) return d.toLocaleDateString('pt-BR');
-      const p=dStr.split('T')[0]; if(p && p.includes('-')){ const [y,m,da]=p.split('-'); return `${da}/${m}/${y}`;}
-      return dStr;
-    }
-    function toISODateInput(dStr){ if(!dStr) return ''; const d=new Date(dStr); if(!isNaN(d)) return d.toISOString().slice(0,10); const p=dStr.split('T')[0]; return p||''; }
-    const isFuture = (iso)=> iso && new Date(iso).getTime() >= (new Date().setHours(0,0,0,0));
-
-    // carregar/render
-    async function carregarMateriais(){
-      try{
-        const snap = await db.collection('materiais').get();
-        let todos=[]; snap.forEach(doc=>todos.push(doc.data()));
-        if(isShowingPurchaseList){
-          materiaisFiltrados = todos.filter(m=>m.comprar===true);
-          document.getElementById('searchInput').value=''; termoDeBusca=''; categoriaSelecionada='todos';
-        } else {
-          materiaisFiltrados = todos.filter(m => (m.nome||'').toLowerCase().includes(termoDeBusca.toLowerCase()));
-          if(categoriaSelecionada!=='todos'){ materiaisFiltrados = materiaisFiltrados.filter(m=>m.categoria===categoriaSelecionada); }
-        }
-        atualizarLista(materiaisFiltrados);
-        renderizarCategorias(todos);
-        togglePurchaseListActionsVisibility();
-      }catch(e){ console.error(e); showCustomModal('Erro','Erro ao carregar materiais: '+e.message,'alert');}
-    }
-    async function salvarMaterial(material){ await db.collection('materiais').doc(material.nome).set(material); }
-    function renderizarCategorias(all){
-      const box=document.getElementById('categorySidebar'); box.innerHTML='';
-      const set=new Set(); all.forEach(m=>set.add(m.categoria));
-      const bAll=document.createElement('button');
-      bAll.textContent='Todos';
-      bAll.className=`w-full text-left py-2 px-4 rounded-lg ${categoriaSelecionada==='todos'&&!isShowingPurchaseList ? 'bg-primary-dark text-white':'bg-gray-200 text-text-dark hover:bg-gray-300'}`;
-      bAll.onclick=()=>{categoriaSelecionada='todos'; isShowingPurchaseList=false; carregarMateriais();}; box.appendChild(bAll);
-      Array.from(set).sort().forEach(cat=>{
-        const b=document.createElement('button'); b.textContent=categorias[cat]||cat;
-        b.className=`w-full text-left py-2 px-4 rounded-lg ${categoriaSelecionada===cat&&!isShowingPurchaseList ? 'bg-primary-dark text-white':'bg-gray-200 text-text-dark hover:bg-gray-300'}`;
-        b.onclick=()=>{categoriaSelecionada=cat; isShowingPurchaseList=false; carregarMateriais();}; box.appendChild(b);
-      });
-    }
-    function togglePurchaseListActionsVisibility(){
-      const c=document.getElementById('purchaseListActionsContainer'); if(isShowingPurchaseList) c.classList.remove('hidden'); else c.classList.add('hidden');
-    }
-
-    // LISTA (sem + / -)
-    function atualizarLista(mats){
-      const lista=document.getElementById('materialList'); lista.innerHTML='';
-      if(!mats.length){ lista.innerHTML='<p class="text-center text-gray-600 col-span-full">Nenhum material encontrado.</p>'; return; }
-      mats.sort((a,b)=>a.nome.localeCompare(b.nome)).forEach(m=>{
-        const card=document.createElement('div');
-        card.className=`material-item bg-white rounded-lg shadow-md flex flex-col transition hover:shadow-lg ${m.quantidade < m.quantidadeMinima ? 'border-2 border-danger-red':''}`;
-
-        const imgBox=document.createElement('div'); imgBox.className='w-full h-48 bg-white flex items-center justify-center';
-        const img=document.createElement('img');
-        img.src=m.imagem || 'https://placehold.co/300x300/BFBFBF/585856?text=Sem+Imagem';
-        img.alt=`Imagem de ${m.nome}`; img.className= m.imagem ? 'w-full h-full object-contain' : 'w-24 h-24 object-contain';
-        img.onerror=()=>{ img.src='https://placehold.co/300x300/BFBFBF/585856?text=Sem+Imagem'; img.className='w-24 h-24 object-contain'; };
-        imgBox.appendChild(img); card.appendChild(imgBox);
-
-        const info=document.createElement('div'); info.className='p-4 flex-grow';
-        info.innerHTML = `
-          <h3 class="text-lg font-semibold text-text-dark mb-1">${m.nome}</h3>
-          <p class="text-sm text-gray-700">Categoria: ${categorias[m.categoria] || m.categoria || '-'}</p>
-          <p class="text-sm text-gray-700">Quantidade: <span class="font-medium">${m.quantidade ?? 0}</span></p>
-          <div class="text-xs text-gray-500 mt-2 space-y-1">
-            <p><span class="font-medium text-text-dark">Última compra:</span> ${toBRDate(m.ultimaCompraEm)}</p>
-            <p><span class="font-medium text-text-dark">Validade mais próxima:</span> ${m.validadeUltimaCompra ? toBRDate(m.validadeUltimaCompra) : 'N/A'}</p>
-            <p><span class="font-medium text-text-dark">Preço de compra:</span> R$ ${m.precoCompra!=null ? fmtMoeda(m.precoCompra) : '-'}</p>
-          </div>
-        `;
-        card.appendChild(info);
-
-        const controls=document.createElement('div'); controls.className='p-4 bg-gray-50 border-t border-gray-100 flex flex-col space-y-3';
-        const btnComprar=document.createElement('button');
-        btnComprar.textContent = m.comprar ? 'Na Lista de Compras' : 'Adicionar à Lista';
-        btnComprar.className = `w-full py-2 px-4 rounded-lg font-semibold transition transform hover:scale-105 ${m.comprar ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-primary-dark text-white hover:bg-opacity-90'}`;
-        btnComprar.onclick=()=>toggleComprar(m.nome); controls.appendChild(btnComprar);
-
-        const options=document.createElement('div'); options.className='relative inline-block text-left w-full';
-        const dd=document.createElement('div'); dd.className='dropdown-content absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-50';
-        dd.onclick=(e)=>e.stopPropagation();
-
-        const btnOptions=document.createElement('button');
-        btnOptions.innerHTML=`<svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg> Opções`;
-        btnOptions.className='w-full bg-gray-2 00 text-text-dark py-2 px-3 rounded-lg text-sm hover:bg-gray-300 transition transform hover:scale-105 mt-2';
-        btnOptions.onclick=(e)=>{ e.stopPropagation(); document.querySelectorAll('.dropdown-content').forEach(d=>{ if(d!==dd && !d.classList.contains('hidden')) d.classList.add('hidden'); }); dd.classList.toggle('hidden'); };
-
-        const bEdit=document.createElement('button'); bEdit.textContent='Editar';
-        bEdit.className='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100';
-        bEdit.onclick=()=>{ abrirModalEditar(m.nome); dd.classList.add('hidden'); };
-
-        const bReg=document.createElement('button'); bReg.textContent='Registrar compra';
-        bReg.className='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100';
-        bReg.onclick=()=>{ abrirModalCompra(m.nome); dd.classList.add('hidden'); };
-
-        const bHist=document.createElement('button'); bHist.textContent='Histórico de compras';
-        bHist.className='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100';
-        bHist.onclick=()=>{ abrirHistoricoCompras(m.nome); dd.classList.add('hidden'); };
-
-        const bDel=document.createElement('button'); bDel.textContent='Excluir';
-        bDel.className='block w-full text-left px-4 py-2 text-sm text-danger-red hover:bg-red-100';
-        bDel.onclick=()=>{ confirmarExclusao(m.nome); dd.classList.add('hidden'); };
-
-        dd.appendChild(bEdit); dd.appendChild(bReg); dd.appendChild(bHist); dd.appendChild(bDel);
-        options.appendChild(btnOptions);
-        options.appendChild(dd);
-        controls.appendChild(options);
-
-        card.appendChild(controls); lista.appendChild(card);
-      });
-    }
-
-    // modais básicos
-    function abrirModal(){ document.getElementById('cadastroModal').classList.remove('hidden'); }
-    function fecharModal(){ document.getElementById('cadastroModal').classList.add('hidden'); document.getElementById('materialForm').reset(); }
-
-    function abrirModalEditar(nome){
-      const m = materiaisFiltrados.find(x=>x.nome===nome);
-      if(!m){ showCustomModal("Erro","Material não encontrado para edição.",'alert'); return; }
-      document.getElementById('editNome').value = m.nome;
-      document.getElementById('originalNome').value = m.nome;
-      document.getElementById('editCategoria').value = m.categoria || '';
-      document.getElementById('editQuantidadeMinima').value = m.quantidadeMinima ?? 0;
-      document.getElementById('editQuantidade').value = m.quantidade ?? 0;
-      document.getElementById('editarModal').classList.remove('hidden');
-    }
-    function fecharModalEditar(){ document.getElementById('editarModal').classList.add('hidden'); document.getElementById('editarForm').reset(); }
-
-    // salvar edição
-    document.getElementById('editarForm').addEventListener('submit', async function(e){
-      e.preventDefault();
-      const originalNome = document.getElementById('originalNome').value;
-      const newNome = document.getElementById('editNome').value.trim();
-      const novaCategoria = document.getElementById('editCategoria').value;
-      const novaQuantidadeMinima = parseInt(document.getElementById('editQuantidadeMinima').value || '0');
-      const novaQuantidade = parseInt(document.getElementById('editQuantidade').value || '0');
-      const arquivo = document.getElementById('editImagem').files[0];
-
-      try{
-        const refOld = db.collection('materiais').doc(originalNome);
-        const snap = await refOld.get();
-        if(!snap.exists){ showCustomModal("Erro","Material original não encontrado.",'alert'); return; }
-        const base = snap.data();
-
-        let updateData = {
-          categoria: novaCategoria || base.categoria || '',
-          quantidadeMinima: novaQuantidadeMinima,
-          quantidade: novaQuantidade,
-          ultimaModificacao: new Date().toLocaleString('pt-BR')
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCDxJW_o6y-hmisQHOHVYPVJ8cag6hrKv0",
+            authDomain: "estoque-prime.firebaseapp.com",
+            projectId: "estoque-prime",
+            storageBucket: "estoque-prime.firebasestorage.app",
+            messagingSenderId: "1092019247496",
+            appId: "1:1092019247496:web:92076afda68ccbc23d823d",
+            measurementId: "G-04D19CYTTQ"
         };
 
-        if (arquivo) {
-          const dataURL = await converterParaDataURL(arquivo);
-          const tamanhoBytes = (dataURL.length * 3) / 4 - 2;
-          if (tamanhoBytes > 500000) { showCustomModal('Aviso','A imagem é muito grande! (< 500 KB)','alert'); return; }
-          updateData.imagem = dataURL;
-        }
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
 
-        if (newNome !== originalNome){
-          const refNew = db.collection('materiais').doc(newNome);
-          if((await refNew.get()).exists){ showCustomModal("Erro",`Já existe "${newNome}".`,'alert'); return; }
-          await refNew.set({ ...base, ...updateData, nome:newNome });
-          await refOld.delete();
-        } else {
-          await refOld.update(updateData);
-        }
+        let materiais = [];
+        const categorias = {
+            biosseguranca: "Biossegurança",
+            brocas: "Brocas",
+            cirurgia: "Cirurgia",
+            clinica_geral: "Clínica Geral",
+            dentistica: "Dentística",
+            endodontia: "Endodontia",
+            instrumental: "Instrumental",
+            material_limpeza: "Material de Limpeza",
+            ortodontia: "Ortodontia",
+            papelaria: "Papelaria",
+            protese: "Prótese",
+            implantodontia: "Implantodontia"
+        };
 
-        fecharModalEditar(); carregarMateriais();
-      }catch(err){ console.error(err); showCustomModal("Erro","Erro ao atualizar material: "+err.message,'alert'); }
-    });
-
-    async function limparMarcacoes(){ const ok=await showCustomModal("Confirmar","Deseja limpar todas as marcações de compra?",'confirm'); if(!ok) return;
-      const snap=await db.collection('materiais').get(); const batch=db.batch(); snap.forEach(doc=>batch.update(doc.ref,{comprar:false})); await batch.commit(); carregarMateriais(); }
-    async function copiarListaCompras(){
-      const snap=await db.collection('materiais').where("comprar","==",true).get();
-      if (snap.empty){ showCustomModal("Aviso","Nenhum item marcado para compra.",'alert'); return; }
-      let grupos={}; snap.forEach(doc=>{ const m=doc.data(); const cat=categorias[m.categoria]||"Outros"; (grupos[cat]=grupos[cat]||[]).push(`${m.nome} (Qtd: ${m.quantidade})`); });
-      const lista = Object.keys(grupos).sort().map(c=>`🔹 ${c.toUpperCase()}\n- ${grupos[c].sort().join("\n- ")}`).join("\n\n");
-      try{ await navigator.clipboard.writeText(lista); showCustomModal("Sucesso","Lista de compras copiada!","alert"); }catch{ showCustomModal("Copiar","Selecione e copie:","copy",lista); }
-    }
-    async function buscarMateriais(){ termoDeBusca=document.getElementById('searchInput').value.toLowerCase().trim(); isShowingPurchaseList=false; carregarMateriais(); }
-    async function gerarRelatorio(){
-      const snap=await db.collection('materiais').get(); if(snap.empty){ showCustomModal("Aviso","Nenhum material encontrado.","alert"); return; }
-      const dados=[]; snap.forEach(doc=>{const m=doc.data(); dados.push({
-        Nome:m.nome, Categoria:categorias[m.categoria]||m.categoria, Quantidade:m.quantidade,
-        "Quantidade Mínima":m.quantidadeMinima, "Última compra": toBRDate(m.ultimaCompraEm),
-        "Validade mais próxima": m.validadeUltimaCompra?toBRDate(m.validadeUltimaCompra):'N/A',
-        "Preço de compra (R$)": m.precoCompra!=null ? Number(m.precoCompra) : ''
-      });});
-      const ws=XLSX.utils.json_to_sheet(dados); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Estoque"); XLSX.writeFile(wb,"Relatorio_Estoque_Odontologico.xlsx");
-    }
-    function logout(){ auth.signOut().catch(e=>showCustomModal("Erro",'Falha ao desconectar: '+e.message,'alert')); }
-
-    document.getElementById('materialForm').addEventListener('submit', async function(e){
-      e.preventDefault();
-      const nome=document.getElementById('nome').value.trim();
-      const quantidade=parseInt(document.getElementById('quantidade').value);
-      const quantidadeMinima=parseInt(document.getElementById('quantidadeMinima').value);
-      const categoria=document.getElementById('categoria').value;
-      const arquivo=document.getElementById('imagem').files[0];
-      if((await db.collection('materiais').doc(nome).get()).exists){ showCustomModal("Erro",`Já existe "${nome}".`,'alert'); return; }
-      const material={ nome, quantidade, quantidadeMinima, categoria, imagem:null,
-        ultimaModificacao:new Date().toLocaleString('pt-BR'), comprar:false,
-        ultimaCompraEm:null, validadeUltimaCompra:null, precoCompra:null };
-      if(arquivo){
-        const dataURL=await converterParaDataURL(arquivo);
-        const tamanhoBytes=(dataURL.length*3)/4-2; if(tamanhoBytes>500000){ showCustomModal('Aviso','Imagem > 500 KB.','alert'); return; }
-        material.imagem=dataURL;
-      }
-      await salvarMaterial(material); await carregarMateriais(); fecharModal();
-    });
-
-    async function confirmarExclusao(nome){
-      const ok=await showCustomModal("Confirmar Exclusão",`Excluir ${nome}?`,'confirm'); if(!ok) return;
-      await db.collection('materiais').doc(nome).delete(); await carregarMateriais();
-    }
-    async function toggleComprar(nome){
-      const ref=db.collection('materiais').doc(nome); const snap=await ref.get(); if(!snap.exists) return;
-      const cur=!!snap.data().comprar; await ref.update({comprar:!cur}); await carregarMateriais();
-    }
-
-    // ---------- IMPORTAÇÃO COM ASSISTENTE (NF-e e PLANILHA) ----------
-    let importQueue = [];        // itens pendentes para conferir (tanto NF-e quanto planilha)
-    let importOrigin = null;     // 'nfe' | 'manual'
-    let importStep = 0;
-    let materiaisIndex = [];
-    let metaDataEmissao = null;  // data da compra corrente (p/ item em foco)
-    let metaLoja = null;         // loja corrente (p/ item em foco)
-    let metaNumeroNF = null;     // NF corrente (p/ item em foco)
-
-    // Elementos do modal de equivalência
-    const nfeMatchModal = document.getElementById('nfeMatchModal');
-    const btnFecharNfeMatch = document.getElementById('btnFecharNfeMatch');
-    const nfeStepIdx = document.getElementById('nfeStepIdx');
-    const nfeStepTotal = document.getElementById('nfeStepTotal');
-    const nfeItemNome = document.getElementById('nfeItemNome');
-    const nfeItemQtd = document.getElementById('nfeItemQtd');
-    const nfeItemPreco = document.getElementById('nfeItemPreco');
-    const nfeItemLote = document.getElementById('nfeItemLote');
-    const nfeItemVal = document.getElementById('nfeItemVal');
-    const nfeCandidateSelect = document.getElementById('nfeCandidateSelect');
-    const nfeNewName = document.getElementById('nfeNewName');
-    const nfeNewCategory = document.getElementById('nfeNewCategory');
-    const nfeBtnMesmo = document.getElementById('nfeBtnMesmo');
-    const nfeBtnCriar = document.getElementById('nfeBtnCriar');
-    const nfeBtnAvancar = document.getElementById('nfeBtnAvancar');
-    const nfeBtnPular = document.getElementById('nfeBtnPular');
-
-    // Botões / inputs NF-e
-    const btnImportarNfe = document.getElementById('btnImportarNfe');
-    const inputXmlNfe = document.getElementById('inputXmlNfe');
-
-    btnImportarNfe.addEventListener('click',()=>inputXmlNfe.click());
-    inputXmlNfe.addEventListener('change', onPickXmlFile);
-
-    btnFecharNfeMatch.addEventListener('click',()=>nfeMatchModal.classList.add('hidden'));
-    nfeBtnPular.addEventListener('click',()=>avancarItem());
-    nfeBtnAvancar.addEventListener('click',()=>avancarItem());
-
-    // “É o mesmo”: vincula ao item do estoque escolhido
-    nfeBtnMesmo.addEventListener('click', async ()=>{
-      const item=importQueue[importStep];
-      const selected=nfeCandidateSelect.value;
-      if(!selected){ showCustomModal("Aviso","Selecione um item do estoque ou use 'Criar novo'.","alert"); return; }
-      metaDataEmissao = item.dataCompra || item.emissao || new Date().toISOString();
-      metaLoja = item.loja || null;
-      metaNumeroNF = item.nf || null;
-
-      await registrarEntradaEmMaterialExistente(selected,item,importOrigin);
-      await recomputarAgregados(selected);
-      avancarItem(true);
-    });
-
-    // “Criar novo”: só cria se você mandar
-    nfeBtnCriar.addEventListener('click', async ()=>{
-      const item=importQueue[importStep];
-      const nomeNovo=(nfeNewName.value||'').trim();
-      const categoriaNova=nfeNewCategory.value;
-      if(!nomeNovo){ showCustomModal("Aviso","Informe um nome padronizado.","alert"); return; }
-      if(!categoriaNova){ showCustomModal("Aviso","Selecione a categoria.","alert"); return; }
-
-      const docRef=db.collection('materiais').doc(nomeNovo);
-      const ex=await docRef.get();
-      if(!ex.exists){
-        await docRef.set({
-          nome:nomeNovo, categoria:categoriaNova, quantidade:0, quantidadeMinima:0, imagem:null,
-          ultimaModificacao:new Date().toLocaleString('pt-BR'), comprar:false,
-          ultimaCompraEm:null, validadeUltimaCompra:null, precoCompra:null
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                document.getElementById("loginContainer").classList.add("hidden");
+                document.getElementById("mainContainer").classList.remove("hidden");
+                carregarMateriais();
+            } else {
+                document.getElementById("loginContainer").classList.remove("hidden");
+                document.getElementById("mainContainer").classList.add("hidden");
+            }
         });
-      }
-      metaDataEmissao = item.dataCompra || item.emissao || new Date().toISOString();
-      metaLoja = item.loja || null;
-      metaNumeroNF = item.nf || null;
 
-      await registrarEntradaEmMaterialExistente(nomeNovo,item,importOrigin);
-      await recomputarAgregados(nomeNovo);
-      avancarItem(true);
-    });
+        document.getElementById("loginForm").addEventListener("submit", e => {
+            e.preventDefault();
+            const email = email.value;
+            const password = password.value;
+            auth.signInWithEmailAndPassword(email, password);
+        });
 
-    function abrirModalMatching(){
-      nfeMatchModal.classList.remove('hidden');
-      nfeStepTotal.textContent=importQueue.length;
-    }
-
-    function avancarItem(){
-      importStep++;
-      if(importStep>=importQueue.length){
-        nfeMatchModal.classList.add('hidden');
-        carregarMateriais();
-        showCustomModal("Sucesso","Processamento concluído!","alert");
-      } else {
-        renderMatchStep();
-      }
-    }
-
-    async function carregarMateriaisIndex(){
-      const s=await db.collection('materiais').get();
-      materiaisIndex=[]; s.forEach(doc=>{
-        const d=doc.data();
-        materiaisIndex.push({id:doc.id,nome:d.nome||doc.id,categoria:d.categoria||''});
-      });
-    }
-
-    function renderMatchStep(){
-      const it=importQueue[importStep];
-      nfeStepIdx.textContent=String(importStep+1);
-      nfeItemNome.textContent=it.nome||'-';
-      nfeItemQtd.textContent=it.qtd||0;
-      nfeItemPreco.textContent=(it.preco||0).toFixed(2).replace('.',',');
-      nfeItemLote.textContent=it.lote||'-';
-      nfeItemVal.textContent=it.validade ? toBRDate(it.validade) : '-';
-
-      const candidates = sugerirMateriais(it.nome, materiaisIndex, 8);
-      nfeCandidateSelect.innerHTML = '<option value="">— selecione no estoque —</option>' +
-        candidates.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
-      nfeNewName.value=''; nfeNewCategory.value='';
-    }
-
-    function stripAccents(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
-    function norm(s){ return stripAccents(String(s||'').toLowerCase()).replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim(); }
-    function similarity(a,b){ a=norm(a); b=norm(b); if(!a||!b) return 0;
-      const ta=new Set(a.split(' ')), tb=new Set(b.split(' '));
-      const inter=[...ta].filter(x=>tb.has(x)).length; const uni=new Set([...ta,...tb]).size;
-      let score=inter/(uni||1); if(a.includes(b)||b.includes(a)) score+=0.15; return Math.min(1,Math.max(0,score));
-    }
-    function sugerirMateriais(nomeNota,base,topN=5){
-      const s=base.map(m=>({...m,score:similarity(nomeNota,m.nome)}));
-      s.sort((x,y)=>y.score-x.score); return s.slice(0,topN);
-    }
-
-    // NF-e XML -> coloca itens na fila SEM gravar
-    async function onPickXmlFile(evt){
-      const file=evt.target.files && evt.target.files[0]; if(!file) return;
-      try{
-        await carregarMateriaisIndex();
-        const xmlStr=await file.text();
-        const meta = extrairMetaNfe(xmlStr);
-        importQueue = extrairItensDaNfe(xmlStr).map(it => ({
-          ...it,
-          emissao: meta.emissao,
-          loja: meta.loja || it.loja || null,
-          nf: meta.numero || it.nf || null
-        }));
-        if(!importQueue.length){ showCustomModal("Aviso","Não encontrei itens na NF-e.","alert"); return; }
-        importOrigin='nfe'; importStep=0;
-        abrirModalMatching(); renderMatchStep();
-      }catch(e){ console.error(e); showCustomModal("Erro","Falha ao processar a NF-e: "+e.message,"alert"); }
-      finally{ inputXmlNfe.value=''; }
-    }
-
-    // Metadados da NF-e (emissor/ide)
-    function extrairMetaNfe(xmlStr){
-      const parser=new DOMParser(); const xml=parser.parseFromString(xmlStr,"text/xml");
-      const ns="http://www.portalfiscal.inf.br/nfe";
-      const ide=xml.getElementsByTagNameNS(ns,'ide')[0];
-      const emit=xml.getElementsByTagNameNS(ns,'emit')[0];
-      const dh = ide ? (ide.getElementsByTagNameNS(ns,'dhEmi')[0]?.textContent||null) : null;
-      const nNF = ide ? (ide.getElementsByTagNameNS(ns,'nNF')[0]?.textContent||null) : null;
-      const loja = emit ? (emit.getElementsByTagNameNS(ns,'xNome')[0]?.textContent||null) : null;
-      return { emissao: dh, numero: nNF, loja };
-    }
-
-    // Itens da NF-e
-    function extrairItensDaNfe(xmlStr){
-      const parser=new DOMParser(); const xml=parser.parseFromString(xmlStr,"text/xml");
-      const ns="http://www.portalfiscal.inf.br/nfe"; const dets=xml.getElementsByTagNameNS(ns,'det'); const itens=[];
-      function t(p,tag){ const el=p.getElementsByTagNameNS(ns,tag)[0]; return (el && el.textContent || '').trim() || null; }
-      for(let i=0;i<dets.length;i++){
-        const det=dets[i]; const prod=det.getElementsByTagNameNS(ns,'prod')[0]; if(!prod) continue;
-        const xProd=t(prod,'xProd'); const qCom=parseFloat((t(prod,'qCom')||'0').replace(',','.'))||0;
-        const vUn=parseFloat((t(prod,'vUnCom')||'0').replace(',','.'))||0; const vProd=parseFloat((t(prod,'vProd')||'0').replace(',','.'))||0;
-        const cProd=t(prod,'cProd'); let ean=t(prod,'cEAN'); if(!ean) ean=t(prod,'cEANTrib');
-        const r=prod.getElementsByTagNameNS(ns,'rastro')[0]; const nLote=r?t(r,'nLote'):null; const dVal=r?t(r,'dVal'):null;
-        itens.push({ cod:cProd, ean:ean, nome:xProd, qtd:qCom,
-          preco:(qCom>0? vProd/qCom : vUn)||vUn, lote:nLote, validade:dVal });
-      }
-      return itens;
-    }
-
-    // Entrada em material existente (usa metadados do item em foco)
-    async function registrarEntradaEmMaterialExistente(docId,item,origem){
-      const ref=db.collection('materiais').doc(docId);
-      const snap=await ref.get();
-      if(!snap.exists) throw new Error(`Documento "${docId}" não encontrado.`);
-
-      const atual=snap.data()||{};
-      const novaQtd=(atual.quantidade||0)+(item.qtd||0);
-
-      const agoraISO=new Date().toISOString();
-      const dataCompraISO = metaDataEmissao || item.dataCompra || new Date().toISOString();
-
-      const updateBase = {
-        quantidade:novaQtd,
-        ultimaModificacao:new Date().toLocaleString('pt-BR'),
-      };
-      if (!atual.ultimaCompraEm || new Date(dataCompraISO) >= new Date(atual.ultimaCompraEm)) {
-        updateBase.ultimaCompraEm = dataCompraISO;
-        if (item.preco != null) updateBase.precoCompra = Number(item.preco);
-      }
-      if (item.validade && isFuture(item.validade)) {
-        if (!atual.validadeUltimaCompra || new Date(item.validade) < new Date(atual.validadeUltimaCompra)) {
-          updateBase.validadeUltimaCompra = item.validade;
-        }
-      }
-      await ref.set({ ...atual, ...updateBase }, { merge:true });
-
-      await ref.collection('movimentacoes').add({
-        tipo:'entrada', origem: origem || 'manual', data: agoraISO,
-        nfeEmissao: dataCompraISO,
-        nfeItemNome:item.nome, qtd:item.qtd||0, precoUnit:item.preco||0,
-        lote:item.lote||null, validade:item.validade||null, ean:item.ean||null, codProdNfe:item.cod||null,
-        loja: metaLoja || item.loja || null,
-        numeroNF: metaNumeroNF || item.nf || null
-      });
-
-      await ref.collection('compras').add({
-        origem: origem || 'manual',
-        dataCompra: dataCompraISO,
-        qtd: item.qtd || 0,
-        precoUnit: item.preco || 0,
-        total: (item.qtd||0) * (item.preco||0),
-        lote: item.lote || null,
-        validade: item.validade || null,
-        ean: item.ean || null,
-        loja: metaLoja || item.loja || null,
-        numeroNF: metaNumeroNF || item.nf || null,
-        criadoEm: agoraISO
-      });
-    }
-
-    // ---------- COMPRAS MANUAIS ----------
-    const compraModal=document.getElementById('compraModal');
-    const compraForm=document.getElementById('compraForm');
-    const compraNome=document.getElementById('compraNome');
-    const compraData=document.getElementById('compraData');
-    const compraQtd=document.getElementById('compraQtd');
-    const compraPreco=document.getElementById('compraPreco');
-    const compraLote=document.getElementById('compraLote');
-    const compraValidade=document.getElementById('compraValidade');
-    const compraLoja=document.getElementById('compraLoja');
-    const compraNF=document.getElementById('compraNF');
-    document.getElementById('btnFecharCompra').addEventListener('click', ()=>compraModal.classList.add('hidden'));
-
-    function abrirModalCompra(nome){
-      compraNome.value = nome;
-      compraData.value = new Date().toISOString().slice(0,10);
-      compraQtd.value = '';
-      compraPreco.value = '';
-      compraLote.value = '';
-      compraValidade.value = '';
-      compraLoja.value = '';
-      compraNF.value = '';
-      compraModal.classList.remove('hidden');
-    }
-
-    compraForm.addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const nome=compraNome.value;
-      const item={
-        nome,
-        qtd: parseFloat(compraQtd.value || '0'),
-        preco: parseFloat(compraPreco.value || '0'),
-        lote: (compraLote.value || null),
-        validade: (compraValidade.value || null),
-        loja: (compraLoja.value || null),
-        nf: (compraNF.value || null)
-      };
-      const dataCompraISO = compraData.value ? new Date(compraData.value).toISOString() : new Date().toISOString();
-
-      if (isNaN(item.qtd) || item.qtd <= 0){ showCustomModal('Aviso','Informe uma quantidade válida.','alert'); return; }
-      if (isNaN(item.preco) || item.preco < 0){ showCustomModal('Aviso','Informe um preço válido.','alert'); return; }
-
-      try{
-        // usa o mesmo pipeline (metadados)
-        metaDataEmissao = dataCompraISO; metaLoja = item.loja; metaNumeroNF = item.nf;
-        await registrarEntradaEmMaterialExistente(nome, item, 'manual');
-
-        compraModal.classList.add('hidden');
-        await recomputarAgregados(nome);
-        await carregarMateriais();
-        showCustomModal('Sucesso','Compra registrada com sucesso!','alert');
-      }catch(err){ console.error(err); showCustomModal('Erro','Falha ao registrar compra: '+err.message,'alert'); }
-      finally { metaDataEmissao=null; metaLoja=null; metaNumeroNF=null; }
-    });
-
-    // ---------- HISTÓRICO ----------
-    const historicoModal=document.getElementById('historicoModal');
-    const historicoTitulo=document.getElementById('historicoTitulo');
-    const historicoTabela=document.getElementById('historicoTabela');
-    const btnExportarHistorico=document.getElementById('btnExportarHistorico');
-    document.getElementById('btnFecharHistorico').addEventListener('click', ()=>historicoModal.classList.add('hidden'));
-
-    async function abrirHistoricoCompras(nome){
-      historicoContext = { nome, compras: [], editId: null };
-      historicoTitulo.textContent = `Produto: ${nome}`;
-      historicoTabela.innerHTML = '<tr><td class="p-2 border text-center text-gray-500" colspan="10">Carregando...</td></tr>';
-      historicoModal.classList.remove('hidden');
-      try{
-        const snap = await db.collection('materiais').doc(nome).collection('compras').orderBy('dataCompra','desc').limit(500).get();
-        if (snap.empty){ historicoTabela.innerHTML = '<tr><td class="p-2 border text-center text-gray-500" colspan="10">Sem registros.</td></tr>'; return; }
-        let rows=[]; snap.forEach(doc=>rows.push({ id:doc.id, ...doc.data() }));
-        historicoContext.compras = rows;
-        renderTabelaHistorico(rows);
-      }catch(err){
-        console.error(err);
-        historicoTabela.innerHTML = '<tr><td class="p-2 border text-center text-danger-red" colspan="10">Erro ao carregar.</td></tr>';
-      }
-    }
-
-    function renderTabelaHistorico(rows){
-      historicoTabela.innerHTML = rows.map(r=>`
-        <tr data-id="${r.id}">
-          <td class="p-2 border">${toBRDate(r.dataCompra)}</td>
-          <td class="p-2 border text-right">${r.qtd}</td>
-          <td class="p-2 border text-right">R$ ${fmtMoeda(r.precoUnit)}</td>
-          <td class="p-2 border text-right">R$ ${fmtMoeda(r.total!=null ? r.total : (r.qtd||0)*(r.precoUnit||0))}</td>
-          <td class="p-2 border">${r.lote || ''}</td>
-          <td class="p-2 border">${r.validade ? toBRDate(r.validade) : ''}</td>
-          <td class="p-2 border">${r.loja || ''}</td>
-          <td class="p-2 border">${r.numeroNF || ''}</td>
-          <td class="p-2 border">${r.origem || ''}</td>
-          <td class="p-2 border">
-            <button class="text-primary-dark underline mr-2" onclick="window._editarCompra('${r.id}')">Editar</button>
-            <button class="text-danger-red underline" onclick="window._excluirCompra('${r.id}')">Excluir</button>
-          </td>
-        </tr>
-      `).join('');
-      btnExportarHistorico.onclick = ()=>{
-        const header = 'Data;Qtd;PrecoUnit;Total;Lote;Validade;Loja;NF;Origem\n';
-        const csv = header + rows.map(r=>[
-          toBRDate(r.dataCompra), r.qtd, r.precoUnit, (r.total!=null ? r.total : (r.qtd||0)*(r.precoUnit||0)),
-          r.lote||'', (r.validade?toBRDate(r.validade):''), r.loja||'', r.numeroNF||'', r.origem||''
-        ].map(x=>String(x).replaceAll(';',',')).join(';')).join('\n');
-        const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = `historico_${historicoContext.nome}.csv`; a.click();
-        URL.revokeObjectURL(url);
-      };
-    }
-
-    const editarCompraModal = document.getElementById('editarCompraModal');
-    const editarCompraForm  = document.getElementById('editarCompraForm');
-    const editCompraData = document.getElementById('editCompraData');
-    const editCompraQtd = document.getElementById('editCompraQtd');
-    const editCompraPreco = document.getElementById('editCompraPreco');
-    const editCompraLote = document.getElementById('editCompraLote');
-    const editCompraValidade = document.getElementById('editCompraValidade');
-    const editCompraLoja = document.getElementById('editCompraLoja');
-    const editCompraNF = document.getElementById('editCompraNF');
-    document.getElementById('btnFecharEditarCompra').addEventListener('click', ()=>editarCompraModal.classList.add('hidden'));
-
-    window._editarCompra = async (id)=>{
-      const row = historicoContext.compras.find(x=>x.id===id);
-      if(!row) return;
-      historicoContext.editId = id;
-      editCompraData.value = toISODateInput(row.dataCompra);
-      editCompraQtd.value = row.qtd;
-      editCompraPreco.value = row.precoUnit;
-      editCompraLote.value = row.lote || '';
-      editCompraValidade.value = toISODateInput(row.validade);
-      editCompraLoja.value = row.loja || '';
-      editCompraNF.value = row.numeroNF || '';
-      editarCompraModal.classList.remove('hidden');
-    };
-
-    editarCompraForm.addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const id = historicoContext.editId; if(!id) return;
-      const ref = db.collection('materiais').doc(historicoContext.nome).collection('compras').doc(id);
-      const snap = await ref.get(); if(!snap.exists) return;
-      const old = snap.data();
-      const novo = {
-        dataCompra: new Date(editCompraData.value).toISOString(),
-        qtd: parseFloat(editCompraQtd.value||'0'),
-        precoUnit: parseFloat(editCompraPreco.value||'0'),
-        lote: editCompraLote.value || null,
-        validade: editCompraValidade.value || null,
-        loja: editCompraLoja.value || null,
-        numeroNF: editCompraNF.value || null,
-        total: parseFloat(editCompraQtd.value||'0') * parseFloat(editCompraPreco.value||'0')
-      };
-      if (isNaN(novo.qtd) || novo.qtd <= 0) { showCustomModal('Aviso','Quantidade inválida.','alert'); return; }
-      if (isNaN(novo.precoUnit) || novo.precoUnit < 0) { showCustomModal('Aviso','Preço inválido.','alert'); return; }
-
-      const diff = (novo.qtd - (old.qtd||0));
-      const matRef = db.collection('materiais').doc(historicoContext.nome);
-      await db.runTransaction(async (tx)=>{
-        const matSnap = await tx.get(matRef);
-        if(!matSnap.exists) throw new Error('Material não encontrado');
-        const cur = matSnap.data();
-        const novaQtd = (cur.quantidade||0) + diff;
-        if (novaQtd < 0) throw new Error('Estoque não pode ficar negativo.');
-        tx.update(matRef, { quantidade: novaQtd, ultimaModificacao: new Date().toLocaleString('pt-BR') });
-        tx.update(ref, novo);
-      });
-
-      editarCompraModal.classList.add('hidden');
-      await recomputarAgregados(historicoContext.nome);
-      await abrirHistoricoCompras(historicoContext.nome);
-      await carregarMateriais();
-      showCustomModal('Sucesso','Compra atualizada.','alert');
-    });
-
-    window._excluirCompra = async (id)=>{
-      const ok = await showCustomModal('Confirmar','Excluir este registro?','confirm');
-      if(!ok) return;
-      const ref = db.collection('materiais').doc(historicoContext.nome).collection('compras').doc(id);
-      const snap = await ref.get(); if(!snap.exists) return;
-      const row = snap.data();
-
-      const matRef = db.collection('materiais').doc(historicoContext.nome);
-      await db.runTransaction(async (tx)=>{
-        const mSnap = await tx.get(matRef);
-        if(!mSnap.exists) throw new Error('Material não encontrado');
-        const cur = mSnap.data();
-        const nova = (cur.quantidade||0) - (row.qtd||0);
-        if (nova < 0) throw new Error('Estoque não pode ficar negativo.');
-        tx.update(matRef, { quantidade: nova, ultimaModificacao: new Date().toLocaleString('pt-BR') });
-        tx.delete(ref);
-      });
-
-      await recomputarAgregados(historicoContext.nome);
-      await abrirHistoricoCompras(historicoContext.nome);
-      await carregarMateriais();
-      showCustomModal('Sucesso','Registro excluído.','alert');
-    };
-
-    async function recomputarAgregados(nome){
-      const matRef = db.collection('materiais').doc(nome);
-      const compSnap = await matRef.collection('compras').get();
-      let ultimaCompraEm=null, precoCompra=null, menorValidade=null;
-
-      compSnap.forEach(d=>{
-        const c=d.data();
-        if(c.dataCompra && (!ultimaCompraEm || new Date(c.dataCompra)>new Date(ultimaCompraEm))){
-          ultimaCompraEm=c.dataCompra; precoCompra=c.precoUnit!=null? c.precoUnit : precoCompra;
-        }
-        if(c.validade && isFuture(c.validade)){
-          if(!menorValidade || new Date(c.validade) < new Date(menorValidade)) menorValidade = c.validade;
-        }
-      });
-
-      await matRef.set({
-        ultimaCompraEm: ultimaCompraEm || null,
-        precoCompra: precoCompra!=null ? Number(precoCompra) : null,
-        validadeUltimaCompra: menorValidade || null
-      }, { merge:true });
-    }
-
-    // ---------- IMPORTAÇÃO POR PLANILHA (XLSX/CSV) ----------
-    const btnImportPlanilha = document.getElementById('btnImportarPlanilha');
-    const inputPlanilha = document.getElementById('inputPlanilha');
-    btnImportPlanilha.addEventListener('click', ()=>inputPlanilha.click());
-
-    function excelSerialToISO(v){
-      if (typeof v === 'number' && !isNaN(v)) {
-        const d = new Date(Math.round((v - 25569) * 86400 * 1000));
-        if (!isNaN(d)) return d.toISOString();
-      }
-      return null;
-    }
-    function parseDateFlexible(raw){
-      if (raw == null || raw === '') return null;
-      const serial = excelSerialToISO(raw);
-      if (serial) return serial;
-      if (typeof raw === 'string'){
-        let s = raw.trim();
-        const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
-        if (m){
-          const [_, d, mo, y] = m;
-          const year = (y.length===2? ('20'+y) : y);
-          return `${year}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}T00:00:00.000Z`;
-        }
-        const tryD = new Date(s);
-        if (!isNaN(tryD)) return tryD.toISOString();
-      }
-      if (raw instanceof Date && !isNaN(raw)) return raw.toISOString();
-      return null;
-    }
-    function parseNumberFlexible(v){
-      if (v == null || v === '') return NaN;
-      if (typeof v === 'number') return v;
-      let s = String(v).trim().replace(/\./g, '').replace(',', '.');
-      const parts = s.split('.');
-      if (parts.length > 2) {
-        const decimal = parts.pop();
-        s = parts.join('') + '.' + decimal;
-      }
-      const n = Number(s);
-      return isNaN(n) ? NaN : n;
-    }
-    function getCell(row, candidates){
-      const keys = Object.keys(row);
-      const norm = (s)=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
-      for (const k of keys){
-        const nk = norm(k);
-        for (const c of candidates){
-          const nc = norm(c);
-          if (nk === nc || nk.includes(nc)) return row[k];
-        }
-      }
-      return '';
-    }
-
-    async function previewAndImport(rows){
-      const previewLines = rows.slice(0, 10).map((r,i)=> `${i+1}. ${r.nome} | ${r.qtd} un | R$ ${r.preco} | ${r.dataCompra ? r.dataCompra.slice(0,10) : ''}`).join('\n');
-      await showCustomModal(
-        'Pré-visualização',
-        rows.length ? `Primeiros registros:\n${previewLines}\n\nTotal de linhas detectadas: ${rows.length}` : 'Nenhum registro válido encontrado.',
-        'alert'
-      );
-      if (!rows.length) return;
-
-      await carregarMateriaisIndex();
-      importQueue = rows.map(r => ({
-        nome: r.nome,
-        qtd: r.qtd,
-        preco: r.preco,
-        lote: r.lote || null,
-        validade: r.validade || null,
-        loja: r.loja || null,
-        nf: r.nf || null,
-        dataCompra: r.dataCompra || null
-      }));
-      importOrigin = 'manual';
-      importStep = 0;
-      abrirModalMatching();
-      renderMatchStep();
-    }
-
-    inputPlanilha.addEventListener('change', async (e)=>{
-      const file = e.target.files && e.target.files[0];
-      if(!file) return;
-      try{
-        const isCsv = /\.csv$/i.test(file.name);
-        let rows = [];
-
-        if (isCsv){
-          const text = await file.text();
-          let delim = text.includes(';') ? ';' : ',';
-          const lines = text.split(/\r?\n/).filter(l => l.trim().length);
-          if (!lines.length) throw new Error('CSV vazio');
-          const header = lines[0].split(delim).map(h => h.trim());
-          for (let i=1; i<lines.length; i++){
-            const cols = lines[i].split(delim);
-            let row = {};
-            header.forEach((h,idx)=> row[h] = (cols[idx]||'').trim());
-            rows.push(row);
-          }
-        } else {
-          const data = await file.arrayBuffer();
-          const wb = XLSX.read(data, { type:'array', cellDates:true, raw:false });
-          let ws = null;
-          for (const name of wb.SheetNames){
-            const sheet = wb.Sheets[name];
-            const json = XLSX.utils.sheet_to_json(sheet, { defval:'' });
-            if (json && json.length){ ws = sheet; break; }
-          }
-          if (!ws) throw new Error('Nenhuma aba com dados encontrada.');
-          rows = XLSX.utils.sheet_to_json(ws, { defval:'' });
+        async function carregarMateriais() {
+            const snapshot = await db.collection("materiais").get();
+            materiais = snapshot.docs.map(doc => doc.data());
+            atualizarLista(materiais);
         }
 
-        const parsed = [];
-        for (const raw of rows){
-          const nomeItem = String(getCell(raw, ['Nome do item','Nome','Produto','Item'])).trim();
-          if (!nomeItem) continue;
+        function atualizarLista(materiais) {
+            const lista = document.getElementById("materialList");
+            lista.innerHTML = "";
+            materiais.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(m => {
+                const card = document.createElement("div");
+                card.className = "bg-white rounded-lg shadow-md p-4 flex flex-col items-center";
 
-          const dataCompraRaw = getCell(raw, ['Data de compra','Data','Data_compra']);
-          const qtdRaw        = getCell(raw, ['Quantidade','Qtd','Qte']);
-          const precoRaw      = getCell(raw, ['Preço','Preco','Preço unitário','Preco unitario','Preço unit','Valor unitário','Valor']);
-          const validadeRaw   = getCell(raw, ['Validade','Vencimento','Data de validade']);
-          const loteRaw       = getCell(raw, ['Lote','Lote/Batch']);
-          const lojaRaw       = getCell(raw, ['Loja','Estabelecimento','Fornecedor']);
-          const nfRaw         = getCell(raw, ['Número da Nota Fiscal','Numero da Nota Fiscal','NF','NFe','Numero NF','Chave']);
+                const img = document.createElement("img");
+                img.src = m.imagem || "https://placehold.co/300x300/BFBFBF/585856?text=Sem+Imagem";
+                img.className = "w-32 h-32 object-contain mb-3";
 
-          const qtd   = parseNumberFlexible(qtdRaw);
-          const preco = parseNumberFlexible(precoRaw);
-          const dataCompra = parseDateFlexible(dataCompraRaw);
-          const validade   = parseDateFlexible(validadeRaw);
+                const nome = document.createElement("h3");
+                nome.textContent = m.nome;
+                nome.className = "text-lg font-semibold text-text-dark text-center";
 
-          if (isNaN(qtd) || qtd <= 0) continue;
+                const categoria = document.createElement("p");
+                categoria.textContent = `Categoria: ${categorias[m.categoria] || m.categoria}`;
+                categoria.className = "text-sm text-gray-600 mb-2";
 
-          parsed.push({
-            nome: nomeItem,
-            qtd,
-            preco: isNaN(preco) ? 0 : preco,
-            dataCompra,
-            validade,
-            lote: (loteRaw || '').toString().trim() || null,
-            loja: (lojaRaw || '').toString().trim() || null,
-            nf: (nfRaw || '').toString().trim() || null
-          });
+                const detalhes = document.createElement("div");
+                detalhes.className = "text-sm text-gray-700 text-left w-full space-y-1";
+                detalhes.innerHTML = `
+                    <p>Quantidade: <strong>${m.quantidade ?? '-'}</strong></p>
+                    <p>Última compra: <strong>${m.ultimaCompra ?? '-'}</strong></p>
+                    <p>Preço de compra: <strong>${m.precoCompra ? 'R$ ' + m.precoCompra.toFixed(2) : '-'}</strong></p>
+                    <p>Validade mais próxima: <strong>${m.validadeProxima ?? '-'}</strong></p>
+                    <p>Lista de compra: <strong>${m.dataMarcadoCompra ? formatarData(m.dataMarcadoCompra) : ''}</strong></p>
+                `;
+
+                const btnCompra = document.createElement("button");
+                btnCompra.textContent = m.comprar ? "Na Lista de Compras" : "Adicionar à Lista";
+                btnCompra.className = `w-full py-2 mt-3 rounded-lg font-semibold transition ${m.comprar ? "bg-green-600 text-white" : "bg-primary-dark text-white hover:bg-opacity-90"}`;
+                btnCompra.onclick = () => toggleListaCompra(m.nome);
+
+                card.append(img, nome, categoria, detalhes, btnCompra);
+                lista.appendChild(card);
+            });
         }
 
-        await previewAndImport(parsed);
-      }catch(err){
-        console.error('Erro na importação da planilha:', err);
-        await showCustomModal('Erro na importação', (err && err.message) ? err.message : String(err), 'alert');
-      } finally {
-        e.target.value='';
-      }
-    });
+        function formatarData(dataISO) {
+            const data = new Date(dataISO);
+            return data.toLocaleDateString("pt-BR");
+        }
 
-    // Auth + listeners
-    document.getElementById('loginForm').addEventListener('submit', function(e){
-      e.preventDefault();
-      const email=document.getElementById('email').value; const password=document.getElementById('password').value;
-      auth.signInWithEmailAndPassword(email,password)
-        .then(()=>{ document.getElementById('loginContainer').classList.add('hidden'); document.getElementById('mainContainer').classList.remove('hidden'); carregarMateriais(); })
-        .catch(err=>showCustomModal("Erro de Autenticação",'Falha ao autenticar: '+err.message,'alert'));
-    });
-    auth.onAuthStateChanged(user=>{
-      if(user){ document.getElementById('loginContainer').classList.add('hidden'); document.getElementById('mainContainer').classList.remove('hidden'); carregarMateriais(); }
-      else { document.getElementById('loginContainer').classList.remove('hidden'); document.getElementById('mainContainer').classList.add('hidden'); }
-    });
+        async function toggleListaCompra(nome) {
+            const docRef = db.collection("materiais").doc(nome);
+            const docSnap = await docRef.get();
+            if (!docSnap.exists) return;
 
-    // UI listeners
-    document.getElementById('btnAbrirModal').addEventListener('click', abrirModal);
-    document.getElementById('btnFecharModal').addEventListener('click', fecharModal);
-    document.getElementById('btnFecharModalEditar').addEventListener('click', fecharModalEditar);
-    document.getElementById('btnLogout').addEventListener('click', logout);
-    document.getElementById('btnLimparMarcacoes').addEventListener('click', limparMarcacoes);
-    document.getElementById('btnListaCompras').addEventListener('click', ()=>{ isShowingPurchaseList=true; carregarMateriais(); });
-    document.getElementById('btnMostrarTodos').addEventListener('click', ()=>{ isShowingPurchaseList=false; document.getElementById('searchInput').value=''; termoDeBusca=''; categoriaSelecionada='todos'; carregarMateriais(); });
-    document.getElementById('btnCopiarLista').addEventListener('click', copiarListaCompras);
-    document.getElementById('btnBuscar').addEventListener('click', buscarMateriais);
-    document.getElementById('btnGerarRelatorio').addEventListener('click', gerarRelatorio);
-    document.getElementById('btnAdvancedOptions').addEventListener('click', ()=>document.getElementById('advancedOptionsContainer').classList.toggle('hidden'));
-    document.addEventListener('click', (e)=>{ document.querySelectorAll('.dropdown-content').forEach(d=>{ if(!d.classList.contains('hidden') && !d.parentElement.contains(e.target)) d.classList.add('hidden'); }); });
-  });
-  </script>
+            const m = docSnap.data();
+            const novoStatus = !m.comprar;
+            const dataMarcadoCompra = novoStatus ? new Date().toISOString() : null;
+
+            await docRef.update({
+                comprar: novoStatus,
+                dataMarcadoCompra: dataMarcadoCompra
+            });
+            carregarMateriais();
+        }
+
+        document.getElementById("btnBuscar").addEventListener("click", async () => {
+            const termo = document.getElementById("searchInput").value.toLowerCase();
+            const filtrados = materiais.filter(m => m.nome.toLowerCase().includes(termo));
+            atualizarLista(filtrados);
+        });
+
+        document.getElementById("btnListaCompras").addEventListener("click", async () => {
+            const filtrados = materiais.filter(m => m.comprar);
+            atualizarLista(filtrados);
+        });
+
+        document.getElementById("btnLogout").addEventListener("click", () => auth.signOut());
+
+        // GERAR RELATÓRIO COMPLETO
+        document.getElementById("btnGerarRelatorio").addEventListener("click", async () => {
+            const snapshot = await db.collection("materiais").get();
+            const dados = [];
+
+            for (const doc of snapshot.docs) {
+                const mat = doc.data();
+                let ultimaCompraData = mat.ultimaCompra || "-";
+                let preco = mat.precoCompra ? "R$ " + mat.precoCompra.toFixed(2) : "-";
+                let validade = mat.validadeProxima || "-";
+                let loja = mat.lojaUltima || "-";
+                let nota = mat.notaUltima || "-";
+                let dataLista = mat.dataMarcadoCompra ? formatarData(mat.dataMarcadoCompra) : "";
+
+                dados.push({
+                    Nome: mat.nome,
+                    Categoria: categorias[mat.categoria] || mat.categoria,
+                    Quantidade: mat.quantidade ?? "-",
+                    "Última Compra": ultimaCompraData,
+                    "Preço de Compra": preco,
+                    "Validade": validade,
+                    "Loja": loja,
+                    "Nota Fiscal": nota,
+                    "Lista de Compra": dataLista
+                });
+            }
+
+            const ws = XLSX.utils.json_to_sheet(dados);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Relatorio Compras");
+            XLSX.writeFile(wb, "Relatorio_Compras_PrimeDental.xlsx");
+        });
+    </script>
 </body>
 </html>
