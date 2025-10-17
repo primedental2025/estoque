@@ -141,6 +141,10 @@
         <form id="materialForm" class="space-y-4">
           <input type="text" id="nome" placeholder="Nome do material" required
                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+          <input type="number" id="quantidade" placeholder="Quantidade inicial" min="0" required
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+          <input type="number" id="quantidadeMinima" placeholder="Quantidade mínima" min="0" required
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
           <select id="categoria" required
                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
             <option value="">Selecione uma categoria</option>
@@ -178,6 +182,8 @@
           <input type="text" id="editNome" placeholder="Nome do material" required
                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
           <input type="hidden" id="originalNome">
+          <input type="number" id="editQuantidade" placeholder="Quantidade" min="0"
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
           <select id="editCategoria"
                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
             <option value="">Selecione uma categoria</option>
@@ -194,6 +200,8 @@
             <option value="protese">Prótese</option>
             <option value="implantodontia">Implantodontia</option>
           </select>
+          <input type="number" id="editQuantidadeMinima" placeholder="Quantidade mínima" min="0"
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
           <input type="file" id="editImagem" accept="image/*"
                  class="w-full px-4 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-primary-dark hover:file:bg-blue-100">
           <button type="submit"
@@ -407,8 +415,7 @@
       });
     }
     function converterParaDataURL(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=e=>rej(e);r.readAsDataURL(file);});}
-    const fmtMoeda = (v)=> (v==null?'-':Number(v).toFixed(2).replace('.',','));
-
+    const fmtMoeda = (v)=> (v==null?'-':Number(v).toFixed(2).replace('.',',')); 
     function toBRDate(dStr){
       if(!dStr) return 'N/A';
       const d = new Date(dStr);
@@ -418,23 +425,6 @@
     }
     function toISODateInput(dStr){ if(!dStr) return ''; const d=new Date(dStr); if(!isNaN(d)) return d.toISOString().slice(0,10); const p=dStr.split('T')[0]; return p||''; }
     const isFuture = (iso)=> iso && new Date(iso).getTime() >= (new Date().setHours(0,0,0,0));
-
-    function stripAccents(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
-    function norm(s){ return stripAccents(String(s||'').toLowerCase()).replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim(); }
-    function similarity(a,b){
-      a=norm(a); b=norm(b); if(!a||!b) return 0;
-      const ta=new Set(a.split(' '));
-      const tb=new Set(b.split(' '));
-      const inter=[...ta].filter(x=>tb.has(x)).length;
-      const uni=new Set([...ta,...tb]).size;
-      let score=inter/(uni||1);
-      if(a.includes(b)||b.includes(a)) score+=0.15;
-      return Math.min(1,Math.max(0,score));
-    }
-    function sugerirMateriais(nomeNota,base,topN=5){
-      const s=base.map(m=>({...m,score:similarity(nomeNota,m.nome)}));
-      s.sort((x,y)=>y.score-x.score); return s.slice(0,topN);
-    }
 
     // carregar/render
     async function carregarMateriais(){
@@ -471,13 +461,13 @@
       const c=document.getElementById('purchaseListActionsContainer'); if(isShowingPurchaseList) c.classList.remove('hidden'); else c.classList.add('hidden');
     }
 
-    // LISTA — mostra última quantidade comprada + metadados
+    // LISTA (sem + / -)
     function atualizarLista(mats){
       const lista=document.getElementById('materialList'); lista.innerHTML='';
       if(!mats.length){ lista.innerHTML='<p class="text-center text-gray-600 col-span-full">Nenhum material encontrado.</p>'; return; }
       mats.sort((a,b)=>a.nome.localeCompare(b.nome)).forEach(m=>{
         const card=document.createElement('div');
-        card.className=`material-item bg-white rounded-lg shadow-md flex flex-col transition hover:shadow-lg`;
+        card.className=`material-item bg-white rounded-lg shadow-md flex flex-col transition hover:shadow-lg ${m.quantidade < m.quantidadeMinima ? 'border-2 border-danger-red':''}`;
 
         const imgBox=document.createElement('div'); imgBox.className='w-full h-48 bg-white flex items-center justify-center';
         const img=document.createElement('img');
@@ -488,15 +478,13 @@
 
         const info=document.createElement('div'); info.className='p-4 flex-grow';
         info.innerHTML = `
-          <h3 class="text-xl font-semibold text-text-dark leading-snug mb-1">${m.nome}</h3>
-          <p class="text-sm font-medium text-gray-700 mb-2">${categorias[m.categoria] || m.categoria || '-'}</p>
-
-          <div class="space-y-1.5 text-[13px] text-gray-700">
-            <p><span class="font-medium text-text-dark">Última quantidade comprada:</span> <span class="font-semibold">${m.ultimaQtdCompra ?? '-'}</span></p>
+          <h3 class="text-lg font-semibold text-text-dark mb-1">${m.nome}</h3>
+          <p class="text-sm text-gray-700">Categoria: ${categorias[m.categoria] || m.categoria || '-'}</p>
+          <p class="text-sm text-gray-700">Quantidade: <span class="font-medium">${m.quantidade ?? 0}</span></p>
+          <div class="text-xs text-gray-500 mt-2 space-y-1">
             <p><span class="font-medium text-text-dark">Última compra:</span> ${toBRDate(m.ultimaCompraEm)}</p>
-            <p><span class="font-medium text-text-dark">Loja/NF:</span> ${(m.ultimaCompraLoja||'-')} ${m.ultimaCompraNF ? ' | NF: '+m.ultimaCompraNF : ''}</p>
             <p><span class="font-medium text-text-dark">Validade mais próxima:</span> ${m.validadeUltimaCompra ? toBRDate(m.validadeUltimaCompra) : 'N/A'}</p>
-            ${m.comprar ? `<p class="text-[12px] text-gray-500">Marcado na Lista em: ${toBRDate(m.comprarEm)}</p>` : ``}
+            <p><span class="font-medium text-text-dark">Preço de compra:</span> R$ ${m.precoCompra!=null ? fmtMoeda(m.precoCompra) : '-'}</p>
           </div>
         `;
         card.appendChild(info);
@@ -513,7 +501,7 @@
 
         const btnOptions=document.createElement('button');
         btnOptions.innerHTML=`<svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg> Opções`;
-        btnOptions.className='w-full bg-gray-200 text-text-dark py-2 px-3 rounded-lg text-sm hover:bg-gray-300 transition transform hover:scale-105 mt-2';
+        btnOptions.className='w-full bg-gray-2 00 text-text-dark py-2 px-3 rounded-lg text-sm hover:bg-gray-300 transition transform hover:scale-105 mt-2';
         btnOptions.onclick=(e)=>{ e.stopPropagation(); document.querySelectorAll('.dropdown-content').forEach(d=>{ if(d!==dd && !d.classList.contains('hidden')) d.classList.add('hidden'); }); dd.classList.toggle('hidden'); };
 
         const bEdit=document.createElement('button'); bEdit.textContent='Editar';
@@ -551,16 +539,20 @@
       document.getElementById('editNome').value = m.nome;
       document.getElementById('originalNome').value = m.nome;
       document.getElementById('editCategoria').value = m.categoria || '';
+      document.getElementById('editQuantidadeMinima').value = m.quantidadeMinima ?? 0;
+      document.getElementById('editQuantidade').value = m.quantidade ?? 0;
       document.getElementById('editarModal').classList.remove('hidden');
     }
     function fecharModalEditar(){ document.getElementById('editarModal').classList.add('hidden'); document.getElementById('editarForm').reset(); }
 
-    // salvar edição (sem estoque/min)
+    // salvar edição
     document.getElementById('editarForm').addEventListener('submit', async function(e){
       e.preventDefault();
       const originalNome = document.getElementById('originalNome').value;
       const newNome = document.getElementById('editNome').value.trim();
       const novaCategoria = document.getElementById('editCategoria').value;
+      const novaQuantidadeMinima = parseInt(document.getElementById('editQuantidadeMinima').value || '0');
+      const novaQuantidade = parseInt(document.getElementById('editQuantidade').value || '0');
       const arquivo = document.getElementById('editImagem').files[0];
 
       try{
@@ -571,6 +563,8 @@
 
         let updateData = {
           categoria: novaCategoria || base.categoria || '',
+          quantidadeMinima: novaQuantidadeMinima,
+          quantidade: novaQuantidade,
           ultimaModificacao: new Date().toLocaleString('pt-BR')
         };
 
@@ -594,72 +588,39 @@
       }catch(err){ console.error(err); showCustomModal("Erro","Erro ao atualizar material: "+err.message,'alert'); }
     });
 
-    async function limparMarcacoes(){
-      const ok=await showCustomModal("Confirmar","Deseja limpar todas as marcações de compra?",'confirm'); if(!ok) return;
-      const snap=await db.collection('materiais').get();
-      const batch=db.batch();
-      snap.forEach(doc=>batch.update(doc.ref,{comprar:false, comprarEm:null}));
-      await batch.commit();
-      carregarMateriais();
-    }
-
+    async function limparMarcacoes(){ const ok=await showCustomModal("Confirmar","Deseja limpar todas as marcações de compra?",'confirm'); if(!ok) return;
+      const snap=await db.collection('materiais').get(); const batch=db.batch(); snap.forEach(doc=>batch.update(doc.ref,{comprar:false})); await batch.commit(); carregarMateriais(); }
     async function copiarListaCompras(){
       const snap=await db.collection('materiais').where("comprar","==",true).get();
       if (snap.empty){ showCustomModal("Aviso","Nenhum item marcado para compra.",'alert'); return; }
-      let grupos={}; snap.forEach(doc=>{
-        const m=doc.data();
-        const cat=categorias[m.categoria]||"Outros";
-        const qtdTxt = m.ultimaQtdCompra != null ? `Qtd: ${m.ultimaQtdCompra}` : `Qtd: -`;
-        (grupos[cat]=grupos[cat]||[]).push(`${m.nome} (${qtdTxt})`);
-      });
+      let grupos={}; snap.forEach(doc=>{ const m=doc.data(); const cat=categorias[m.categoria]||"Outros"; (grupos[cat]=grupos[cat]||[]).push(`${m.nome} (Qtd: ${m.quantidade})`); });
       const lista = Object.keys(grupos).sort().map(c=>`🔹 ${c.toUpperCase()}\n- ${grupos[c].sort().join("\n- ")}`).join("\n\n");
-      try{ await navigator.clipboard.writeText(lista); showCustomModal("Sucesso","Lista de compras copiada!","alert"); }
-      catch{ showCustomModal("Copiar","Selecione e copie:","copy",lista); }
+      try{ await navigator.clipboard.writeText(lista); showCustomModal("Sucesso","Lista de compras copiada!","alert"); }catch{ showCustomModal("Copiar","Selecione e copie:","copy",lista); }
     }
     async function buscarMateriais(){ termoDeBusca=document.getElementById('searchInput').value.toLowerCase().trim(); isShowingPurchaseList=false; carregarMateriais(); }
-
     async function gerarRelatorio(){
       const snap=await db.collection('materiais').get(); if(snap.empty){ showCustomModal("Aviso","Nenhum material encontrado.","alert"); return; }
-      const dados=[];
-      snap.forEach(doc=>{
-        const m=doc.data();
-        dados.push({
-          Nome:m.nome,
-          Categoria:categorias[m.categoria]||m.categoria,
-          "Última quantidade comprada": m.ultimaQtdCompra ?? '',
-          "Última compra": toBRDate(m.ultimaCompraEm),
-          "Última Loja": m.ultimaCompraLoja || '',
-          "Última NF": m.ultimaCompraNF || '',
-          "Validade mais próxima": m.validadeUltimaCompra?toBRDate(m.validadeUltimaCompra):'N/A',
-          "Preço de compra (R$)": m.precoCompra!=null ? Number(m.precoCompra) : ''
-        });
-      });
-      const ws=XLSX.utils.json_to_sheet(dados);
-      const wb=XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb,ws,"Itens");
-      XLSX.writeFile(wb,"Relatorio_Compras_Odontologico.xlsx");
+      const dados=[]; snap.forEach(doc=>{const m=doc.data(); dados.push({
+        Nome:m.nome, Categoria:categorias[m.categoria]||m.categoria, Quantidade:m.quantidade,
+        "Quantidade Mínima":m.quantidadeMinima, "Última compra": toBRDate(m.ultimaCompraEm),
+        "Validade mais próxima": m.validadeUltimaCompra?toBRDate(m.validadeUltimaCompra):'N/A',
+        "Preço de compra (R$)": m.precoCompra!=null ? Number(m.precoCompra) : ''
+      });});
+      const ws=XLSX.utils.json_to_sheet(dados); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Estoque"); XLSX.writeFile(wb,"Relatorio_Estoque_Odontologico.xlsx");
     }
     function logout(){ auth.signOut().catch(e=>showCustomModal("Erro",'Falha ao desconectar: '+e.message,'alert')); }
 
-    // Cadastro de material
     document.getElementById('materialForm').addEventListener('submit', async function(e){
       e.preventDefault();
       const nome=document.getElementById('nome').value.trim();
+      const quantidade=parseInt(document.getElementById('quantidade').value);
+      const quantidadeMinima=parseInt(document.getElementById('quantidadeMinima').value);
       const categoria=document.getElementById('categoria').value;
       const arquivo=document.getElementById('imagem').files[0];
       if((await db.collection('materiais').doc(nome).get()).exists){ showCustomModal("Erro",`Já existe "${nome}".`,'alert'); return; }
-      const material={
-        nome, categoria, imagem:null,
-        ultimaModificacao:new Date().toLocaleString('pt-BR'),
-        comprar:false, comprarEm:null,
-        // agregados
-        ultimaCompraEm:null,
-        validadeUltimaCompra:null,
-        precoCompra:null,
-        ultimaQtdCompra:null,
-        ultimaCompraLoja:null,
-        ultimaCompraNF:null
-      };
+      const material={ nome, quantidade, quantidadeMinima, categoria, imagem:null,
+        ultimaModificacao:new Date().toLocaleString('pt-BR'), comprar:false,
+        ultimaCompraEm:null, validadeUltimaCompra:null, precoCompra:null };
       if(arquivo){
         const dataURL=await converterParaDataURL(arquivo);
         const tamanhoBytes=(dataURL.length*3)/4-2; if(tamanhoBytes>500000){ showCustomModal('Aviso','Imagem > 500 KB.','alert'); return; }
@@ -674,23 +635,17 @@
     }
     async function toggleComprar(nome){
       const ref=db.collection('materiais').doc(nome); const snap=await ref.get(); if(!snap.exists) return;
-      const cur=!!snap.data().comprar;
-      if (!cur){
-        await ref.update({comprar:true, comprarEm:new Date().toISOString()});
-      } else {
-        await ref.update({comprar:false, comprarEm:null});
-      }
-      await carregarMateriais();
+      const cur=!!snap.data().comprar; await ref.update({comprar:!cur}); await carregarMateriais();
     }
 
     // ---------- IMPORTAÇÃO COM ASSISTENTE (NF-e e PLANILHA) ----------
-    let importQueue = [];
-    let importOrigin = null; // 'nfe' | 'manual'
+    let importQueue = [];        // itens pendentes para conferir (tanto NF-e quanto planilha)
+    let importOrigin = null;     // 'nfe' | 'manual'
     let importStep = 0;
     let materiaisIndex = [];
-    let metaDataEmissao = null;  // data da compra corrente
-    let metaLoja = null;         // loja corrente
-    let metaNumeroNF = null;
+    let metaDataEmissao = null;  // data da compra corrente (p/ item em foco)
+    let metaLoja = null;         // loja corrente (p/ item em foco)
+    let metaNumeroNF = null;     // NF corrente (p/ item em foco)
 
     // Elementos do modal de equivalência
     const nfeMatchModal = document.getElementById('nfeMatchModal');
@@ -721,7 +676,7 @@
     nfeBtnPular.addEventListener('click',()=>avancarItem());
     nfeBtnAvancar.addEventListener('click',()=>avancarItem());
 
-    // “É o mesmo”
+    // “É o mesmo”: vincula ao item do estoque escolhido
     nfeBtnMesmo.addEventListener('click', async ()=>{
       const item=importQueue[importStep];
       const selected=nfeCandidateSelect.value;
@@ -735,7 +690,7 @@
       avancarItem(true);
     });
 
-    // “Criar novo”
+    // “Criar novo”: só cria se você mandar
     nfeBtnCriar.addEventListener('click', async ()=>{
       const item=importQueue[importStep];
       const nomeNovo=(nfeNewName.value||'').trim();
@@ -747,11 +702,9 @@
       const ex=await docRef.get();
       if(!ex.exists){
         await docRef.set({
-          nome:nomeNovo, categoria:categoriaNova, imagem:null,
-          ultimaModificacao:new Date().toLocaleString('pt-BR'),
-          comprar:false, comprarEm:null,
-          ultimaCompraEm:null, validadeUltimaCompra:null, precoCompra:null,
-          ultimaQtdCompra:null, ultimaCompraLoja:null, ultimaCompraNF:null
+          nome:nomeNovo, categoria:categoriaNova, quantidade:0, quantidadeMinima:0, imagem:null,
+          ultimaModificacao:new Date().toLocaleString('pt-BR'), comprar:false,
+          ultimaCompraEm:null, validadeUltimaCompra:null, precoCompra:null
         });
       }
       metaDataEmissao = item.dataCompra || item.emissao || new Date().toISOString();
@@ -781,8 +734,7 @@
 
     async function carregarMateriaisIndex(){
       const s=await db.collection('materiais').get();
-      materiaisIndex=[];
-      s.forEach(doc=>{
+      materiaisIndex=[]; s.forEach(doc=>{
         const d=doc.data();
         materiaisIndex.push({id:doc.id,nome:d.nome||doc.id,categoria:d.categoria||''});
       });
@@ -803,6 +755,39 @@
       nfeNewName.value=''; nfeNewCategory.value='';
     }
 
+    function stripAccents(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+    function norm(s){ return stripAccents(String(s||'').toLowerCase()).replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim(); }
+    function similarity(a,b){ a=norm(a); b=norm(b); if(!a||!b) return 0;
+      const ta=new Set(a.split(' ')), tb=new Set(b.split(' '));
+      const inter=[...ta].filter(x=>tb.has(x)).length; const uni=new Set([...ta,...tb]).size;
+      let score=inter/(uni||1); if(a.includes(b)||b.includes(a)) score+=0.15; return Math.min(1,Math.max(0,score));
+    }
+    function sugerirMateriais(nomeNota,base,topN=5){
+      const s=base.map(m=>({...m,score:similarity(nomeNota,m.nome)}));
+      s.sort((x,y)=>y.score-x.score); return s.slice(0,topN);
+    }
+
+    // NF-e XML -> coloca itens na fila SEM gravar
+    async function onPickXmlFile(evt){
+      const file=evt.target.files && evt.target.files[0]; if(!file) return;
+      try{
+        await carregarMateriaisIndex();
+        const xmlStr=await file.text();
+        const meta = extrairMetaNfe(xmlStr);
+        importQueue = extrairItensDaNfe(xmlStr).map(it => ({
+          ...it,
+          emissao: meta.emissao,
+          loja: meta.loja || it.loja || null,
+          nf: meta.numero || it.nf || null
+        }));
+        if(!importQueue.length){ showCustomModal("Aviso","Não encontrei itens na NF-e.","alert"); return; }
+        importOrigin='nfe'; importStep=0;
+        abrirModalMatching(); renderMatchStep();
+      }catch(e){ console.error(e); showCustomModal("Erro","Falha ao processar a NF-e: "+e.message,"alert"); }
+      finally{ inputXmlNfe.value=''; }
+    }
+
+    // Metadados da NF-e (emissor/ide)
     function extrairMetaNfe(xmlStr){
       const parser=new DOMParser(); const xml=parser.parseFromString(xmlStr,"text/xml");
       const ns="http://www.portalfiscal.inf.br/nfe";
@@ -814,6 +799,7 @@
       return { emissao: dh, numero: nNF, loja };
     }
 
+    // Itens da NF-e
     function extrairItensDaNfe(xmlStr){
       const parser=new DOMParser(); const xml=parser.parseFromString(xmlStr,"text/xml");
       const ns="http://www.portalfiscal.inf.br/nfe"; const dets=xml.getElementsByTagNameNS(ns,'det'); const itens=[];
@@ -830,25 +816,25 @@
       return itens;
     }
 
-    // Registrar compra (grava compra e agregados; não mexe em estoque)
+    // Entrada em material existente (usa metadados do item em foco)
     async function registrarEntradaEmMaterialExistente(docId,item,origem){
       const ref=db.collection('materiais').doc(docId);
       const snap=await ref.get();
       if(!snap.exists) throw new Error(`Documento "${docId}" não encontrado.`);
 
       const atual=snap.data()||{};
+      const novaQtd=(atual.quantidade||0)+(item.qtd||0);
+
       const agoraISO=new Date().toISOString();
       const dataCompraISO = metaDataEmissao || item.dataCompra || new Date().toISOString();
 
       const updateBase = {
+        quantidade:novaQtd,
         ultimaModificacao:new Date().toLocaleString('pt-BR'),
       };
       if (!atual.ultimaCompraEm || new Date(dataCompraISO) >= new Date(atual.ultimaCompraEm)) {
         updateBase.ultimaCompraEm = dataCompraISO;
-        updateBase.precoCompra = (item.preco != null) ? Number(item.preco) : atual.precoCompra ?? null;
-        updateBase.ultimaQtdCompra = (item.qtd != null) ? Number(item.qtd) : (atual.ultimaQtdCompra ?? null);
-        updateBase.ultimaCompraLoja = metaLoja || item.loja || null;
-        updateBase.ultimaCompraNF = metaNumeroNF || item.nf || null;
+        if (item.preco != null) updateBase.precoCompra = Number(item.preco);
       }
       if (item.validade && isFuture(item.validade)) {
         if (!atual.validadeUltimaCompra || new Date(item.validade) < new Date(atual.validadeUltimaCompra)) {
@@ -857,7 +843,15 @@
       }
       await ref.set({ ...atual, ...updateBase }, { merge:true });
 
-      // histórico de compras
+      await ref.collection('movimentacoes').add({
+        tipo:'entrada', origem: origem || 'manual', data: agoraISO,
+        nfeEmissao: dataCompraISO,
+        nfeItemNome:item.nome, qtd:item.qtd||0, precoUnit:item.preco||0,
+        lote:item.lote||null, validade:item.validade||null, ean:item.ean||null, codProdNfe:item.cod||null,
+        loja: metaLoja || item.loja || null,
+        numeroNF: metaNumeroNF || item.nf || null
+      });
+
       await ref.collection('compras').add({
         origem: origem || 'manual',
         dataCompra: dataCompraISO,
@@ -916,6 +910,7 @@
       if (isNaN(item.preco) || item.preco < 0){ showCustomModal('Aviso','Informe um preço válido.','alert'); return; }
 
       try{
+        // usa o mesmo pipeline (metadados)
         metaDataEmissao = dataCompraISO; metaLoja = item.loja; metaNumeroNF = item.nf;
         await registrarEntradaEmMaterialExistente(nome, item, 'manual');
 
@@ -1008,13 +1003,12 @@
       editarCompraModal.classList.remove('hidden');
     };
 
-    // Atualiza compra
     editarCompraForm.addEventListener('submit', async (e)=>{
       e.preventDefault();
       const id = historicoContext.editId; if(!id) return;
       const ref = db.collection('materiais').doc(historicoContext.nome).collection('compras').doc(id);
       const snap = await ref.get(); if(!snap.exists) return;
-
+      const old = snap.data();
       const novo = {
         dataCompra: new Date(editCompraData.value).toISOString(),
         qtd: parseFloat(editCompraQtd.value||'0'),
@@ -1028,7 +1022,17 @@
       if (isNaN(novo.qtd) || novo.qtd <= 0) { showCustomModal('Aviso','Quantidade inválida.','alert'); return; }
       if (isNaN(novo.precoUnit) || novo.precoUnit < 0) { showCustomModal('Aviso','Preço inválido.','alert'); return; }
 
-      await ref.update(novo);
+      const diff = (novo.qtd - (old.qtd||0));
+      const matRef = db.collection('materiais').doc(historicoContext.nome);
+      await db.runTransaction(async (tx)=>{
+        const matSnap = await tx.get(matRef);
+        if(!matSnap.exists) throw new Error('Material não encontrado');
+        const cur = matSnap.data();
+        const novaQtd = (cur.quantidade||0) + diff;
+        if (novaQtd < 0) throw new Error('Estoque não pode ficar negativo.');
+        tx.update(matRef, { quantidade: novaQtd, ultimaModificacao: new Date().toLocaleString('pt-BR') });
+        tx.update(ref, novo);
+      });
 
       editarCompraModal.classList.add('hidden');
       await recomputarAgregados(historicoContext.nome);
@@ -1037,12 +1041,23 @@
       showCustomModal('Sucesso','Compra atualizada.','alert');
     });
 
-    // Excluir compra
     window._excluirCompra = async (id)=>{
       const ok = await showCustomModal('Confirmar','Excluir este registro?','confirm');
       if(!ok) return;
       const ref = db.collection('materiais').doc(historicoContext.nome).collection('compras').doc(id);
-      await ref.delete();
+      const snap = await ref.get(); if(!snap.exists) return;
+      const row = snap.data();
+
+      const matRef = db.collection('materiais').doc(historicoContext.nome);
+      await db.runTransaction(async (tx)=>{
+        const mSnap = await tx.get(matRef);
+        if(!mSnap.exists) throw new Error('Material não encontrado');
+        const cur = mSnap.data();
+        const nova = (cur.quantidade||0) - (row.qtd||0);
+        if (nova < 0) throw new Error('Estoque não pode ficar negativo.');
+        tx.update(matRef, { quantidade: nova, ultimaModificacao: new Date().toLocaleString('pt-BR') });
+        tx.delete(ref);
+      });
 
       await recomputarAgregados(historicoContext.nome);
       await abrirHistoricoCompras(historicoContext.nome);
@@ -1050,20 +1065,15 @@
       showCustomModal('Sucesso','Registro excluído.','alert');
     };
 
-    // Recalcula agregados do material a partir do histórico
     async function recomputarAgregados(nome){
       const matRef = db.collection('materiais').doc(nome);
       const compSnap = await matRef.collection('compras').get();
-      let ultimaCompraEm=null, precoCompra=null, menorValidade=null, ultimaQtdCompra=null, ultimaCompraLoja=null, ultimaCompraNF=null;
+      let ultimaCompraEm=null, precoCompra=null, menorValidade=null;
 
       compSnap.forEach(d=>{
         const c=d.data();
         if(c.dataCompra && (!ultimaCompraEm || new Date(c.dataCompra)>new Date(ultimaCompraEm))){
-          ultimaCompraEm=c.dataCompra;
-          precoCompra=(c.precoUnit!=null? c.precoUnit : precoCompra);
-          ultimaQtdCompra=(c.qtd!=null? c.qtd : ultimaQtdCompra);
-          ultimaCompraLoja = c.loja || null;
-          ultimaCompraNF   = c.numeroNF || null;
+          ultimaCompraEm=c.dataCompra; precoCompra=c.precoUnit!=null? c.precoUnit : precoCompra;
         }
         if(c.validade && isFuture(c.validade)){
           if(!menorValidade || new Date(c.validade) < new Date(menorValidade)) menorValidade = c.validade;
@@ -1072,11 +1082,8 @@
 
       await matRef.set({
         ultimaCompraEm: ultimaCompraEm || null,
-        precoCompra: (precoCompra!=null ? Number(precoCompra) : null),
-        validadeUltimaCompra: menorValidade || null,
-        ultimaQtdCompra: (ultimaQtdCompra!=null ? Number(ultimaQtdCompra) : null),
-        ultimaCompraLoja: ultimaCompraLoja || null,
-        ultimaCompraNF: ultimaCompraNF || null
+        precoCompra: precoCompra!=null ? Number(precoCompra) : null,
+        validadeUltimaCompra: menorValidade || null
       }, { merge:true });
     }
 
