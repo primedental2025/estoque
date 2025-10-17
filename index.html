@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Controle de Materiais - Últimas Compras</title>
+  <title>Controle de Estoque - Consultório Odontológico</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -30,8 +30,7 @@
     ::-webkit-scrollbar-thumb{background:#888;border-radius:10px}::-webkit-scrollbar-thumb:hover{background:#555}
   </style>
 </head>
-<body class="font-sans bg-background-light min-h-screen flex flex-col items-center 
-p-4">
+<body class="font-sans bg-background-light min-h-screen flex flex-col items-center p-4">
 
   <div id="customModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
     <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
@@ -42,7 +41,7 @@ p-4">
   </div>
 
   <div id="loginContainer" class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md hidden">
-    <h2 class="text-3xl font-bold text-center text-primary-dark mb-6">Login - Controle de Materiais</h2>
+    <h2 class="text-3xl font-bold text-center text-primary-dark mb-6">Login - Controle de Estoque</h2>
     <form id="loginForm" class="space-y-4">
       <input type="email" id="email" placeholder="E-mail" required
              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
@@ -136,6 +135,11 @@ type="file" accept=".xlsx,.xls,.csv" class="hidden">
         <form id="materialForm" class="space-y-4">
           <input type="text" id="nome" placeholder="Nome do material" required
                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+          <input type="number" id="quantidade" placeholder="Quantidade inicial" min="0" 
+required
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+          <input type="number" id="quantidadeMinima" placeholder="Quantidade mínima" min="0" required
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
           <select id="categoria" required
                   class="w-full px-4 py-2 border border-gray-300 rounded-lg 
 focus:ring-primary-dark focus:border-primary-dark">
@@ -154,7 +158,7 @@ focus:ring-primary-dark focus:border-primary-dark">
             <option value="implantodontia">Implantodontia</option>
           </select>
           <input type="file" id="imagem" accept="image/*"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-primary-dark hover:file:bg-blue-100">
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-primary-dark hover:file:bg-blue-100">
           <button type="submit"
                   class="w-full bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-primary-dark transition">
             Cadastrar
@@ -173,6 +177,8 @@ focus:ring-primary-dark focus:border-primary-dark">
           <input type="text" id="editNome" placeholder="Nome do material" required
                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
           <input type="hidden" id="originalNome">
+          <input type="number" id="editQuantidade" placeholder="Quantidade" min="0"
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
           <select id="editCategoria"
                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
             <option value="">Selecione uma categoria</option>
@@ -189,6 +195,8 @@ focus:ring-primary-dark focus:border-primary-dark">
             <option value="protese">Prótese</option>
             <option value="implantodontia">Implantodontia</option>
           </select>
+          <input type="number" id="editQuantidadeMinima" placeholder="Quantidade mínima" min="0"
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
           <input type="file" id="editImagem" accept="image/*"
                  class="w-full px-4 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-primary-dark hover:file:bg-blue-100">
           <button type="submit"
@@ -269,7 +277,7 @@ justify-between items-center mb-4">
           <input type="text" id="compraNome" readonly class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100">
           <input type="date" id="compraData" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
           <input type="number" step="any" 
-min="0" id="compraQtd" placeholder="Quantidade comprada" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+min="0" id="compraQtd" placeholder="Quantidade" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
           <input type="number" step="0.01" min="0" id="compraPreco" placeholder="Preço unitário (R$)" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
           <input type="text" id="compraLote" placeholder="Lote (opcional)" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
           <input type="date" id="compraValidade" placeholder="Validade (opcional)" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
@@ -385,395 +393,1106 @@ let materiaisFiltrados = [];
           modalMessage.textContent = message;
           const yes=document.createElement('button'); yes.textContent='Sim';
           yes.className='bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition';
-          yes.onclick=()=>{ modal.classList.add('hidden'); resolve(true); }; modalActions.appendChild(yes);
+yes.onclick=()=>{ modal.classList.add('hidden'); resolve(true); }; modalActions.appendChild(yes);
           const no=document.createElement('button'); no.textContent='Não';
           no.className='bg-danger-red text-white py-2 px-4 rounded-lg hover:bg-red-700 transition';
           no.onclick=()=>{ modal.classList.add('hidden'); resolve(false); }; modalActions.appendChild(no);
-        } else if (type==='copy') {
+} else if (type==='copy') {
           modalMessage.textContent = message;
           const ta=document.createElement('textarea'); ta.value=copyText;
-          ta.readOnly=true;
+ta.readOnly=true;
           ta.className='w-full h-32 p-2 border border-gray-300 rounded-lg resize-none mb-4 font-mono text-sm';
           modalMessage.appendChild(ta);
           const close=document.createElement('button'); close.textContent='Fechar';
-          close.className='bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition';
+close.className='bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition';
           close.onclick=()=>{ modal.classList.add('hidden'); resolve(false); }; modalActions.appendChild(close);
           ta.focus(); ta.select(); ta.setSelectionRange(0, ta.value.length);
-        }
+}
         modal.classList.remove('hidden');
       });
-    }
+}
     function converterParaDataURL(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=e=>rej(e);r.readAsDataURL(file);});}
     const fmtMoeda = (v)=> (v==null?'-':Number(v).toFixed(2).replace('.',','));
-    function toBRDate(dStr){
-      if(!dStr) return 'N/A';
+function toBRDate(dStr){
+      if(!dStr) return '-'; // MODIFICADO: 'N/A' para '-'
       const d = new Date(dStr);
       if(!isNaN(d)) return d.toLocaleDateString('pt-BR');
       const p=dStr.split('T')[0];
-      if(p && p.includes('-')){ const [y,m,da]=p.split('-'); return `${da}/${m}/${y}`;}
+if(p && p.includes('-')){ const [y,m,da]=p.split('-'); return `${da}/${m}/${y}`;}
       return dStr;
-    }
+}
     function toISODateInput(dStr){ if(!dStr) return ''; const d=new Date(dStr); if(!isNaN(d)) return d.toISOString().slice(0,10); const p=dStr.split('T')[0]; return p||'';
-    }
+}
     const isFuture = (iso)=> iso && new Date(iso).getTime() >= (new Date().setHours(0,0,0,0));
 // carregar/render
     async function carregarMateriais(){
       try{
         const snap = await db.collection('materiais').get();
-        let todos=[]; snap.forEach(doc=>todos.push(doc.data()));
+let todos=[]; snap.forEach(doc=>todos.push(doc.data()));
         if(isShowingPurchaseList){
           materiaisFiltrados = todos.filter(m=>m.comprar===true);
           document.getElementById('searchInput').value=''; termoDeBusca=''; categoriaSelecionada='todos';
-        } else {
+} else {
           materiaisFiltrados = todos.filter(m => (m.nome||'').toLowerCase().includes(termoDeBusca.toLowerCase()));
-          if(categoriaSelecionada!=='todos'){ materiaisFiltrados = materiaisFiltrados.filter(m=>m.categoria===categoriaSelecionada); }
+if(categoriaSelecionada!=='todos'){ materiaisFiltrados = materiaisFiltrados.filter(m=>m.categoria===categoriaSelecionada); }
         }
         atualizarLista(materiaisFiltrados);
-        renderizarCategorias(todos);
+renderizarCategorias(todos);
         togglePurchaseListActionsVisibility();
       }catch(e){ console.error(e); showCustomModal('Erro','Erro ao carregar materiais: '+e.message,'alert');}
     }
     async function salvarMaterial(material){ await db.collection('materiais').doc(material.nome).set(material);
-    }
+}
     function renderizarCategorias(all){
       const box=document.getElementById('categorySidebar'); box.innerHTML='';
       const set=new Set(); all.forEach(m=>set.add(m.categoria));
       const bAll=document.createElement('button');
-      bAll.textContent='Todos';
+bAll.textContent='Todos';
       bAll.className=`w-full text-left py-2 px-4 rounded-lg ${categoriaSelecionada==='todos'&&!isShowingPurchaseList ? 'bg-primary-dark text-white':'bg-gray-200 text-text-dark hover:bg-gray-300'}`;
       bAll.onclick=()=>{categoriaSelecionada='todos'; isShowingPurchaseList=false; carregarMateriais();}; box.appendChild(bAll);
-      Array.from(set).sort().forEach(cat=>{
+Array.from(set).sort().forEach(cat=>{
         const b=document.createElement('button'); b.textContent=categorias[cat]||cat;
         b.className=`w-full text-left py-2 px-4 rounded-lg ${categoriaSelecionada===cat&&!isShowingPurchaseList ? 'bg-primary-dark text-white':'bg-gray-200 text-text-dark hover:bg-gray-300'}`;
         b.onclick=()=>{categoriaSelecionada=cat; isShowingPurchaseList=false; carregarMateriais();}; box.appendChild(b);
       });
-    }
+}
     function togglePurchaseListActionsVisibility(){
       const c=document.getElementById('purchaseListActionsContainer'); if(isShowingPurchaseList) c.classList.remove('hidden'); else c.classList.add('hidden');
-    }
+}
 
-    // LISTA
+    // LISTA (sem + / -)
     function atualizarLista(mats){
       const lista=document.getElementById('materialList');
-      lista.innerHTML='';
+lista.innerHTML='';
       if(!mats.length){ lista.innerHTML='<p class="text-center text-gray-600 col-span-full">Nenhum material encontrado.</p>'; return; }
       mats.sort((a,b)=>a.nome.localeCompare(b.nome)).forEach(m=>{
         const card=document.createElement('div');
-        // Ponto 1: Removida a condição de estoque mínimo
-        card.className=`material-item bg-white rounded-lg shadow-md flex flex-col transition hover:shadow-lg`;
+        card.className=`material-item bg-white rounded-lg shadow-md flex flex-col transition hover:shadow-lg ${m.quantidade < m.quantidadeMinima ? 'border-2 border-danger-red':''}`;
 
         const imgBox=document.createElement('div'); imgBox.className='w-full h-48 bg-white flex items-center justify-center';
         const img=document.createElement('img');
         img.src=m.imagem || 'https://placehold.co/300x300/BFBFBF/585856?text=Sem+Imagem';
         img.alt=`Imagem de ${m.nome}`; img.className= m.imagem ? 'w-full h-full object-contain' : 'w-24 h-24 object-contain';
- 
         img.onerror=()=>{ img.src='https://placehold.co/300x300/BFBFBF/585856?text=Sem+Imagem'; img.className='w-24 h-24 object-contain'; };
         imgBox.appendChild(img); card.appendChild(imgBox);
 
         const info=document.createElement('div'); info.className='p-4 flex-grow';
-        
-        // Ponto 4: Melhoria da diagramação (Nome > Categoria > Outros)
         info.innerHTML = `
-          <h3 class="text-xl font-bold text-primary-dark mb-1">${m.nome}</h3> 
-
-          <p class="text-sm font-semibold text-gray-700 mb-3">Categoria: ${categorias[m.categoria] || m.categoria || '-'}</p>
-
-          ${m.comprar && m.dataAdicaoLista ? `<p class="text-sm font-medium text-green-600 mb-3">Na Lista de Compras desde: ${toBRDate(m.dataAdicaoLista)}</p>` : ''}
-          
-          <div class="text-sm text-gray-600 space-y-1">
-            <p><span class="font-semibold text-text-dark">Última Qtd. Comprada:</span> <span class="font-medium">${m.ultimaQtdComprada ?? 0}</span></p>
-
-            <p><span class="font-semibold text-text-dark">Preço unit. (Últ. Compra):</span> R$ ${m.precoCompra!=null ? fmtMoeda(m.precoCompra) : '-'}</p>
-            <p><span class="font-semibold text-text-dark">Data Última Compra:</span> ${toBRDate(m.ultimaCompraEm)}</p>
-            <p><span class="font-semibold text-text-dark">Validade (Últ. Compra):</span> ${m.validadeUltimaCompra ? toBRDate(m.validadeUltimaCompra) : 'N/A'}</p>
-            <p><span class="font-semibold text-text-dark">Loja (Últ. Compra):</span> ${m.ultimaLoja || 'N/A'}</p>
-            <p><span class="font-semibold text-text-dark">NF (Últ. Compra):</span> ${m.ultimaNF || 'N/A'}</p>
+          <h3 class="text-lg font-semibold text-text-dark mb-1">${m.nome}</h3>
+          <p class="text-sm text-gray-700">Categoria: ${categorias[m.categoria] ||
+m.categoria || '-'}</p>
+          <p class="text-sm text-gray-700">Quantidade: <span class="font-semibold">${m.quantidade ?? 0}</span></p>
+          <div class="text-xs text-gray-500 mt-2 space-y-1">
+            <p>Última compra: ${toBRDate(m.ultimaCompraEm)}</p>
+            <p>Validade mais próxima: ${m.validadeUltimaCompra ?
+toBRDate(m.validadeUltimaCompra) : '-'}</p>
+            <p>Preço de compra: R$ ${m.precoCompra!=null ?
+fmtMoeda(m.precoCompra) : '-'}</p>
           </div>
         `;
-        card.appendChild(info);
+card.appendChild(info);
 
         const controls=document.createElement('div'); controls.className='p-4 bg-gray-50 border-t border-gray-100 flex flex-col space-y-3';
         const btnComprar=document.createElement('button');
         btnComprar.textContent = m.comprar ?
-        'Na Lista de Compras' : 'Adicionar à Lista';
+'Na Lista de Compras' : 'Adicionar à Lista';
         btnComprar.className = `w-full py-2 px-4 rounded-lg font-semibold transition transform hover:scale-105 ${m.comprar ?
-        'bg-green-600 text-white hover:bg-green-700' : 'bg-primary-dark text-white hover:bg-opacity-90'}`;
+'bg-green-600 text-white hover:bg-green-700' : 'bg-primary-dark text-white hover:bg-opacity-90'}`;
         btnComprar.onclick=()=>toggleComprar(m.nome); controls.appendChild(btnComprar);
 
         const options=document.createElement('div'); options.className='relative inline-block text-left w-full';
         const dd=document.createElement('div');
-        dd.className='dropdown-content absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-50';
+dd.className='dropdown-content absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-50';
         dd.onclick=(e)=>e.stopPropagation();
 
         const btnOptions=document.createElement('button');
-        btnOptions.innerHTML=`<svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg> Opções`;
-        btnOptions.className='w-full bg-gray-200 text-text-dark py-2 px-3 rounded-lg text-sm hover:bg-gray-300 transition transform hover:scale-105 mt-2'; btnOptions.onclick=(e)=>{ e.stopPropagation();
-        document.querySelectorAll('.dropdown-content').forEach(d=>{ if(d!==dd && !d.classList.contains('hidden')) d.classList.add('hidden'); }); dd.classList.toggle('hidden'); }; const bEdit=document.createElement('button'); bEdit.textContent='Editar'; bEdit.className='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100';
-        bEdit.onclick=()=>{ abrirModalEditar(m.nome); dd.classList.add('hidden'); }; const bReg=document.createElement('button'); bReg.textContent='Registrar compra'; bReg.className='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'; bReg.onclick=()=>{ abrirModalCompra(m.nome); dd.classList.add('hidden'); };
-        const bHist=document.createElement('button'); bHist.textContent='Histórico de compras'; bHist.className='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'; bHist.onclick=()=>{ abrirHistoricoCompras(m.nome); dd.classList.add('hidden'); }; const bDel=document.createElement('button'); bDel.textContent='Excluir';
-        bDel.className='block w-full text-left px-4 py-2 text-sm text-danger-red hover:bg-red-100'; bDel.onclick=()=>{ confirmarExclusao(m.nome); dd.classList.add('hidden'); }; dd.appendChild(bEdit); dd.appendChild(bReg); dd.appendChild(bHist); dd.appendChild(bDel); options.appendChild(btnOptions); options.appendChild(dd); controls.appendChild(options); card.appendChild(controls);
-        lista.appendChild(card); 
-      }); 
-    }
-    // modais básicos 
-    function abrirModal(){ document.getElementById('cadastroModal').classList.remove('hidden'); } 
-    function fecharModal(){ document.getElementById('cadastroModal').classList.add('hidden'); document.getElementById('materialForm').reset();
-    } 
-    // Ponto 1: Alteração na função abrirModalEditar
-    function abrirModalEditar(nome){ 
-      const m = materiaisFiltrados.find(x=>x.nome===nome); 
-      if(!m){ showCustomModal("Erro","Material não encontrado para edição.",'alert'); return; } 
-      document.getElementById('editNome').value = m.nome;
-      document.getElementById('originalNome').value = m.nome; 
-      document.getElementById('editCategoria').value = m.categoria || ''; 
-      // Campos Quantidade e Quantidade Mínima removidos
-      document.getElementById('editarModal').classList.remove('hidden');
-    } 
-    function fecharModalEditar(){ document.getElementById('editarModal').classList.add('hidden'); document.getElementById('editarForm').reset(); } 
-    
-    // Ponto 1: Alteração no listener do formulário de edição
-    document.getElementById('editarForm').addEventListener('submit', async function(e){ 
-      e.preventDefault(); 
-      const originalNome = document.getElementById('originalNome').value; 
-      const newNome = document.getElementById('editNome').value.trim(); 
-      const novaCategoria = document.getElementById('editCategoria').value; 
-      // Campos de quantidade removidos
-      const arquivo = document.getElementById('editImagem').files[0]; 
-      try{ 
-        const refOld = db.collection('materiais').doc(originalNome); 
-        const snap = await refOld.get(); 
-        if(!snap.exists){ showCustomModal("Erro","Material original não encontrado.",'alert'); return; } 
-        const base = snap.data(); 
-        let updateData = { 
-          categoria: novaCategoria || base.categoria || '', 
-          // quantidade e quantidadeMinima removidos
-          ultimaModificacao: new Date().toLocaleString('pt-BR') 
-        }; 
-        if (arquivo) { 
-          const dataURL = await converterParaDataURL(arquivo);
-          const tamanhoBytes = (dataURL.length * 3) / 4 - 2;
-          if (tamanhoBytes > 500000) { showCustomModal('Aviso','A imagem é muito grande! (< 500 KB)','alert'); return; } 
-          updateData.imagem = dataURL;
-        } 
-        if (newNome !== originalNome){ 
-          const refNew = db.collection('materiais').doc(newNome); 
-          if((await refNew.get()).exists){ showCustomModal("Erro",`Já existe "${newNome}".`,'alert'); return;
-          } 
-          await refNew.set({ ...base, ...updateData, nome:newNome }); 
-          await refOld.delete();
-          showCustomModal('Sucesso', `"${originalNome}" renomeado para "${newNome}" e salvo!`, 'alert');
-        } else {
-          await refOld.update(updateData);
-          showCustomModal('Sucesso', `"${originalNome}" salvo!`, 'alert');
-        }
-        fecharModalEditar();
-        carregarMateriais();
-      }catch(e){ console.error(e); showCustomModal("Erro",'Erro ao salvar alterações: '+e.message,'alert'); }
-    });
-
-    // Ponto 2: Alteração na função toggleComprar
-    async function toggleComprar(nome) {
-      try {
-        const materialRef = db.collection('materiais').doc(nome);
-        const snap = await materialRef.get();
-        if (!snap.exists) return;
-        const m = snap.data();
-        
-        const isComprar = !m.comprar;
-        const updateData = {
-          comprar: isComprar,
-          // Ponto 2: Registrar a data de quando um item foi marcado na Lista de Compras
-          dataAdicaoLista: isComprar ? new Date().toISOString().slice(0, 10) : firebase.firestore.FieldValue.delete(),
-          // Ponto 1: Remover campos obsoletos
-          quantidade: firebase.firestore.FieldValue.delete(), 
-          quantidadeMinima: firebase.firestore.FieldValue.delete() 
+btnOptions.innerHTML=`<svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg> Opções`;
+btnOptions.className='w-full bg-gray-200 text-text-dark py-2 px-3 rounded-lg text-sm hover:bg-gray-300 transition transform hover:scale-105 mt-2';
+        btnOptions.onclick=(e)=>{ e.stopPropagation();
+          document.querySelectorAll('.dropdown-content').forEach(d=>{ if(d!==dd && !d.classList.contains('hidden')) d.classList.add('hidden'); });
+          dd.classList.toggle('hidden');
         };
         
-        await materialRef.update(updateData);
-        await carregarMateriais();
-      } catch (e) {
-        console.error("Erro ao alternar Lista de Compras:", e);
-        showCustomModal('Erro', 'Erro ao alternar item na lista: ' + e.message, 'alert');
-      }
-    }
+        const bEdit=document.createElement('button'); bEdit.textContent='Editar'; bEdit.className='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100';
+        bEdit.onclick=()=>{ abrirModalEditar(m.nome); dd.classList.add('hidden'); };
+        
+        const bReg=document.createElement('button'); bReg.textContent='Registrar compra'; bReg.className='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100';
+        bReg.onclick=()=>{ abrirModalCompra(m.nome); dd.classList.add('hidden'); };
 
-    // Ponto 1/3: Alteração no listener do formulário de cadastro de novo material
-    document.getElementById('materialForm').addEventListener('submit', async function(e) {
+        const bHist=document.createElement('button'); bHist.textContent='Histórico de compras'; bHist.className='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100';
+        bHist.onclick=()=>{ abrirHistoricoCompras(m.nome); dd.classList.add('hidden'); };
+        
+        const bDel=document.createElement('button'); bDel.textContent='Excluir';
+        bDel.className='block w-full text-left px-4 py-2 text-sm text-danger-red hover:bg-red-100';
+        bDel.onclick=()=>{ confirmarExclusao(m.nome); dd.classList.add('hidden'); };
+
+        dd.appendChild(bEdit); dd.appendChild(bReg); dd.appendChild(bHist); dd.appendChild(bDel);
+        options.appendChild(btnOptions); options.appendChild(dd);
+        controls.appendChild(options);
+        card.appendChild(controls);
+lista.appendChild(card); }); }
+
+    // modais básicos
+    function abrirModal(){ document.getElementById('cadastroModal').classList.remove('hidden'); }
+    function fecharModal(){ document.getElementById('cadastroModal').classList.add('hidden'); document.getElementById('materialForm').reset();
+}
+
+    function abrirModalEditar(nome){
+      const m = materiaisFiltrados.find(x=>x.nome===nome);
+      if(!m){ showCustomModal("Erro","Material não encontrado para edição.",'alert'); return; }
+      document.getElementById('editNome').value = m.nome;
+      document.getElementById('originalNome').value = m.nome;
+      document.getElementById('editCategoria').value = m.categoria || '';
+      document.getElementById('editQuantidadeMinima').value = m.quantidadeMinima ?? 0;
+      document.getElementById('editQuantidade').value = m.quantidade ?? 0;
+      document.getElementById('editarModal').classList.remove('hidden');
+}
+    function fecharModalEditar(){ document.getElementById('editarModal').classList.add('hidden'); document.getElementById('editarForm').reset(); }
+
+    // salvar edição
+    document.getElementById('editarForm').addEventListener('submit', async function(e){
+      e.preventDefault();
+      const originalNome = document.getElementById('originalNome').value;
+      const newNome = document.getElementById('editNome').value.trim();
+      const novaCategoria = document.getElementById('editCategoria').value;
+      const novaQuantidadeMinima = parseInt(document.getElementById('editQuantidadeMinima').value || '0');
+      const novaQuantidade = parseInt(document.getElementById('editQuantidade').value || '0');
+      const arquivo = document.getElementById('editImagem').files[0];
+
+      try{
+        const refOld = db.collection('materiais').doc(originalNome);
+        const snap = await refOld.get();
+        if(!snap.exists){ showCustomModal("Erro","Material original não encontrado.",'alert'); return; }
+        const base = snap.data();
+        let updateData = {
+          categoria: novaCategoria || base.categoria || '',
+          quantidadeMinima: novaQuantidadeMinima,
+          quantidade: novaQuantidade,
+          ultimaModificacao: new Date().toLocaleString('pt-BR')
+        };
+        
+        if (arquivo) {
+          const dataURL = await converterParaDataURL(arquivo);
+          const tamanhoBytes = (dataURL.length * 3) / 4 - 2;
+          if (tamanhoBytes > 500000) { showCustomModal('Aviso','A imagem é muito grande! (< 500 KB)','alert'); return; }
+          updateData.imagem = dataURL;
+        }
+
+        if (newNome !== originalNome){
+          const refNew = db.collection('materiais').doc(newNome);
+          if((await refNew.get()).exists){ showCustomModal("Erro",`Já existe "${newNome}".`,'alert'); return;
+          }
+          await refNew.set({ ...base, ...updateData, nome:newNome });
+          await refOld.delete();
+        } else {
+          await refOld.update(updateData);
+        }
+        
+        fecharModalEditar();
+        carregarMateriais();
+      }catch(err){
+        console.error(err);
+        showCustomModal("Erro","Erro ao atualizar material: "+err.message,'alert');
+      }
+    });
+
+    // CRUD
+    document.getElementById('materialForm').addEventListener('submit', async function(e){
       e.preventDefault();
       const nome = document.getElementById('nome').value.trim();
+      const quantidade = parseInt(document.getElementById('quantidade').value);
+      const quantidadeMinima = parseInt(document.getElementById('quantidadeMinima').value);
       const categoria = document.getElementById('categoria').value;
       const arquivo = document.getElementById('imagem').files[0];
+
+      if (!nome || isNaN(quantidade) || isNaN(quantidadeMinima) || !categoria) {
+        showCustomModal('Erro','Preencha todos os campos obrigatórios.','alert');
+        return;
+      }
       
       try {
         const docRef = db.collection('materiais').doc(nome);
-        if((await docRef.get()).exists){ showCustomModal("Erro",`O material "${nome}" já existe.`,'alert'); return; }
-
-        let imagemBase64 = null;
-        if(arquivo) {
-          imagemBase64 = await converterParaDataURL(arquivo);
-          const tamanhoBytes = (imagemBase64.length * 3) / 4 - 2;
+        if((await docRef.get()).exists){ showCustomModal('Erro',`O material "${nome}" já está cadastrado.`,'alert'); return; }
+        
+        let materialData = {
+          nome, quantidade, quantidadeMinima, categoria,
+          comprar: quantidade <= quantidadeMinima,
+          ultimaModificacao: new Date().toLocaleString('pt-BR'),
+          compras: []
+        };
+        
+        if (arquivo) {
+          const dataURL = await converterParaDataURL(arquivo);
+          const tamanhoBytes = (dataURL.length * 3) / 4 - 2;
           if (tamanhoBytes > 500000) { showCustomModal('Aviso','A imagem é muito grande! (< 500 KB)','alert'); return; }
+          materialData.imagem = dataURL;
         }
 
-        const novoMaterial = {
-          nome: nome,
-          categoria: categoria,
-          imagem: imagemBase64,
-          ultimaModificacao: new Date().toLocaleString('pt-BR'),
-          // Ponto 1/3: Adicionando campos para a nova lógica (Última Compra, Qtd, NF, Loja)
-          ultimaQtdComprada: 0, 
-          precoCompra: null,
-          ultimaCompraEm: null,
-          validadeUltimaCompra: null,
-          ultimaLoja: null,
-          ultimaNF: null,
-          historico: [],
-          comprar: false,
-          dataAdicaoLista: null,
-        };
-
-        await docRef.set(novoMaterial);
+        await salvarMaterial(materialData);
         fecharModal();
-        showCustomModal('Sucesso', `${nome} cadastrado com sucesso!`, 'alert');
-        await carregarMateriais();
-
-      } catch(e) {
-        console.error("Erro ao cadastrar material:", e);
-        showCustomModal('Erro', 'Erro ao cadastrar material: ' + e.message, 'alert');
+        carregarMateriais();
+      } catch (err) {
+        console.error(err);
+        showCustomModal('Erro','Erro ao cadastrar material: '+err.message,'alert');
       }
     });
 
+    async function confirmarExclusao(nome){
+      const ok=await showCustomModal("Confirmar exclusão",`Tem certeza que deseja excluir o material "${nome}"?`, 'confirm');
+      if(!ok) return;
+      try{
+        await db.collection('materiais').doc(nome).delete();
+        carregarMateriais();
+      }catch(e){
+        console.error(e);
+        showCustomModal('Erro','Erro ao excluir: '+e.message,'alert');
+      }
+    }
 
-    // Ponto 1/3: Alteração no listener do formulário de registro de compra (Manual)
-    document.getElementById('compraForm').addEventListener('submit', async function(e) {
+    // Compras/Histórico
+
+    function abrirModalCompra(nome){
+      const m = materiaisFiltrados.find(x=>x.nome===nome);
+      if(!m){ showCustomModal("Erro","Material não encontrado.",'alert'); return; }
+      const today = new Date().toISOString().slice(0, 10);
+      document.getElementById('compraNome').value = nome;
+      document.getElementById('compraData').value = today;
+      document.getElementById('compraModal').classList.remove('hidden');
+    }
+
+    function fecharModalCompra(){
+      document.getElementById('compraModal').classList.add('hidden');
+      document.getElementById('compraForm').reset();
+    }
+
+    document.getElementById('compraForm').addEventListener('submit', async function(e){
       e.preventDefault();
       const nome = document.getElementById('compraNome').value;
-      const compraData = document.getElementById('compraData').value;
-      const compraQtd = document.getElementById('compraQtd').value;
-      const compraPreco = document.getElementById('compraPreco').value;
-      const compraLote = document.getElementById('compraLote').value.trim();
-      const compraValidade = document.getElementById('compraValidade').value;
-      const compraLoja = document.getElementById('compraLoja').value.trim(); // Ponto 3
-      const compraNF = document.getElementById('compraNF').value.trim();     // Ponto 3
+      const data = document.getElementById('compraData').value;
+      const qtd = parseFloat(document.getElementById('compraQtd').value);
+      const preco = parseFloat(document.getElementById('compraPreco').value);
+      const lote = document.getElementById('compraLote').value.trim();
+      const validade = document.getElementById('compraValidade').value;
+      const loja = document.getElementById('compraLoja').value.trim();
+      const nf = document.getElementById('compraNF').value.trim();
 
-      try {
-        const materialRef = db.collection('materiais').doc(nome);
-        const compra = {
-          data: compraData,
-          quantidade: parseFloat(compraQtd),
-          precoUnitario: parseFloat(compraPreco),
-          lote: compraLote || null,
-          validade: compraValidade || null,
-          loja: compraLoja || null, // Ponto 3
-          nf: compraNF || null,     // Ponto 3
-          origem: 'Manual',
-          id: new Date().getTime().toString() 
+      if(isNaN(qtd) || qtd <= 0 || isNaN(preco) || preco < 0){ showCustomModal('Erro', 'Quantidade e preço inválidos.','alert'); return; }
+      
+      try{
+        const docRef = db.collection('materiais').doc(nome);
+        const snap = await docRef.get();
+        if(!snap.exists){ showCustomModal('Erro','Material não encontrado.','alert'); return; }
+        
+        const material = snap.data();
+        const novaCompra = {
+          id: Date.now().toString(), // ID único para a compra
+          data: data,
+          quantidade: qtd,
+          precoUnitario: preco,
+          lote: lote || null,
+          validade: validade || null,
+          loja: loja || null,
+          nf: nf || null,
+          origem: 'manual',
+          timestamp: new Date().toISOString()
         };
 
-        // 1. Salvar no histórico
-        const snap = await materialRef.get();
-        const materialData = snap.data();
-        const historico = materialData.historico || [];
-        historico.push(compra);
-        historico.sort((a,b)=> new Date(b.data).getTime() - new Date(a.data).getTime()); // Garantir que a última compra é a mais recente.
+        material.compras.push(novaCompra);
+        material.quantidade = (material.quantidade ?? 0) + qtd;
+        
+        // Atualizar dados de última compra
+        material.ultimaCompraEm = novaCompra.data;
+        material.precoCompra = novaCompra.precoUnitario;
 
-        // 2. Atualizar o documento do material com os dados da ÚLTIMA compra (Ponto 1 e 3)
-        const updateData = {
-          historico: historico,
-          ultimaCompraEm: compra.data,
-          ultimaQtdComprada: compra.quantidade, // Ponto 1 - Nova representação da "Quantidade"
-          precoCompra: compra.precoUnitario,
-          validadeUltimaCompra: compra.validade,
-          ultimaLoja: compra.loja, // Ponto 3
-          ultimaNF: compra.nf, // Ponto 3
-          // Ponto 1: Remover campos obsoletos
-          quantidade: firebase.firestore.FieldValue.delete(), 
-          quantidadeMinima: firebase.firestore.FieldValue.delete(),
-          // Tira da lista de compras
-          comprar: false,
-          dataAdicaoLista: firebase.firestore.FieldValue.delete(),
-        };
+        // Lógica de validade mais próxima (simplificada, pois todas as compras agora estão em `compras`)
+        // A validade mais próxima será a menor data futura (ou a menor data geral se não houver futuras)
+        let validadeMaisProxima = material.compras
+            .map(c => c.validade)
+            .filter(v => v)
+            .sort()
+            .find(v => isFuture(v)) || null;
 
-        await materialRef.update(updateData);
-        document.getElementById('btnFecharCompra').click();
-        showCustomModal('Sucesso', `Compra de ${nome} registrada com sucesso.`, 'alert');
-        await carregarMateriais();
+        if (!validadeMaisProxima) {
+            // Se não houver futuras, pega a mais próxima das passadas
+            validadeMaisProxima = material.compras
+                .map(c => c.validade)
+                .filter(v => v)
+                .sort()
+                .at(-1) || null; // Pega a mais antiga (menor data)
+        }
+        
+        material.validadeUltimaCompra = validadeMaisProxima;
+        material.comprar = material.quantidade <= material.quantidadeMinima;
 
-      } catch (e) {
-        console.error("Erro ao registrar compra:", e);
-        showCustomModal('Erro', 'Erro ao registrar a compra: ' + e.message, 'alert');
+        await docRef.update(material);
+        fecharModalCompra();
+        carregarMateriais();
+        showCustomModal('Sucesso','Compra registrada com sucesso!','alert');
+      }catch(err){
+        console.error(err);
+        showCustomModal('Erro','Erro ao registrar compra: '+err.message,'alert');
       }
     });
 
-    // Ponto 3: Alteração na função gerarRelatorio
-    async function gerarRelatorio() {
-      try {
-        const snap = await db.collection('materiais').get();
-        let materiais = [];
-        snap.forEach(doc => materiais.push(doc.data()));
+    async function abrirHistoricoCompras(nome){
+      try{
+        const snap = await db.collection('materiais').doc(nome).get();
+        if(!snap.exists){ showCustomModal('Erro','Material não encontrado.','alert'); return; }
+        const material = snap.data();
+        historicoContext.nome = nome;
+        historicoContext.compras = material.compras.sort((a,b)=> new Date(b.data).getTime() - new Date(a.data).getTime());
+        document.getElementById('historicoTitulo').textContent = `Material: ${nome}`;
+        renderizarHistorico(historicoContext.compras);
+        document.getElementById('historicoModal').classList.remove('hidden');
+      }catch(e){
+        console.error(e);
+        showCustomModal('Erro','Erro ao carregar histórico: '+e.message,'alert');
+      }
+    }
 
-        const dataReport = materiais.map(m => ({
-          'Nome': m.nome,
-          'Categoria': categorias[m.categoria] || m.categoria || '-',
-          'Na Lista de Compras': m.comprar ? 'Sim' : 'Não',
-          'Data Adição Lista': m.dataAdicaoLista ? toBRDate(m.dataAdicaoLista) : 'N/A', // Ponto 2
-          'Última Qtd. Comprada': m.ultimaQtdComprada ?? 0, // Ponto 1
-          'Preço Unitário (Últ. Compra)': m.precoCompra!=null ? fmtMoeda(m.precoCompra) : '-',
-          'Data Última Compra': toBRDate(m.ultimaCompraEm),
-          'Validade (Últ. Compra)': m.validadeUltimaCompra ? toBRDate(m.validadeUltimaCompra) : 'N/A',
-          'Loja (Últ. Compra)': m.ultimaLoja || 'N/A', // Ponto 3
-          'NF (Últ. Compra)': m.ultimaNF || 'N/A', // Ponto 3
-        }));
+    function fecharHistoricoCompras(){
+      document.getElementById('historicoModal').classList.add('hidden');
+      document.getElementById('historicoTabela').innerHTML = '';
+      historicoContext = { nome: null, compras: [], editId: null };
+    }
 
-        // Função para exportar para XLSX
-        const ws = XLSX.utils.json_to_sheet(dataReport);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Relatório de Materiais");
-        XLSX.writeFile(wb, "relatorio_materiais_" + new Date().toISOString().slice(0, 10).replace(/-/g, '') + ".xlsx");
+    function renderizarHistorico(compras){
+      const tbody = document.getElementById('historicoTabela');
+      tbody.innerHTML = '';
+      if(compras.length===0){
+        tbody.innerHTML = '<tr><td colspan="10" class="p-2 text-center text-gray-500">Nenhuma compra registrada.</td></tr>';
+        return;
+      }
+      compras.forEach(compra => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-50';
+        const total = compra.quantidade * compra.precoUnitario;
+        tr.innerHTML = `
+          <td class="p-2 border">${toBRDate(compra.data)}</td>
+          <td class="p-2 border text-right">${compra.quantidade}</td>
+          <td class="p-2 border text-right">R$ ${fmtMoeda(compra.precoUnitario)}</td>
+          <td class="p-2 border text-right font-semibold">R$ ${fmtMoeda(total)}</td>
+          <td class="p-2 border">${compra.lote || '-'}</td>
+          <td class="p-2 border ${isFuture(compra.validade) ? 'text-green-600 font-semibold' : ''}">${toBRDate(compra.validade)}</td>
+          <td class="p-2 border">${compra.loja || '-'}</td>
+          <td class="p-2 border">${compra.nf || '-'}</td>
+          <td class="p-2 border">${compra.origem === 'nfe' ? 'NF-e' : 'Manual'}</td>
+          <td class="p-2 border whitespace-nowrap">
+            <button data-id="${compra.id}" class="btn-editar-compra text-primary-dark hover:text-primary-dark/80 mr-2 text-sm">Editar</button>
+            <button data-id="${compra.id}" class="btn-excluir-compra text-danger-red hover:text-danger-red/80 text-sm">Excluir</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
 
-      } catch (e) {
-        console.error("Erro ao gerar relatório:", e);
-        showCustomModal('Erro', 'Erro ao gerar o relatório: ' + e.message, 'alert');
+    // Editar compra
+    document.getElementById('historicoTabela').addEventListener('click', function(e){
+      if(e.target.classList.contains('btn-editar-compra')){
+        const id = e.target.dataset.id;
+        const compra = historicoContext.compras.find(c=>c.id===id);
+        if(!compra){ showCustomModal('Erro','Compra não encontrada.','alert'); return; }
+        
+        historicoContext.editId = id;
+        document.getElementById('editCompraData').value = toISODateInput(compra.data);
+        document.getElementById('editCompraQtd').value = compra.quantidade;
+        document.getElementById('editCompraPreco').value = compra.precoUnitario;
+        document.getElementById('editCompraLote').value = compra.lote || '';
+        document.getElementById('editCompraValidade').value = toISODateInput(compra.validade);
+        document.getElementById('editCompraLoja').value = compra.loja || '';
+        document.getElementById('editCompraNF').value = compra.nf || '';
+
+        document.getElementById('historicoModal').classList.add('hidden');
+        document.getElementById('editarCompraModal').classList.remove('hidden');
+      } else if (e.target.classList.contains('btn-excluir-compra')){
+        const id = e.target.dataset.id;
+        confirmarExclusaoCompra(id);
+      }
+    });
+
+    function fecharModalEditarCompra(){
+      document.getElementById('editarCompraModal').classList.add('hidden');
+      document.getElementById('editarCompraForm').reset();
+      historicoContext.editId = null;
+      document.getElementById('historicoModal').classList.remove('hidden');
+    }
+    document.getElementById('btnFecharEditarCompra').addEventListener('click', fecharModalEditarCompra);
+
+    async function atualizarMaterialAposCompra(material){
+        // 1. Atualiza a quantidade total
+        material.quantidade = material.compras.reduce((sum, c) => sum + c.quantidade, 0);
+
+        // 2. Atualiza dados da última compra (data e preço)
+        const ultimaCompra = material.compras.length > 0
+            ? material.compras.reduce((latest, current) => 
+                new Date(current.data) > new Date(latest.data) ? current : latest
+            ) : null;
+
+        material.ultimaCompraEm = ultimaCompra ? ultimaCompra.data : null;
+        material.precoCompra = ultimaCompra ? ultimaCompra.precoUnitario : null;
+        
+        // 3. Atualiza a validade mais próxima
+        const validadeMaisProxima = material.compras
+            .map(c => c.validade)
+            .filter(v => v)
+            .sort()
+            .find(v => isFuture(v)) || null;
+
+        material.validadeUltimaCompra = validadeMaisProxima || null;
+        material.comprar = material.quantidade <= material.quantidadeMinima;
+        material.ultimaModificacao = new Date().toLocaleString('pt-BR');
+
+        await db.collection('materiais').doc(material.nome).update(material);
+    }
+
+
+    document.getElementById('editarCompraForm').addEventListener('submit', async function(e){
+      e.preventDefault();
+      const id = historicoContext.editId;
+      const nome = historicoContext.nome;
+      const data = document.getElementById('editCompraData').value;
+      const qtd = parseFloat(document.getElementById('editCompraQtd').value);
+      const preco = parseFloat(document.getElementById('editCompraPreco').value);
+      const lote = document.getElementById('editCompraLote').value.trim();
+      const validade = document.getElementById('editCompraValidade').value;
+      const loja = document.getElementById('editCompraLoja').value.trim();
+      const nf = document.getElementById('editCompraNF').value.trim();
+
+      if(isNaN(qtd) || qtd <= 0 || isNaN(preco) || preco < 0){ showCustomModal('Erro', 'Quantidade e preço inválidos.','alert'); return; }
+
+      try{
+        const docRef = db.collection('materiais').doc(nome);
+        const snap = await docRef.get();
+        if(!snap.exists){ throw new Error('Material não encontrado.'); }
+        
+        const material = snap.data();
+        const compraIndex = material.compras.findIndex(c => c.id === id);
+        if(compraIndex === -1){ throw new Error('Compra não encontrada no material.'); }
+
+        // Atualiza a compra específica
+        material.compras[compraIndex] = {
+          ...material.compras[compraIndex],
+          data: data,
+          quantidade: qtd,
+          precoUnitario: preco,
+          lote: lote || null,
+          validade: validade || null,
+          loja: loja || null,
+          nf: nf || null,
+          timestamp: new Date().toISOString() // Atualiza o timestamp de modificação
+        };
+
+        await atualizarMaterialAposCompra(material);
+        
+        fecharModalEditarCompra();
+        await abrirHistoricoCompras(nome); // Recarrega histórico
+        carregarMateriais();
+        showCustomModal('Sucesso','Compra atualizada com sucesso!','alert');
+      }catch(err){
+        console.error(err);
+        showCustomModal('Erro','Erro ao atualizar compra: '+err.message,'alert');
+      }
+    });
+
+    async function confirmarExclusaoCompra(id){
+      const ok=await showCustomModal("Confirmar exclusão",`Tem certeza que deseja excluir esta compra? A quantidade será deduzida do estoque.`, 'confirm');
+      if(!ok) return;
+
+      const nome = historicoContext.nome;
+      try{
+        const docRef = db.collection('materiais').doc(nome);
+        const snap = await docRef.get();
+        if(!snap.exists){ throw new Error('Material não encontrado.'); }
+        
+        const material = snap.data();
+        const compraIndex = material.compras.findIndex(c => c.id === id);
+        if(compraIndex === -1){ throw new Error('Compra não encontrada no material.'); }
+
+        material.compras.splice(compraIndex, 1); // Remove a compra
+
+        await atualizarMaterialAposCompra(material);
+        
+        await abrirHistoricoCompras(nome); // Recarrega histórico
+        carregarMateriais();
+        showCustomModal('Sucesso','Compra excluída e estoque atualizado!','alert');
+      }catch(e){
+        console.error(e);
+        showCustomModal('Erro','Erro ao excluir compra: '+e.message,'alert');
+      }
+    }
+
+
+    // Importação de NF-e
+    let nfeItens = [];
+    let nfeIndex = 0;
+    let nfeMaterialMap = {}; // nome original NFe -> nome padronizado estoque
+    let nfeAllMaterials = [];
+
+    document.getElementById('btnImportarNfe').addEventListener('click', ()=>document.getElementById('inputXmlNfe').click());
+    document.getElementById('inputXmlNfe').addEventListener('change', async function(e){
+      const file = e.target.files[0];
+      if(!file) return;
+
+      try{
+        const text = await file.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(text, "text/xml");
+        
+        // Verifica se é uma NF-e válida
+        if (xmlDoc.querySelector('protNFe') || xmlDoc.querySelector('NFe')) {
+            nfeItens = [];
+            xmlDoc.querySelectorAll('det').forEach(det => {
+              const prod = det.querySelector('prod');
+              const nome = prod.querySelector('xProd')?.textContent;
+              const qtd = parseFloat(prod.querySelector('qCom')?.textContent);
+              const preco = parseFloat(prod.querySelector('vUnCom')?.textContent);
+              const lote = prod.querySelector('nLote')?.textContent;
+              const validade = prod.querySelector('dFab')?.textContent; // Na NFe nem sempre é a validade, mas podemos usar dFab ou dVal
+              
+              if(nome && qtd && preco){
+                  nfeItens.push({
+                      nome: nome.trim(),
+                      quantidade: qtd,
+                      precoUnitario: preco,
+                      lote: lote ? lote.trim() : null,
+                      validade: validade,
+                      origem: 'nfe'
+                  });
+              }
+            });
+
+            if(nfeItens.length > 0){
+                const snap = await db.collection('materiais').get();
+                nfeAllMaterials = snap.docs.map(doc=>doc.data());
+                nfeIndex = 0;
+                nfeMaterialMap = {};
+                abrirNfeMatchModal();
+            } else {
+                showCustomModal('Aviso', 'Nenhum item de produto válido encontrado no XML da NF-e.','alert');
+            }
+        } else {
+            showCustomModal('Erro', 'O arquivo não parece ser um XML de NF-e válido.','alert');
+        }
+
+      }catch(err){
+        console.error(err);
+        showCustomModal('Erro', 'Erro ao processar NF-e: '+err.message,'alert');
+      } finally {
+        e.target.value = null; // Limpa o input file
+      }
+    });
+    
+    // Funções de matching da NF-e
+    function stringSimilarity(s1, s2) {
+        if (s1 === s2) return 1.0;
+        let longer = s1.toLowerCase(), shorter = s2.toLowerCase();
+        if (s1.length < s2.length) { longer = s2.toLowerCase(); shorter = s1.toLowerCase(); }
+        const longerLength = longer.length;
+        if (longerLength === 0) return 1.0;
+        return (longerLength - editDistance(longer, shorter)) / longerLength;
+    }
+
+    function editDistance(s1, s2) {
+      s1 = s1.toLowerCase(); s2 = s2.toLowerCase();
+      const costs = new Array();
+      for (let i = 0; i <= s1.length; i++) {
+        let lastValue = i;
+        for (let j = 0; j <= s2.length; j++) {
+          if (i === 0) { costs[j] = j; }
+          else if (j > 0) {
+            let newValue = costs[j - 1];
+            if (s1.charAt(i - 1) !== s2.charAt(j - 1)) {
+              newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+            }
+            costs[j - 1] = lastValue;
+            lastValue = newValue;
+          }
+        }
+        if (i > 0) costs[s2.length] = lastValue;
+      }
+      return costs[s2.length];
+    }
+    
+    function getCandidates(nfeItemName){
+        const candidates = nfeAllMaterials.map(m => {
+            const similarity = stringSimilarity(nfeItemName, m.nome);
+            return { nome: m.nome, similarity };
+        }).sort((a,b) => b.similarity - a.similarity).slice(0, 5); // 5 melhores
+        
+        return candidates.filter(c => c.similarity > 0.3);
+    }
+    
+    function abrirNfeMatchModal(){
+        if(nfeIndex >= nfeItens.length){
+            finalizarImportacaoNfe();
+            return;
+        }
+
+        const item = nfeItens[nfeIndex];
+        const candidates = getCandidates(item.nome);
+        const candidateSelect = document.getElementById('nfeCandidateSelect');
+        candidateSelect.innerHTML = '';
+        
+        document.getElementById('nfeStepIdx').textContent = nfeIndex + 1;
+        document.getElementById('nfeStepTotal').textContent = nfeItens.length;
+        document.getElementById('nfeItemNome').textContent = item.nome;
+        document.getElementById('nfeItemQtd').textContent = item.quantidade;
+        document.getElementById('nfeItemPreco').textContent = fmtMoeda(item.precoUnitario);
+        document.getElementById('nfeItemLote').textContent = item.lote || '-';
+        document.getElementById('nfeItemVal').textContent = toBRDate(item.validade);
+        
+        document.getElementById('nfeNewName').value = '';
+        document.getElementById('nfeNewCategory').value = '';
+        
+        const optDefault = document.createElement('option');
+        optDefault.value = '';
+        optDefault.textContent = '--- Selecione um item do estoque ---';
+        candidateSelect.appendChild(optDefault);
+        
+        candidates.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.nome;
+            opt.textContent = `${c.nome} (${(c.similarity * 100).toFixed(0)}% similar)`;
+            candidateSelect.appendChild(opt);
+        });
+
+        document.getElementById('nfeMatchModal').classList.remove('hidden');
+    }
+
+    function fecharNfeMatchModal(){
+        document.getElementById('nfeMatchModal').classList.add('hidden');
+        document.getElementById('inputXmlNfe').value = null;
+    }
+    document.getElementById('btnFecharNfeMatch').addEventListener('click', fecharNfeMatchModal);
+    
+    // Ações do modal de match
+    document.getElementById('nfeBtnPular').addEventListener('click', ()=>{
+        nfeIndex++;
+        abrirNfeMatchModal();
+    });
+    
+    document.getElementById('nfeBtnMesmo').addEventListener('click', ()=>{
+        const item = nfeItens[nfeIndex];
+        const selectedName = document.getElementById('nfeCandidateSelect').value;
+        if(!selectedName){ showCustomModal('Erro', 'Selecione um material correspondente na lista para continuar.','alert'); return; }
+        
+        nfeMaterialMap[item.nome] = selectedName;
+        nfeIndex++;
+        abrirNfeMatchModal();
+    });
+
+    document.getElementById('nfeBtnCriar').addEventListener('click', ()=>{
+        const item = nfeItens[nfeIndex];
+        const newName = document.getElementById('nfeNewName').value.trim();
+        const newCategory = document.getElementById('nfeNewCategory').value;
+        
+        if(!newName || !newCategory){ showCustomModal('Erro', 'Nome e Categoria são obrigatórios para criar um novo material.','alert'); return; }
+        
+        nfeMaterialMap[item.nome] = { name: newName, category: newCategory };
+        nfeIndex++;
+        abrirNfeMatchModal();
+    });
+    
+    document.getElementById('nfeBtnAvancar').addEventListener('click', ()=>{
+        const selectedName = document.getElementById('nfeCandidateSelect').value;
+        const newName = document.getElementById('nfeNewName').value.trim();
+        const newCategory = document.getElementById('nfeNewCategory').value;
+        
+        if(selectedName){
+            nfeMaterialMap[nfeItens[nfeIndex].nome] = selectedName;
+        } else if(newName && newCategory){
+            nfeMaterialMap[nfeItens[nfeIndex].nome] = { name: newName, category: newCategory };
+        } else {
+             showCustomModal('Erro', 'Selecione um item do estoque ou preencha Nome/Categoria para criar um novo.','alert'); return;
+        }
+        
+        nfeIndex++;
+        abrirNfeMatchModal();
+    });
+
+    async function finalizarImportacaoNfe(){
+        fecharNfeMatchModal();
+        const ok = await showCustomModal('Confirmar Importação', `Deseja importar ${nfeItens.length} itens da NF-e?`, 'confirm');
+        if(!ok) return;
+        
+        const batch = db.batch();
+        let newItemsCount = 0;
+        let updatedItemsCount = 0;
+        
+        const materialRefs = {}; // Cache para referências de documentos
+
+        try{
+            for(const item of nfeItens){
+                const mappedTo = nfeMaterialMap[item.nome];
+                if(!mappedTo) continue; // Item pulado
+
+                let materialDoc = null;
+                let docRef = null;
+                let isNew = false;
+                let padronizedName = '';
+                
+                if(typeof mappedTo === 'string'){ // Item existente
+                    padronizedName = mappedTo;
+                    docRef = db.collection('materiais').doc(padronizedName);
+                    if(!materialRefs[padronizedName]) materialRefs[padronizedName] = await docRef.get();
+                    const snap = materialRefs[padronizedName];
+                    if(!snap.exists){
+                        showCustomModal('Aviso', `Material "${padronizedName}" não encontrado, pulando.`, 'alert');
+                        continue;
+                    }
+                    materialDoc = snap.data();
+                    updatedItemsCount++;
+                } else { // Novo item
+                    padronizedName = mappedTo.name;
+                    const existingCheck = await db.collection('materiais').doc(padronizedName).get();
+                    if(existingCheck.exists){
+                        showCustomModal('Aviso', `Material "${padronizedName}" já existe, pulando criação.`, 'alert');
+                        continue;
+                    }
+                    
+                    docRef = db.collection('materiais').doc(padronizedName);
+                    materialDoc = {
+                        nome: padronizedName,
+                        quantidade: 0,
+                        quantidadeMinima: 0,
+                        categoria: mappedTo.category,
+                        comprar: false,
+                        compras: []
+                    };
+                    newItemsCount++;
+                    isNew = true;
+                }
+                
+                const novaCompra = {
+                    id: Date.now().toString() + Math.random().toString(36).substring(2, 9), // ID único
+                    data: toISODateInput(item.validade) ? toISODateInput(item.validade) : new Date().toISOString().slice(0, 10), // Usar data de hoje se não tiver data da NF-e
+                    quantidade: item.quantidade,
+                    precoUnitario: item.precoUnitario,
+                    lote: item.lote,
+                    validade: item.validade ? toISODateInput(item.validade) : null,
+                    loja: null, // Não tem loja na NF-e por padrão
+                    nf: null, // Não tem NF na importação de item, o XML é a NF
+                    origem: 'nfe',
+                    timestamp: new Date().toISOString()
+                };
+
+                materialDoc.compras.push(novaCompra);
+                await atualizarMaterialAposCompra(materialDoc); // Atualiza os dados de resumo
+
+                batch.set(docRef, materialDoc);
+            }
+
+            await batch.commit();
+            showCustomModal('Sucesso', `Importação finalizada. Novos materiais: ${newItemsCount}, Materiais atualizados: ${updatedItemsCount}.`, 'alert');
+            carregarMateriais();
+        }catch(err){
+            console.error(err);
+            showCustomModal('Erro', 'Erro fatal durante a importação: '+err.message, 'alert');
+        } finally {
+            nfeItens = [];
+            nfeIndex = 0;
+            nfeMaterialMap = {};
+            nfeAllMaterials = [];
+        }
+    }
+    
+    // Importação de planilha de compras
+    document.getElementById('btnImportarPlanilha').addEventListener('click', ()=>document.getElementById('inputPlanilha').click());
+    document.getElementById('inputPlanilha').addEventListener('change', async function(e){
+        const file = e.target.files[0];
+        if(!file) return;
+
+        try {
+            const data = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    resolve(json);
+                };
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+            
+            const [header, ...rows] = data;
+            const nomeIndex = header.findIndex(h => /nome|material|produto/i.test(h));
+            const qtdIndex = header.findIndex(h => /qtd|quantidade/i.test(h));
+            const precoIndex = header.findIndex(h => /preco|valor/i.test(h));
+            const dataIndex = header.findIndex(h => /data|compra/i.test(h));
+            const loteIndex = header.findIndex(h => /lote/i.test(h));
+            const validadeIndex = header.findIndex(h => /validade/i.test(h));
+            const lojaIndex = header.findIndex(h => /loja|fornecedor/i.test(h));
+            const nfIndex = header.findIndex(h => /nf|nota/i.test(h));
+
+            if(nomeIndex === -1 || qtdIndex === -1 || precoIndex === -1 || dataIndex === -1){
+                showCustomModal('Erro', 'A planilha deve conter colunas para Nome, Quantidade, Preço Unitário e Data.','alert');
+                return;
+            }
+            
+            const snap = await db.collection('materiais').get();
+            const materialMap = snap.docs.reduce((acc, doc) => {
+                acc[doc.data().nome.toLowerCase()] = doc.data();
+                return acc;
+            }, {});
+            
+            const purchases = rows.map(row => {
+                const nome = String(row[nomeIndex]).trim();
+                const dataStr = String(row[dataIndex]).trim();
+                
+                let dataIso = null;
+                if (dataStr) {
+                    // Tenta ISO
+                    if (!isNaN(new Date(dataStr))) {
+                        dataIso = new Date(dataStr).toISOString().slice(0, 10);
+                    } else if (dataStr.includes('/')) {
+                        // Tenta DD/MM/YYYY
+                        const parts = dataStr.split('/');
+                        if (parts.length === 3) {
+                            dataIso = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                        }
+                    }
+                }
+
+                return {
+                    nome: nome,
+                    quantidade: parseFloat(row[qtdIndex]) || 0,
+                    precoUnitario: parseFloat(row[precoIndex]) || 0,
+                    data: dataIso || new Date().toISOString().slice(0, 10),
+                    lote: loteIndex !== -1 ? String(row[loteIndex] || '').trim() : null,
+                    validade: validadeIndex !== -1 ? toISODateInput(String(row[validadeIndex] || '').trim()) : null,
+                    loja: lojaIndex !== -1 ? String(row[lojaIndex] || '').trim() : null,
+                    nf: nfIndex !== -1 ? String(row[nfIndex] || '').trim() : null,
+                    origem: 'planilha'
+                };
+            }).filter(p => p.nome && p.quantidade > 0 && p.precoUnitario >= 0);
+
+            if(purchases.length === 0){
+                showCustomModal('Aviso', 'Nenhuma compra válida encontrada na planilha.','alert');
+                return;
+            }
+
+            const ok = await showCustomModal('Confirmar Importação', `Deseja importar ${purchases.length} compras de ${rows.length} linhas?`, 'confirm');
+            if(!ok) return;
+
+            const batch = db.batch();
+            let importedCount = 0;
+            const updatedMaterials = {};
+            
+            for(const purchase of purchases){
+                const materialNameLower = purchase.nome.toLowerCase();
+                let material = materialMap[materialNameLower];
+                
+                if(!material){
+                    // Tenta encontrar por similaridade se não houver match exato
+                    const candidates = getCandidates(purchase.nome);
+                    if(candidates.length > 0){
+                        const bestMatch = candidates[0];
+                        if(bestMatch.similarity > 0.8){
+                            material = materialMap[bestMatch.nome.toLowerCase()];
+                        }
+                    }
+                }
+
+                if(material){
+                    const materialToUpdate = updatedMaterials[material.nome] || material;
+
+                    const novaCompra = {
+                        id: Date.now().toString() + Math.random().toString(36).substring(2, 9),
+                        data: purchase.data,
+                        quantidade: purchase.quantidade,
+                        precoUnitario: purchase.precoUnitario,
+                        lote: purchase.lote,
+                        validade: purchase.validade,
+                        loja: purchase.loja,
+                        nf: purchase.nf,
+                        origem: 'planilha',
+                        timestamp: new Date().toISOString()
+                    };
+
+                    materialToUpdate.compras = materialToUpdate.compras || [];
+                    materialToUpdate.compras.push(novaCompra);
+                    updatedMaterials[material.nome] = materialToUpdate;
+                    importedCount++;
+                } else {
+                    console.warn(`Material "${purchase.nome}" não encontrado e não importado.`);
+                }
+            }
+
+            for(const name in updatedMaterials){
+                const material = updatedMaterials[name];
+                await atualizarMaterialAposCompra(material);
+                batch.set(db.collection('materiais').doc(name), material);
+            }
+            
+            await batch.commit();
+            showCustomModal('Sucesso', `Importação de compras finalizada. ${importedCount} compras registradas.`, 'alert');
+            carregarMateriais();
+
+        } catch (err) {
+            console.error(err);
+            showCustomModal('Erro', 'Erro ao importar planilha: '+err.message, 'alert');
+        } finally {
+            e.target.value = null; // Limpa o input file
+        }
+    });
+
+    document.getElementById('btnExportarHistorico').addEventListener('click', ()=>{
+        const nome = historicoContext.nome;
+        const compras = historicoContext.compras;
+        
+        if(compras.length === 0){
+            showCustomModal('Aviso', 'Nenhuma compra para exportar.','alert');
+            return;
+        }
+
+        const header = ["Data", "Quantidade", "Preço Unitário (R$)", "Total (R$)", "Lote", "Validade", "Loja", "NF", "Origem", "ID"];
+        const rows = compras.map(c => [
+            toBRDate(c.data),
+            c.quantidade,
+            fmtMoeda(c.precoUnitario),
+            fmtMoeda(c.quantidade * c.precoUnitario),
+            c.lote || '-',
+            toBRDate(c.validade),
+            c.loja || '-',
+            c.nf || '-',
+            c.origem === 'nfe' ? 'NF-e' : 'Manual',
+            c.id
+        ]);
+
+        const csvContent = [header.join(";"), ...rows.map(row => row.join(";"))].join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `historico_${nome.replace(/[^a-z0-9]/gi, '_')}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+    
+    // Lista de compras
+    async function toggleComprar(nome){
+      try{
+        const ref = db.collection('materiais').doc(nome);
+        const snap = await ref.get();
+        if(!snap.exists){ showCustomModal('Erro','Material não encontrado.','alert'); return; }
+        const isComprar = !snap.data().comprar;
+        await ref.update({ comprar: isComprar });
+        carregarMateriais();
+      }catch(e){
+        console.error(e);
+        showCustomModal('Erro','Erro ao marcar material: '+e.message,'alert');
       }
     }
     
-    // Funções placeholder que faltavam no snippet original (para evitar erros)
-    function abrirModalCompra(nome) { document.getElementById('compraNome').value = nome; document.getElementById('compraModal').classList.remove('hidden'); }
-    function fecharModalCompra() { document.getElementById('compraModal').classList.add('hidden'); document.getElementById('compraForm').reset(); }
-    function abrirHistoricoCompras(nome) { /* Implementação */ }
-    function confirmarExclusao(nome) { /* Implementação */ }
-    function logout() { /* Implementação */ }
-    function limparMarcacoes() { /* Implementação */ }
-    function copiarListaCompras() { /* Implementação */ }
-    function buscarMateriais() { termoDeBusca = document.getElementById('searchInput').value; carregarMateriais(); }
+    async function copiarListaCompras(){
+      const lista = materiaisFiltrados.map(m=>`- ${m.nome}`).join('\n');
+      await showCustomModal('Lista de Compras', 'Copie a lista abaixo:', 'copy', lista);
+    }
+    
+    async function limparMarcacoes(){
+      const ok=await showCustomModal("Confirmar","Deseja limpar todas as marcações de compra?",'confirm');
+      if(!ok) return;
+      const snap=await db.collection('materiais').where('comprar','==',true).get();
+      const batch=db.batch();
+      snap.forEach(doc=>batch.update(db.collection('materiais').doc(doc.id),{comprar:false}));
+      await batch.commit();
+      isShowingPurchaseList=false;
+      carregarMateriais();
+    }
+    
+    // Relatório
+    async function gerarRelatorio(){
+      const snap = await db.collection('materiais').get();
+      const materiais = snap.docs.map(doc=>doc.data());
+
+      const dataAtual = new Date().toLocaleDateString('pt-BR');
+      const header = ["Nome", "Categoria", "Quantidade Atual", "Quantidade Mínima", "Status", "Última Compra", "Preço Unitário Última Compra (R$)", "Validade Mais Próxima"];
+      const rows = materiais.sort((a,b)=>a.nome.localeCompare(b.nome)).map(m => [
+        m.nome,
+        categorias[m.categoria] || m.categoria,
+        m.quantidade ?? 0,
+        m.quantidadeMinima ?? 0,
+        m.quantidade < m.quantidadeMinima ? "Abaixo do Mínimo" : "OK",
+        toBRDate(m.ultimaCompraEm),
+        m.precoCompra!=null ? fmtMoeda(m.precoCompra) : '-',
+        toBRDate(m.validadeUltimaCompra)
+      ]);
+
+      const csvContent = [
+        [`Relatório de Estoque - ${dataAtual}`],
+        [],
+        header.join(";"), 
+        ...rows.map(row => row.join(";"))
+      ].join("\n");
+      
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `relatorio_estoque_${new Date().toISOString().slice(0, 10)}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showCustomModal('Sucesso','Relatório gerado! Verifique seus downloads.','alert');
+    }
+
+    // Auth
+    function initAuth(){
+      auth.onAuthStateChanged(user=>{
+        if(user){
+          document.getElementById('loginContainer').classList.add('hidden');
+          document.getElementById('mainContainer').classList.remove('hidden');
+          carregarMateriais();
+        } else {
+          document.getElementById('mainContainer').classList.add('hidden');
+          document.getElementById('loginContainer').classList.remove('hidden');
+        }
+      });
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async function(e){
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      try{
+        await auth.signInWithEmailAndPassword(email, password);
+      }catch(err){
+        showCustomModal('Erro','Falha no login: '+err.message,'alert');
+      }
+    });
+
+    function logout(){ auth.signOut(); }
+
+    function buscarMateriais(){
+      termoDeBusca = document.getElementById('searchInput').value;
+      isShowingPurchaseList = false;
+      categoriaSelecionada = 'todos';
+      carregarMateriais();
+    }
+    
+    // Iniciar
+    initAuth();
 
     // UI listeners
     document.getElementById('btnAbrirModal').addEventListener('click', abrirModal);
     document.getElementById('btnFecharModal').addEventListener('click', fecharModal);
     document.getElementById('btnFecharModalEditar').addEventListener('click', fecharModalEditar);
-    document.getElementById('btnFecharCompra').addEventListener('click', fecharModalCompra); // Novo/Modificado
     document.getElementById('btnLogout').addEventListener('click', logout);
     document.getElementById('btnLimparMarcacoes').addEventListener('click', limparMarcacoes);
     document.getElementById('btnListaCompras').addEventListener('click', ()=>{ isShowingPurchaseList=true; carregarMateriais(); });
     document.getElementById('btnMostrarTodos').addEventListener('click', ()=>{ isShowingPurchaseList=false; document.getElementById('searchInput').value=''; termoDeBusca=''; categoriaSelecionada='todos'; carregarMateriais(); });
     document.getElementById('btnCopiarLista').addEventListener('click', copiarListaCompras);
     document.getElementById('btnBuscar').addEventListener('click', buscarMateriais);
-    document.getElementById('btnGerarRelatorio').addEventListener('click', gerarRelatorio); // Ponto 3
+    document.getElementById('btnGerarRelatorio').addEventListener('click', gerarRelatorio);
     document.getElementById('btnAdvancedOptions').addEventListener('click', ()=>document.getElementById('advancedOptionsContainer').classList.toggle('hidden'));
+    document.getElementById('btnFecharHistorico').addEventListener('click', fecharHistoricoCompras);
     document.addEventListener('click', (e)=>{ document.querySelectorAll('.dropdown-content').forEach(d=>{ if(!d.classList.contains('hidden') && !d.parentElement.contains(e.target)) d.classList.add('hidden'); }); });
-    
-    // Início
-    auth.onAuthStateChanged(user => { 
-        if(user) { 
-            document.getElementById('loginContainer').classList.add('hidden'); 
-            document.getElementById('mainContainer').classList.remove('hidden'); 
-            carregarMateriais(); 
-        } else {
-            document.getElementById('loginContainer').classList.remove('hidden'); 
-            document.getElementById('mainContainer').classList.add('hidden');
-        }
-    });
-
   });
   </script>
 </body>
