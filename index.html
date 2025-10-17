@@ -165,6 +165,7 @@
           <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharModalEditar">&times;</button>
         </div>
          <form id="editarForm" class="space-y-4">
+          <input type="hidden" id="editId">
           <input type="text" id="editNome" placeholder="Nome do material" required
                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
           <input type="hidden" id="originalNome">
@@ -258,6 +259,7 @@
           <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharCompra">&times;</button>
         </div>
         <form id="compraForm" class="space-y-4">
+          <input type="hidden" id="compraId">
           <input type="text" id="compraNome" readonly class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100">
           <input type="date" id="compraData" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
           <input type="number" step="any" min="0" id="compraQtd" placeholder="Quantidade" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
@@ -353,7 +355,7 @@
     let categoriaSelecionada = "todos";
     let isShowingPurchaseList = false;
     // Estado do histórico
-    let historicoContext = { nome: null, compras: [], editId: null };
+    let historicoContext = { id: null, nome: null, compras: [], editId: null };
     // utils
     function showCustomModal(title, message, type, copyText='') {
       return new Promise((resolve) => {
@@ -406,7 +408,7 @@
     async function carregarMateriais(){
       try{
         const snap = await db.collection('materiais').get();
-        let todos=[]; snap.forEach(doc=>todos.push(doc.data()));
+        let todos=[]; snap.forEach(doc=>todos.push({ id: doc.id, ...doc.data()}));
         if(isShowingPurchaseList){
           materiaisFiltrados = todos.filter(m => !!m.marcadoParaCompraEm);
           document.getElementById('searchInput').value=''; termoDeBusca=''; categoriaSelecionada='todos';
@@ -419,8 +421,7 @@
         togglePurchaseListActionsVisibility();
       }catch(e){ console.error(e); showCustomModal('Erro','Erro ao carregar materiais: '+e.message,'alert');}
     }
-    async function salvarMaterial(material){ await db.collection('materiais').doc(material.nome).set(material);
-    }
+
     function renderizarCategorias(all){
       const box=document.getElementById('categorySidebar'); box.innerHTML='';
       const set=new Set(); all.forEach(m=>set.add(m.categoria));
@@ -482,7 +483,7 @@
         const btnComprar=document.createElement('button');
         btnComprar.textContent = m.marcadoParaCompraEm ? 'Na Lista de Compras' : 'Adicionar à Lista';
         btnComprar.className = `w-full py-2 px-4 rounded-lg font-semibold transition transform hover:scale-105 ${m.marcadoParaCompraEm ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-primary-dark text-white hover:bg-opacity-90'}`;
-        btnComprar.onclick=()=>toggleComprar(m.nome); controls.appendChild(btnComprar);
+        btnComprar.onclick=()=>toggleComprar(m.id); controls.appendChild(btnComprar);
 
         const options=document.createElement('div'); options.className='relative inline-block text-left w-full';
         const dd=document.createElement('div');
@@ -497,18 +498,18 @@
 
         const bEdit=document.createElement('button'); bEdit.textContent='Editar';
         bEdit.className='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100';
-        bEdit.onclick=()=>{ abrirModalEditar(m.nome); dd.classList.add('hidden'); };
+        bEdit.onclick=()=>{ abrirModalEditar(m.id); dd.classList.add('hidden'); };
 
         const bReg=document.createElement('button'); bReg.textContent='Registrar compra';
         bReg.className='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100';
-        bReg.onclick=()=>{ abrirModalCompra(m.nome); dd.classList.add('hidden'); };
+        bReg.onclick=()=>{ abrirModalCompra(m.id, m.nome); dd.classList.add('hidden'); };
         const bHist=document.createElement('button'); bHist.textContent='Histórico de compras';
         bHist.className='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100';
-        bHist.onclick=()=>{ abrirHistoricoCompras(m.nome); dd.classList.add('hidden'); };
+        bHist.onclick=()=>{ abrirHistoricoCompras(m.id, m.nome); dd.classList.add('hidden'); };
 
         const bDel=document.createElement('button'); bDel.textContent='Excluir';
         bDel.className='block w-full text-left px-4 py-2 text-sm text-danger-red hover:bg-red-100';
-        bDel.onclick=()=>{ confirmarExclusao(m.nome); dd.classList.add('hidden'); };
+        bDel.onclick=()=>{ confirmarExclusao(m.id); dd.classList.add('hidden'); };
 
         dd.appendChild(bEdit); dd.appendChild(bReg); dd.appendChild(bHist); dd.appendChild(bDel);
         options.appendChild(btnOptions);
@@ -525,9 +526,10 @@
     }
     function fecharModal(){ document.getElementById('cadastroModal').classList.add('hidden'); document.getElementById('materialForm').reset(); }
 
-    function abrirModalEditar(nome){
-      const m = materiaisFiltrados.find(x=>x.nome===nome);
+    function abrirModalEditar(id){
+      const m = materiaisFiltrados.find(x=>x.id===id);
       if(!m){ showCustomModal("Erro","Material não encontrado para edição.",'alert'); return; }
+      document.getElementById('editId').value = m.id;
       document.getElementById('editNome').value = m.nome;
       document.getElementById('originalNome').value = m.nome;
       document.getElementById('editCategoria').value = m.categoria || '';
@@ -538,19 +540,28 @@
     // salvar edição
     document.getElementById('editarForm').addEventListener('submit', async function(e){
       e.preventDefault();
+      const id = document.getElementById('editId').value;
       const originalNome = document.getElementById('originalNome').value;
       const newNome = document.getElementById('editNome').value.trim();
       const novaCategoria = document.getElementById('editCategoria').value;
       const arquivo = document.getElementById('editImagem').files[0];
 
       try{
-        const refOld = db.collection('materiais').doc(originalNome);
-        const snap = await refOld.get();
-        if(!snap.exists){ showCustomModal("Erro","Material original não encontrado.",'alert'); return; }
-        const base = snap.data();
+        if (newNome !== originalNome) {
+          const qSnap = await db.collection('materiais').where('nome', '==', newNome).get();
+          if (!qSnap.empty) {
+            const existingDoc = qSnap.docs[0];
+            if (existingDoc.id !== id) {
+              showCustomModal("Erro", `Já existe um material com o nome "${newNome}".`, 'alert');
+              return;
+            }
+          }
+        }
 
+        const docRef = db.collection('materiais').doc(id);
         let updateData = {
-          categoria: novaCategoria || base.categoria || '',
+          nome: newNome,
+          categoria: novaCategoria,
           ultimaModificacao: new Date().toLocaleString('pt-BR')
          };
 
@@ -562,16 +573,9 @@
           updateData.imagem = dataURL;
         }
 
-        if (newNome !== originalNome){
-          const refNew = db.collection('materiais').doc(newNome);
-          if((await refNew.get()).exists){ showCustomModal("Erro",`Já existe "${newNome}".`,'alert'); return; }
-          await refNew.set({ ...base, ...updateData, nome:newNome });
-          await refOld.delete();
-        } else {
-          await refOld.update(updateData);
-        }
-
-        fecharModalEditar(); carregarMateriais();
+        await docRef.update(updateData);
+        fecharModalEditar();
+        carregarMateriais();
       }catch(err){ console.error(err); showCustomModal("Erro","Erro ao atualizar material: "+err.message,'alert');
       }
     });
@@ -618,8 +622,13 @@
       const nome=document.getElementById('nome').value.trim();
       const categoria=document.getElementById('categoria').value;
       const arquivo=document.getElementById('imagem').files[0];
-      if((await db.collection('materiais').doc(nome).get()).exists){ showCustomModal("Erro",`Já existe "${nome}".`,'alert'); return; }
+
+      const qSnap = await db.collection('materiais').where('nome', '==', nome).limit(1).get();
+      if(!qSnap.empty){ showCustomModal("Erro",`Já existe um material com o nome "${nome}".`,'alert'); return; }
+
+      const newDocRef = db.collection('materiais').doc();
       const material={
+        id: newDocRef.id,
         nome,
         categoria,
         quantidade: 0,
@@ -638,17 +647,18 @@
         return; }
         material.imagem=dataURL;
       }
-      await salvarMaterial(material); await carregarMateriais();
+      await newDocRef.set(material);
+      await carregarMateriais();
       fecharModal();
     });
 
-    async function confirmarExclusao(nome){
-      const ok=await showCustomModal("Confirmar Exclusão",`Excluir ${nome}? Isso também removerá todo o histórico de compras. A ação não pode ser desfeita.`,'confirm'); if(!ok) return;
-      await db.collection('materiais').doc(nome).delete();
+    async function confirmarExclusao(id){
+      const ok=await showCustomModal("Confirmar Exclusão",`Excluir este material? Isso também removerá todo o histórico de compras. A ação não pode ser desfeita.`,'confirm'); if(!ok) return;
+      await db.collection('materiais').doc(id).delete();
       await carregarMateriais();
     }
-    async function toggleComprar(nome){
-      const ref=db.collection('materiais').doc(nome); const snap=await ref.get();
+    async function toggleComprar(id){
+      const ref=db.collection('materiais').doc(id); const snap=await ref.get();
       if(!snap.exists) return;
       const cur=snap.data().marcadoParaCompraEm;
       await ref.update({marcadoParaCompraEm: cur ? null : new Date().toISOString() });
@@ -657,18 +667,10 @@
 
     // ---------- IMPORTAÇÃO COM ASSISTENTE (NF-e e PLANILHA) ----------
     let importQueue = [];
-    // itens pendentes para conferir (tanto NF-e quanto planilha)
-    let importOrigin = null;     // 'nfe' | 'manual'
+    let importOrigin = null;
     let importStep = 0;
     let materiaisIndex = [];
-    let metaDataEmissao = null;
-    // data da compra corrente (p/ item em foco)
-    let metaLoja = null;
-    // loja corrente (p/ item em foco)
-    let metaNumeroNF = null;
-    // NF corrente (p/ item em foco)
-
-    // Elementos do modal de equivalência
+    
     const nfeMatchModal = document.getElementById('nfeMatchModal');
     const btnFecharNfeMatch = document.getElementById('btnFecharNfeMatch');
     const nfeStepIdx = document.getElementById('nfeStepIdx');
@@ -685,7 +687,6 @@
     const nfeBtnCriar = document.getElementById('nfeBtnCriar');
     const nfeBtnAvancar = document.getElementById('nfeBtnAvancar');
     const nfeBtnPular = document.getElementById('nfeBtnPular');
-    // Botões / inputs NF-e
     const btnImportarNfe = document.getElementById('btnImportarNfe');
     const inputXmlNfe = document.getElementById('inputXmlNfe');
 
@@ -696,18 +697,16 @@
     nfeBtnPular.addEventListener('click',()=>avancarItem());
     nfeBtnAvancar.addEventListener('click',()=>avancarItem());
 
-    // “É o mesmo”: vincula ao item do estoque escolhido
     nfeBtnMesmo.addEventListener('click', async ()=>{
       const item=importQueue[importStep];
-      const selected=nfeCandidateSelect.value;
-      if(!selected){ showCustomModal("Aviso","Selecione um item do estoque ou use 'Criar novo'.","alert"); return; }
+      const selectedId=nfeCandidateSelect.value;
+      if(!selectedId){ showCustomModal("Aviso","Selecione um item do estoque ou use 'Criar novo'.","alert"); return; }
       
-      await registrarEntradaEmMaterialExistente(selected,item,importOrigin);
-      await recomputarAgregados(selected);
+      await registrarEntradaEmMaterialExistente(selectedId,item,importOrigin);
+      await recomputarAgregados(selectedId);
        avancarItem(true);
     });
 
-    // “Criar novo”: só cria se você mandar
     nfeBtnCriar.addEventListener('click', async ()=>{
       const item=importQueue[importStep];
       const nomeNovo=(nfeNewName.value||'').trim();
@@ -715,18 +714,30 @@
       if(!nomeNovo){ showCustomModal("Aviso","Informe um nome padronizado.","alert"); return; }
       if(!categoriaNova){ showCustomModal("Aviso","Selecione a categoria.","alert"); return; }
 
-      const docRef=db.collection('materiais').doc(nomeNovo);
-      const ex=await docRef.get();
-      if(!ex.exists){
-        await docRef.set({
-           nome:nomeNovo, categoria:categoriaNova, quantidade:0, imagem:null,
-          ultimaModificacao:new Date().toLocaleString('pt-BR'), marcadoParaCompraEm:null,
-          ultimaCompraEm:null, validadeUltimaCompra:null, precoCompra:null, lojaUltimaCompra:null, nfUltimaCompra:null
-        });
+      const qSnap = await db.collection('materiais').where('nome', '==', nomeNovo).limit(1).get();
+      if(!qSnap.empty){
+         showCustomModal("Aviso",`Já existe um material chamado "${nomeNovo}". Use a opção "É o mesmo" para vinculá-lo.`,'alert');
+         return;
       }
       
-      await registrarEntradaEmMaterialExistente(nomeNovo,item,importOrigin);
-      await recomputarAgregados(nomeNovo);
+      const newDocRef = db.collection('materiais').doc();
+      await newDocRef.set({
+        id: newDocRef.id,
+        nome: nomeNovo,
+        categoria: categoriaNova,
+        quantidade: 0,
+        imagem: null,
+        ultimaModificacao: new Date().toLocaleString('pt-BR'),
+        marcadoParaCompraEm: null,
+        ultimaCompraEm: null,
+        validadeUltimaCompra: null,
+        precoCompra: null,
+        lojaUltimaCompra: null,
+        nfUltimaCompra: null
+      });
+      
+      await registrarEntradaEmMaterialExistente(newDocRef.id,item,importOrigin);
+      await recomputarAgregados(newDocRef.id);
       avancarItem(true);
     });
 
@@ -784,7 +795,6 @@
       s.sort((x,y)=>y.score-x.score); return s.slice(0,topN);
     }
 
-    // NF-e XML -> coloca itens na fila SEM gravar
     async function onPickXmlFile(evt){
       const file=evt.target.files && evt.target.files[0];
       if(!file) return;
@@ -806,7 +816,6 @@
       }
     }
 
-    // Metadados da NF-e (emissor/ide)
     function extrairMetaNfe(xmlStr){
       const parser=new DOMParser();
       const xml=parser.parseFromString(xmlStr,"text/xml");
@@ -819,7 +828,6 @@
       return { emissao: dh, numero: nNF, loja };
     }
 
-    // Itens da NF-e
     function extrairItensDaNfe(xmlStr){
       const parser=new DOMParser();
       const xml=parser.parseFromString(xmlStr,"text/xml");
@@ -840,12 +848,8 @@
       return itens;
     }
 
-    // Entrada em material existente
-    async function registrarEntradaEmMaterialExistente(docId,item,origem){
-      const ref=db.collection('materiais').doc(docId);
-      const snap=await ref.get();
-      if(!snap.exists) throw new Error(`Documento "${docId}" não encontrado.`);
-
+    async function registrarEntradaEmMaterialExistente(id, item, origem){
+      const ref=db.collection('materiais').doc(id);
       const agoraISO=new Date().toISOString();
       const dataCompraISO = item.dataCompra || new Date().toISOString();
 
@@ -867,6 +871,7 @@
     // ---------- COMPRAS MANUAIS ----------
     const compraModal=document.getElementById('compraModal');
     const compraForm=document.getElementById('compraForm');
+    const compraId=document.getElementById('compraId');
     const compraNome=document.getElementById('compraNome');
     const compraData=document.getElementById('compraData');
     const compraQtd=document.getElementById('compraQtd');
@@ -876,7 +881,9 @@
     const compraLoja=document.getElementById('compraLoja');
     const compraNF=document.getElementById('compraNF');
     document.getElementById('btnFecharCompra').addEventListener('click', ()=>compraModal.classList.add('hidden'));
-    function abrirModalCompra(nome){
+
+    function abrirModalCompra(id, nome){
+      compraId.value = id;
       compraNome.value = nome;
       compraData.value = new Date().toISOString().slice(0,10);
       compraQtd.value = '';
@@ -890,10 +897,9 @@
 
     compraForm.addEventListener('submit', async (e)=>{
       e.preventDefault();
-      const nome=compraNome.value;
+      const id=compraId.value;
       const dataCompraISO = compraData.value ? new Date(compraData.value + "T12:00:00Z").toISOString() : new Date().toISOString();
       const item={
-        nome,
         qtd: parseFloat(compraQtd.value || '0'),
         preco: parseFloat(compraPreco.value || '0'),
         lote: (compraLote.value || null),
@@ -907,27 +913,29 @@
       if (isNaN(item.preco) || item.preco < 0){ showCustomModal('Aviso','Informe um preço válido.','alert'); return; }
 
       try{
-        await registrarEntradaEmMaterialExistente(nome, item, 'manual');
+        await registrarEntradaEmMaterialExistente(id, item, 'manual');
         compraModal.classList.add('hidden');
-        await recomputarAgregados(nome);
+        await recomputarAgregados(id);
         await carregarMateriais();
         showCustomModal('Sucesso','Compra registrada com sucesso!','alert');
       }catch(err){ console.error(err); showCustomModal('Erro','Falha ao registrar compra: '+err.message,'alert');
       }
     });
+
     // ---------- HISTÓRICO ----------
     const historicoModal=document.getElementById('historicoModal');
     const historicoTitulo=document.getElementById('historicoTitulo');
     const historicoTabela=document.getElementById('historicoTabela');
     const btnExportarHistorico=document.getElementById('btnExportarHistorico');
     document.getElementById('btnFecharHistorico').addEventListener('click', ()=>historicoModal.classList.add('hidden'));
-    async function abrirHistoricoCompras(nome){
-      historicoContext = { nome, compras: [], editId: null };
+
+    async function abrirHistoricoCompras(id, nome){
+      historicoContext = { id, nome, compras: [], editId: null };
       historicoTitulo.textContent = `Produto: ${nome}`;
       historicoTabela.innerHTML = '<tr><td class="p-2 border text-center text-gray-500" colspan="10">Carregando...</td></tr>';
       historicoModal.classList.remove('hidden');
       try{
-        const snap = await db.collection('materiais').doc(nome).collection('compras').orderBy('dataCompra','desc').limit(500).get();
+        const snap = await db.collection('materiais').doc(id).collection('compras').orderBy('dataCompra','desc').limit(500).get();
         if (snap.empty){ historicoTabela.innerHTML = '<tr><td class="p-2 border text-center text-gray-500" colspan="10">Sem registros.</td></tr>'; return;
         }
         let rows=[]; snap.forEach(doc=>rows.push({ id:doc.id, ...doc.data() }));
@@ -983,7 +991,7 @@
     const editCompraNF = document.getElementById('editCompraNF');
     document.getElementById('btnFecharEditarCompra').addEventListener('click', ()=>editarCompraModal.classList.add('hidden'));
 
-    window._editarCompra = async (id)=>{
+    window._editarCompra = async (id) => {
       const row = historicoContext.compras.find(x=>x.id===id);
       if(!row) return;
       historicoContext.editId = id;
@@ -998,8 +1006,9 @@
     };
     editarCompraForm.addEventListener('submit', async (e)=>{
       e.preventDefault();
-      const id = historicoContext.editId; if(!id) return;
-      const ref = db.collection('materiais').doc(historicoContext.nome).collection('compras').doc(id);
+      const compraId = historicoContext.editId; if(!compraId) return;
+      const materialId = historicoContext.id;
+      const ref = db.collection('materiais').doc(materialId).collection('compras').doc(compraId);
       
       const novo = {
         dataCompra: new Date(editCompraData.value + "T12:00:00Z").toISOString(),
@@ -1016,34 +1025,33 @@
 
       await ref.update(novo);
       editarCompraModal.classList.add('hidden');
-      await recomputarAgregados(historicoContext.nome);
-      await abrirHistoricoCompras(historicoContext.nome);
+      await recomputarAgregados(materialId);
+      await abrirHistoricoCompras(materialId, historicoContext.nome);
       await carregarMateriais();
       showCustomModal('Sucesso','Compra atualizada.','alert');
     });
-    window._excluirCompra = async (id)=>{
+    window._excluirCompra = async (compraId)=>{
       const ok = await showCustomModal('Confirmar','Excluir este registro de compra? A ação não pode ser desfeita.','confirm');
       if(!ok) return;
-      const ref = db.collection('materiais').doc(historicoContext.nome).collection('compras').doc(id);
+      const materialId = historicoContext.id;
+      const ref = db.collection('materiais').doc(materialId).collection('compras').doc(compraId);
       await ref.delete();
 
-      await recomputarAgregados(historicoContext.nome);
-      await abrirHistoricoCompras(historicoContext.nome);
+      await recomputarAgregados(materialId);
+      await abrirHistoricoCompras(materialId, historicoContext.nome);
       await carregarMateriais();
       showCustomModal('Sucesso','Registro de compra excluído.','alert');
     };
 
-    async function recomputarAgregados(nome){
-      const matRef = db.collection('materiais').doc(nome);
+    async function recomputarAgregados(id){
+      const matRef = db.collection('materiais').doc(id);
       const compSnap = await matRef.collection('compras').orderBy('dataCompra', 'desc').get();
       
       let ultimaCompra = null;
       let menorValidade = null;
-      let todasCompras = [];
 
       compSnap.forEach(doc => {
         const c = doc.data();
-        todasCompras.push(c);
         if (!ultimaCompra) {
           ultimaCompra = c;
         }
