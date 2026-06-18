@@ -111,11 +111,14 @@
 
       <div class="w-full md:w-3/4">
         <div id="purchaseListActionsContainer" class="flex flex-wrap items-center justify-end gap-3 p-4 bg-secondary-light rounded-lg mb-6 shadow-sm hidden">
-          <button id="btnCopiarLista" class="bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-text-dark transition">
+                    <button id="btnCopiarLista" class="bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-text-dark transition">
             Copiar Lista
           </button>
           <button id="btnMostrarTodos" class="bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-primary-dark transition">
              Mostrar Todos os Itens
+          </button>
+          <button id="btnIniciarConferencia" class="bg-primary-dark text-white px-4 py-2 rounded-lg shadow hover:opacity-90 transition font-medium">
+            🔄 Modo Conferência
           </button>
         </div>
 
@@ -326,6 +329,96 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- Modal do Modo Conferência -->
+  <div id="modalConferencia" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 animate-fade-in">
+    <div class="bg-background-light w-full max-w-md p-6 rounded-lg shadow-xl mx-4 text-text-dark flex flex-col justify-between min-h-[400px]">
+      
+      <!-- TELA 1: SELEÇÃO DE CATEGORIA -->
+      <div id="confTelaSelecao" class="flex flex-col h-full justify-between flex-grow">
+        <div>
+          <h2 class="text-xl font-bold text-primary-dark mb-2">Conferência de Estoque</h2>
+          <p class="text-sm text-gray-600 mb-4">Escolha uma categoria para conferir os materiais item por item:</p>
+          
+          <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Categoria</label>
+          <select id="confSelectCategoria" class="w-full p-2.5 border border-gray-300 rounded bg-white focus:outline-none focus:border-primary-dark">
+            <option value="todos">Todas as Categorias</option>
+            <option value="ortodontia">Ortodontia</option>
+            <option value="prótese">Prótese</option>
+            <option value="dentística">Dentística</option>
+            <option value="cirurgia">Cirurgia</option>
+            <option value="descartáveis">Descartáveis</option>
+          </select>
+        </div>
+        
+        <div class="flex justify-end gap-2 mt-6">
+          <button id="btnFecharConf" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm font-medium">Cancelar</button>
+          <button id="btnComecarFluxo" class="px-4 py-2 bg-primary-dark text-white rounded hover:opacity-90 text-sm font-medium">Iniciar</button>
+        </div>
+      </div>
+
+      <!-- TELA 2: FLUXO DE ITENS (CARD INTERATIVO) -->
+      <div id="confTelaCard" class="hidden flex flex-col justify-between flex-grow">
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <span id="confBadgeCategoria" class="text-xs font-bold px-2.5 py-1 bg-secondary-light text-primary-dark rounded-full uppercase">Categoria</span>
+            <span id="confProgressoTexto" class="text-xs text-gray-500 font-semibold">Item 0 de 0</span>
+          </div>
+          
+          <div class="w-full bg-gray-200 h-2 rounded-full mb-6 overflow-hidden">
+            <div id="confBarraProgresso" class="bg-primary-dark h-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+
+          <div class="text-center py-8 px-4 border border-gray-100 rounded-xl mb-6 bg-gray-50/50 min-h-[140px] flex flex-col justify-center items-center">
+            <h3 id="confNomeItem" class="text-2xl font-bold text-text-dark tracking-tight break-words max-w-xs">Carregando item...</h3>
+            <p id="confInfoEstoque" class="text-sm text-gray-500 mt-2 font-medium">Quantidade atual: --</p>
+          </div>
+        </div>
+
+        <div>
+          <div class="grid grid-cols-2 gap-4 mb-6">
+            <button id="btnConfComprar" class="py-4 bg-danger-red text-white font-bold rounded-xl shadow-sm hover:opacity-95 transition-all flex flex-col items-center justify-center gap-1 active:scale-95">
+              <span class="text-xl">🛒</span>
+              <span class="text-sm">Falta / Comprar</span>
+            </button>
+            <button id="btnConfOk" class="py-4 bg-emerald-600 text-white font-bold rounded-xl shadow-sm hover:opacity-95 transition-all flex flex-col items-center justify-center gap-1 active:scale-95">
+              <span class="text-xl">✅</span>
+              <span class="text-sm">Estoque OK</span>
+            </button>
+          </div>
+
+          <div class="flex justify-between items-center border-t border-gray-100 pt-4">
+            <button id="btnConfVoltar" class="text-xs font-bold text-gray-400 hover:text-text-dark transition flex items-center gap-1 disabled:opacity-30 disabled:pointer-events-none">
+              ← Voltar anterior
+            </button>
+            <button id="btnConfPular" class="text-xs font-bold text-primary-dark hover:underline flex items-center gap-1">
+              Pular item →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TELA 3: RESUMO E SALVAMENTO -->
+      <div id="confTelaResumo" class="hidden flex flex-col justify-between flex-grow">
+        <div>
+          <h2 class="text-xl font-bold text-primary-dark mb-1">Revisão da Conferência</h2>
+          <p class="text-sm text-gray-600 mb-4">Veja as marcações geradas antes de atualizar o estoque permanente:</p>
+          
+          <div id="confListaResumo" class="max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-2 bg-gray-50 space-y-1.5 text-sm">
+            <!-- Gerado dinamicamente via JavaScript -->
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 mt-6 border-t border-gray-100 pt-4">
+          <button id="btnConfRefazer" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm font-medium">Ajustar Itens</button>
+          <button id="btnConfSalvar" class="px-4 py-2 bg-primary-dark text-white rounded hover:opacity-90 text-sm font-medium shadow-sm">
+            Gravar Alterações
+          </button>
+        </div>
+      </div>
+
+    </div>
   </div>
 
   <script>
@@ -1235,6 +1328,141 @@
       if(user){ document.getElementById('loginContainer').classList.add('hidden'); document.getElementById('mainContainer').classList.remove('hidden'); carregarMateriais(); }
       else { document.getElementById('loginContainer').classList.remove('hidden'); document.getElementById('mainContainer').classList.add('hidden'); }
     });
+
+    // === Variáveis e Lógica do Modo Conferência ===
+    let itensParaConferir = [];
+    let respostasConferencia = []; 
+    let indexItemAtual = 0;
+
+    function abrirModalConferencia() {
+      document.getElementById('modalConferencia').classList.remove('hidden');
+      alternarTelasConferencia('selecao');
+    }
+
+    function fecharModalConferencia() {
+      document.getElementById('modalConferencia').classList.add('hidden');
+      itensParaConferir = [];
+      respostasConferencia = [];
+      indexItemAtual = 0;
+    }
+
+    function alternarTelasConferencia(tela) {
+      document.getElementById('confTelaSelecao').classList.toggle('hidden', tela !== 'selecao');
+      document.getElementById('confTelaCard').classList.toggle('hidden', tela !== 'card');
+      document.getElementById('confTelaResumo').classList.toggle('hidden', tela !== 'resumo');
+    }
+
+    async function iniciarFluxoConferencia() {
+      const categoriaSelecionada = document.getElementById('confSelectCategoria').value;
+      let query = db.collection('materiais'); // db já está definido globalmente no seu código
+      if (categoriaSelecionada !== 'todos') {
+        query = query.where('categoria', '==', categoriaSelecionada);
+      }
+      try {
+        const snapshot = await query.get();
+        itensParaConferir = [];
+        snapshot.forEach(doc => {
+          itensParaConferir.push({ id: doc.id, ...doc.data() });
+        });
+        if (itensParaConferir.length === 0) {
+          alert('Nenhum item localizado sob esta categoria específica.');
+          return;
+        }
+        indexItemAtual = 0;
+        respostasConferencia = [];
+        alternarTelasConferencia('card');
+        renderizarItemAtual();
+      } catch (error) {
+        console.error("Erro ao coletar lista para conferência:", error);
+        alert("Falha na comunicação ao estruturar a lista de verificação.");
+      }
+    }
+
+    function renderizarItemAtual() {
+      if (indexItemAtual >= itensParaConferir.length) {
+        exibirResumoConferencia();
+        return;
+      }
+      const item = itensParaConferir[indexItemAtual];
+      document.getElementById('confBadgeCategoria').innerText = item.categoria || 'Geral';
+      document.getElementById('confNomeItem').innerText = item.nome;
+      document.getElementById('confInfoEstoque').innerText = `Quantidade atual: ${item.quantidade || 0} ${item.unidade || 'un'}`;
+      
+      const total = itensParaConferir.length;
+      const atual = indexItemAtual + 1;
+      document.getElementById('confProgressoTexto').innerText = `Item ${atual} de ${total}`;
+      const porcentagem = (atual / total) * 100;
+      document.getElementById('confBarraProgresso').style.width = `${porcentagem}%`;
+      document.getElementById('btnConfVoltar').disabled = (indexItemAtual === 0);
+    }
+
+    function registrarDecisao(precisaComprar) {
+      const item = itensParaConferir[indexItemAtual];
+      respostasConferencia[indexItemAtual] = { id: item.id, nome: item.nome, precisaComprar: precisaComprar };
+      indexItemAtual++;
+      renderizarItemAtual();
+    }
+
+    function pularItem() {
+      indexItemAtual++;
+      renderizarItemAtual();
+    }
+
+    function voltarItem() {
+      if (indexItemAtual > 0) {
+        indexItemAtual--;
+        renderizarItemAtual();
+      }
+    }
+
+    function exibirResumoConferencia() {
+      alternarTelasConferencia('resumo');
+      const containerResumo = document.getElementById('confListaResumo');
+      containerResumo.innerHTML = '';
+      let itensContabilizados = 0;
+      respostasConferencia.forEach(resp => {
+        if (!resp) return;
+        const row = document.createElement('div');
+        row.className = 'flex justify-between items-center p-2 bg-white rounded border border-gray-100 shadow-sm text-xs font-medium';
+        const tag = resp.precisaComprar 
+          ? '<span class="px-2 py-0.5 rounded bg-red-100 text-red-700 font-bold uppercase text-[10px]">Falta / Comprar</span>' 
+          : '<span class="px-2 py-0.5 rounded bg-green-100 text-green-700 font-bold uppercase text-[10px]">OK</span>';
+        row.innerHTML = `<span class="text-text-dark">${resp.nome}</span> ${tag}`;
+        containerResumo.appendChild(row);
+        itensContabilizados++;
+      });
+      if (itensContabilizados === 0) {
+        containerResumo.innerHTML = '<p class="text-gray-400 text-center py-4 text-xs">Nenhum item recebeu nova marcação.</p>';
+      }
+    }
+
+    async function salvarDadosConferencia() {
+      const batch = db.batch();
+      let alteracoes = 0;
+      respostasConferencia.forEach(resp => {
+        if (!resp) return;
+        const docRef = db.collection('materiais').doc(resp.id);
+        batch.update(docRef, { precisaComprar: resp.precisaComprar });
+        alteracoes++;
+      });
+      if (alteracoes === 0) {
+        fecharModalConferencia();
+        return;
+      }
+      try {
+        await batch.commit();
+        alert('Conferência finalizada! O status da lista de compras foi sincronizado.');
+        fecharModalConferencia();
+        if (typeof carregarMateriais === 'function') {
+          carregarMateriais();
+        }
+      } catch (error) {
+        console.error("Erro ao consolidar lote de alterações:", error);
+        alert("Ocorreu um erro ao atualizar os registros no Firebase.");
+      }
+    }
+    // ============================================
+
     // UI listeners
     document.getElementById('btnAbrirModal').addEventListener('click', abrirModal);
     document.getElementById('btnFecharModal').addEventListener('click', fecharModal);
@@ -1247,6 +1475,18 @@
     document.getElementById('btnBuscar').addEventListener('click', buscarMateriais);
     document.getElementById('btnGerarRelatorio').addEventListener('click', gerarRelatorio);
     document.getElementById('btnAdvancedOptions').addEventListener('click', ()=>document.getElementById('advancedOptionsContainer').classList.toggle('hidden'));
+
+    // Listeners do Modo Conferência
+    document.getElementById('btnIniciarConferencia').addEventListener('click', abrirModalConferencia);
+    document.getElementById('btnFecharConf').addEventListener('click', fecharModalConferencia);
+    document.getElementById('btnComecarFluxo').addEventListener('click', iniciarFluxoConferencia);
+    document.getElementById('btnConfComprar').addEventListener('click', () => registrarDecisao(true));
+    document.getElementById('btnConfOk').addEventListener('click', () => registrarDecisao(false));
+    document.getElementById('btnConfPular').addEventListener('click', pularItem);
+    document.getElementById('btnConfVoltar').addEventListener('click', voltarItem);
+    document.getElementById('btnConfRefazer').addEventListener('click', () => alternarTelasConferencia('card'));
+    document.getElementById('btnConfSalvar').addEventListener('click', salvarDadosConferencia);
+
     document.addEventListener('click', (e)=>{ document.querySelectorAll('.dropdown-content').forEach(d=>{ if(!d.classList.contains('hidden') && !d.parentElement.contains(e.target)) d.classList.add('hidden'); }); });
   });
   </script>
