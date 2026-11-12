@@ -28,11 +28,18 @@
   <style>
     ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#f1f1f1;border-radius:10px}
     ::-webkit-scrollbar-thumb{background:#888;border-radius:10px}::-webkit-scrollbar-thumb:hover{background:#555}
+    
+    /* Configurações específicas para Impressão */
+    @media print {
+      @page { margin: 1cm; }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: white !important; }
+      #mainContainer { max-width: 100% !important; box-shadow: none !important; margin: 0 !important; padding: 0 !important; }
+    }
   </style>
 </head>
 <body class="font-sans bg-background-light min-h-screen flex flex-col items-center p-4">
 
-  <div id="customModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div id="customModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden print:hidden">
     <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
       <h3 id="modalTitle" class="text-xl font-semibold mb-4 text-text-dark"></h3>
       <p id="modalMessage" class="mb-6 text-gray-700"></p>
@@ -40,7 +47,7 @@
     </div>
   </div>
 
-  <div id="loginContainer" class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md hidden">
+  <div id="loginContainer" class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md hidden print:hidden">
     <h2 class="text-3xl font-bold text-center text-primary-dark mb-6">Login - Controle de Estoque</h2>
     <form id="loginForm" class="space-y-4">
        <input type="email" id="email" placeholder="E-mail" required
@@ -55,7 +62,8 @@
   </div>
 
   <div id="mainContainer" class="container bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-6xl hidden">
-    <div class="flex flex-wrap items-center justify-center gap-3 md:gap-4 p-4 bg-secondary-light rounded-lg mb-6 shadow-sm">
+    <!-- Adicionado print:hidden -->
+    <div class="flex flex-wrap items-center justify-center gap-3 md:gap-4 p-4 bg-secondary-light rounded-lg mb-6 shadow-sm print:hidden">
       <input type="text" id="searchInput" placeholder="Buscar material..."
              class="flex-1 min-w-[150px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
       <button id="btnBuscar"
@@ -74,9 +82,15 @@
               class="flex-1 min-w-[150px] bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-primary-dark transition">
         Avançado
       </button>
+      <!-- NOVO BOTÃO DE IMPRIMIR -->
+      <button id="btnImprimirFicha"
+              class="flex-1 min-w-[150px] bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 focus:ring-2 focus:ring-gray-400 transition print:hidden">
+        🖨️ Imprimir Ficha
+      </button>
     </div>
 
-    <div id="advancedOptionsContainer" class="flex flex-wrap items-center justify-center gap-3 md:gap-4 p-4 bg-secondary-light rounded-lg mb-6 shadow-sm hidden">
+    <!-- Adicionado print:hidden -->
+    <div id="advancedOptionsContainer" class="flex flex-wrap items-center justify-center gap-3 md:gap-4 p-4 bg-secondary-light rounded-lg mb-6 shadow-sm hidden print:hidden">
       <button id="btnAbrirModal"
                class="flex-1 min-w-[150px] bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-primary-dark transition">
         Adicionar Novo Item
@@ -104,13 +118,16 @@
     </div>
 
     <div class="flex flex-col md:flex-row w-full gap-6">
-      <div class="w-full md:w-1/4 bg-white p-4 rounded-xl shadow-lg h-fit">
+      <!-- Adicionado print:hidden -->
+      <div class="w-full md:w-1/4 bg-white p-4 rounded-xl shadow-lg h-fit print:hidden">
         <h2 class="text-xl font-bold text-primary-dark mb-4">Categorias</h2>
         <div id="categorySidebar" class="space-y-2"></div>
        </div>
 
-      <div class="w-full md:w-3/4">
-        <div id="purchaseListActionsContainer" class="flex flex-wrap items-center justify-end gap-3 p-4 bg-secondary-light rounded-lg mb-6 shadow-sm hidden">
+      <!-- Adicionado print:w-full -->
+      <div class="w-full md:w-3/4 print:w-full">
+        <!-- Adicionado print:hidden -->
+        <div id="purchaseListActionsContainer" class="flex flex-wrap items-center justify-end gap-3 p-4 bg-secondary-light rounded-lg mb-6 shadow-sm hidden print:hidden">
                     <button id="btnCopiarLista" class="bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-text-dark transition">
             Copiar Lista
           </button>
@@ -122,11 +139,22 @@
           </button>
         </div>
 
-        <div id="materialList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        <!-- NOVO CABEÇALHO DE IMPRESSÃO -->
+        <div id="printHeader" class="hidden print:block mb-4 border-b-2 border-gray-800 pb-2">
+          <h2 id="printTitle" class="text-2xl font-bold uppercase text-black">Conferência de Estoque</h2>
+          <div class="flex justify-between mt-2 text-sm text-black">
+            <p>Data: ____/____/________</p>
+            <p>Responsável: ___________________________</p>
+          </div>
+        </div>
+
+        <!-- Adicionado print:grid-cols-3 print:gap-2 print:mt-4 -->
+        <div id="materialList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 print:grid-cols-3 print:gap-2 print:mt-4"></div>
       </div>
     </div>
 
-    <div id="cadastroModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
+    <!-- Modais omitidos na impressão (print:hidden) -->
+    <div id="cadastroModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden print:hidden">
       <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
         <div class="flex justify-between items-center mb-4">
            <h3 class="text-2xl font-semibold text-primary-dark">Cadastrar Novo Material</h3>
@@ -161,7 +189,7 @@
          </div>
     </div>
 
-    <div id="editarModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
+    <div id="editarModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden print:hidden">
       <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-2xl font-semibold text-primary-dark">Editar Material</h3>
@@ -198,7 +226,7 @@
       </div>
     </div>
 
-    <div id="nfeMatchModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div id="nfeMatchModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden print:hidden">
       <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl mx-4">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-2xl font-semibold text-primary-dark">Conferir item importado</h3>
@@ -255,7 +283,7 @@
       </div>
     </div>
 
-    <div id="compraModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div id="compraModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden print:hidden">
       <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-2xl font-semibold text-primary-dark">Registrar compra</h3>
@@ -278,7 +306,7 @@
       </div>
     </div>
 
-    <div id="historicoModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div id="historicoModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden print:hidden">
       <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl mx-4">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-2xl font-semibold text-primary-dark">Histórico de compras</h3>
@@ -310,7 +338,7 @@
       </div>
     </div>
 
-    <div id="editarCompraModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div id="editarCompraModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden print:hidden">
       <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-2xl font-semibold text-primary-dark">Editar compra</h3>
@@ -332,7 +360,7 @@
   </div>
 
   <!-- Modal do Modo Conferência -->
-  <div id="modalConferencia" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 animate-fade-in">
+  <div id="modalConferencia" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 animate-fade-in print:hidden">
     <div class="bg-background-light w-full max-w-md p-6 rounded-lg shadow-xl mx-4 text-text-dark flex flex-col justify-between min-h-[400px]">
       
       <!-- TELA 1: SELEÇÃO DE CATEGORIA -->
@@ -520,6 +548,7 @@
     function toISODateInput(dStr){ if(!dStr) return ''; const d=new Date(dStr); if(!isNaN(d)) return d.toISOString().slice(0,10); const p=dStr.split('T')[0]; return p||'';
     }
     const isFuture = (iso)=> iso && new Date(iso).getTime() >= (new Date().setHours(0,0,0,0));
+    
     // carregar/render
     async function carregarMateriais(){
       try{
@@ -560,42 +589,55 @@
       const lista=document.getElementById('materialList');
       lista.innerHTML='';
       if(!mats.length){ lista.innerHTML='<p class="text-center text-gray-600 col-span-full">Nenhum material encontrado.</p>'; return; }
+      
       mats.sort((a,b)=>a.nome.localeCompare(b.nome)).forEach(m=>{
         const card=document.createElement('div');
-        card.className=`material-item bg-white rounded-lg shadow-md flex flex-col transition hover:shadow-lg`;
+        // ATUALIZADO: Classes de impressão no card
+        card.className=`material-item bg-white rounded-lg shadow-md flex flex-col transition hover:shadow-lg print:shadow-none print:border print:border-gray-300 print:rounded-sm print:flex-row print:items-center print:p-2 print:break-inside-avoid`;
 
-        const imgBox=document.createElement('div'); imgBox.className='w-full h-48 bg-white flex items-center justify-center';
+        const imgBox=document.createElement('div'); 
+        // ATUALIZADO: Imagem vira miniatura quadrada na impressão
+        imgBox.className='w-full h-48 bg-white flex items-center justify-center print:w-12 print:h-12 print:flex-shrink-0 print:border print:border-gray-200 print:rounded';
         const img=document.createElement('img');
         img.src=m.imagem || 'https://placehold.co/300x300/BFBFBF/585856?text=Sem+Imagem';
-        img.alt=`Imagem de ${m.nome}`; img.className= m.imagem ? 'w-full h-full object-contain' : 'w-24 h-24 object-contain';
-         img.onerror=()=>{ img.src='https://placehold.co/300x300/BFBFBF/585856?text=Sem+Imagem'; img.className='w-24 h-24 object-contain'; };
+        img.alt=`Imagem de ${m.nome}`; 
+        // ATUALIZADO: Tamanho da imagem na impressão
+        img.className= m.imagem ? 'w-full h-full object-contain print:object-cover' : 'w-24 h-24 object-contain print:w-8 print:h-8';
+        img.onerror=()=>{ img.src='https://placehold.co/300x300/BFBFBF/585856?text=Sem+Imagem'; img.className='w-24 h-24 object-contain'; };
         imgBox.appendChild(img); card.appendChild(imgBox);
 
-        const info=document.createElement('div'); info.className='p-4 flex-grow';
+        const info=document.createElement('div'); 
+        // ATUALIZADO: Informações comprimidas para não quebrar a linha na folha A4
+        info.className='p-4 flex-grow print:p-2 print:m-0 print:flex print:flex-col print:justify-center';
         const marcadoEmHtml = m.marcadoParaCompraEm ? `<p class="text-sm text-green-700 font-semibold mt-2">Marcado em: ${toBRDate(m.marcadoParaCompraEm)}</p>` : '';
         
         info.innerHTML = `
-          <h3 class="text-lg font-bold text-text-dark mb-1">${m.nome}</h3>
-          <p class="text-sm text-gray-600 mb-3"><em>${categorias[m.categoria] || m.categoria || '-'}</em></p>
+          <h3 class="text-lg font-bold text-text-dark mb-1 print:text-xs print:leading-tight print:mb-0 line-clamp-2">${m.nome}</h3>
+          <p class="text-sm text-gray-600 mb-3 print:hidden"><em>${categorias[m.categoria] || m.categoria || '-'}</em></p>
           
-          <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-gray-800">
+          <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-gray-800 print:hidden">
             <span class="font-semibold text-gray-500">Última Compra:</span>
             <span>${toBRDate(m.ultimaCompraEm)}</span>
-
             <span class="font-semibold text-gray-500">Qtd Comprada:</span>
             <span class="font-bold">${m.quantidade ?? 0}</span>
-            
             <span class="font-semibold text-gray-500">Preço Unit.:</span>
             <span>R$ ${m.precoCompra!=null ? fmtMoeda(m.precoCompra) : '-'}</span>
-
             <span class="font-semibold text-gray-500">Validade Próxima:</span>
             <span>${m.validadeUltimaCompra ? toBRDate(m.validadeUltimaCompra) : 'N/A'}</span>
           </div>
-          ${marcadoEmHtml}
+          <div class="print:hidden">${marcadoEmHtml}</div>
         `;
         card.appendChild(info);
 
-        const controls=document.createElement('div'); controls.className='p-4 bg-gray-50 border-t border-gray-100 flex flex-col space-y-3';
+        // NOVO: Quadrado em branco para caneta na impressão
+        const printBox = document.createElement('div');
+        printBox.className = 'hidden print:flex print:items-center print:justify-center print:w-12 print:h-10 print:border-2 print:border-gray-500 print:rounded print:ml-auto print:mr-1 print:flex-shrink-0';
+        printBox.innerHTML = '<span class="text-gray-300 text-[8px] font-bold">QTD</span>';
+        card.appendChild(printBox);
+
+        const controls=document.createElement('div'); 
+        // ATUALIZADO: Esconder botões na impressão
+        controls.className='p-4 bg-gray-50 border-t border-gray-100 flex flex-col space-y-3 print:hidden';
         const btnComprar=document.createElement('button');
         btnComprar.textContent = m.marcadoParaCompraEm ? 'Na Lista de Compras' : 'Adicionar à Lista';
         btnComprar.className = `w-full py-2 px-4 rounded-lg font-semibold transition transform hover:scale-105 ${m.marcadoParaCompraEm ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-primary-dark text-white hover:bg-opacity-90'}`;
@@ -1505,6 +1547,13 @@
     document.getElementById('btnBuscar').addEventListener('click', buscarMateriais);
     document.getElementById('btnGerarRelatorio').addEventListener('click', gerarRelatorio);
     document.getElementById('btnAdvancedOptions').addEventListener('click', ()=>document.getElementById('advancedOptionsContainer').classList.toggle('hidden'));
+
+    // NOVO: Ação do botão de imprimir
+    document.getElementById('btnImprimirFicha').addEventListener('click', () => {
+      const catName = categoriaSelecionada === 'todos' ? 'Todas as Categorias' : (categorias[categoriaSelecionada] || categoriaSelecionada);
+      document.getElementById('printTitle').innerText = `Contagem: ${catName}`;
+      window.print();
+    });
 
     // Listeners do Modo Conferência
     document.getElementById('btnIniciarConferencia').addEventListener('click', abrirModalConferencia);
