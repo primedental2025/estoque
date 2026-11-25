@@ -39,10 +39,10 @@
 </head>
 <body class="font-sans bg-background-light min-h-screen flex flex-col items-center p-4">
 
-  <div id="customModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden print:hidden">
-    <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
+  <div id="customModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] hidden print:hidden">
+    <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center mx-4">
       <h3 id="modalTitle" class="text-xl font-semibold mb-4 text-text-dark"></h3>
-      <p id="modalMessage" class="mb-6 text-gray-700"></p>
+      <p id="modalMessage" class="mb-6 text-gray-700 whitespace-pre-line"></p>
       <div id="modalActions" class="flex justify-center space-x-4"></div>
     </div>
   </div>
@@ -62,9 +62,12 @@
   </div>
 
   <div id="mainContainer" class="container bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-6xl hidden">
+    <div id="bannerTeste" class="hidden mb-4 p-3 rounded-lg bg-amber-100 text-amber-900 text-sm text-center font-semibold print:hidden">
+      🧪 Versão de teste. Usa o mesmo banco de dados do site principal: o que for registrado aqui vale de verdade.
+    </div>
     <!-- Adicionado print:hidden -->
     <div class="flex flex-wrap items-center justify-center gap-3 md:gap-4 p-4 bg-secondary-light rounded-lg mb-6 shadow-sm print:hidden">
-      <input type="text" id="searchInput" placeholder="Buscar material..."
+      <input type="text" id="searchInput" placeholder="Buscar material ou marca..."
              class="flex-1 min-w-[150px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
       <button id="btnBuscar"
               class="flex-1 min-w-[100px] bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-text-dark transition">
@@ -183,6 +186,13 @@
             <option value="protese">Prótese</option>
             <option value="implantodontia">Implantodontia</option>
           </select>
+          <div class="grid grid-cols-2 gap-3">
+            <input type="text" id="unidadeContagem" placeholder="Contar em (ex.: pacote)"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+            <input type="number" id="estoqueMinimo" min="0" step="any" placeholder="Estoque mínimo"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+          </div>
+          <p class="text-xs text-gray-500 -mt-2">Opcional. Na conferência, o item vai para a lista de compras quando a contagem for igual ou menor que o mínimo.</p>
           <input type="file" id="imagem" accept="image/*"
                   class="w-full px-4 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-primary-dark hover:file:bg-blue-100">
           <button type="submit"
@@ -220,6 +230,19 @@
             <option value="protese">Prótese</option>
              <option value="implantodontia">Implantodontia</option>
           </select>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="editUnidadeContagem" class="block text-xs text-gray-600 mb-1">Contar em</label>
+              <input type="text" id="editUnidadeContagem" placeholder="ex.: pacote, caixa, frasco"
+                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+            </div>
+            <div>
+              <label for="editEstoqueMinimo" class="block text-xs text-gray-600 mb-1">Estoque mínimo</label>
+              <input type="number" id="editEstoqueMinimo" min="0" step="any" placeholder="ex.: 3"
+                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+            </div>
+          </div>
+          <p class="text-xs text-gray-500 -mt-2">Na conferência, o item vai para a lista de compras quando a contagem for igual ou menor que o mínimo.</p>
           <input type="file" id="editImagem" accept="image/*"
                  class="w-full px-4 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-primary-dark hover:file:bg-blue-100">
            <button type="submit"
@@ -231,64 +254,74 @@
     </div>
 
     <div id="nfeMatchModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden print:hidden">
-      <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl mx-4">
+      <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[92vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-2xl font-semibold text-primary-dark">Conferir item importado</h3>
           <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharNfeMatch">&times;</button>
         </div>
         <div class="space-y-2 mb-4">
-          <p class="text-sm text-gray-500">Passo <span id="nfeStepIdx">1</span> de <span id="nfeStepTotal">1</span></p>
-           <div class="bg-secondary-light rounded-lg p-3">
+          <p class="text-sm text-gray-500">Passo <span id="nfeStepIdx">1</span> de <span id="nfeStepTotal">1</span> <span id="nfeResumoAuto" class="ml-2 text-emerald-700 font-medium"></span></p>
+          <div class="bg-secondary-light rounded-lg p-3">
             <div class="text-sm text-gray-600">Item importado:</div>
             <div id="nfeItemNome" class="font-semibold text-text-dark"></div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 text-sm">
               <div><span class="text-gray-600">Qtd:</span> <span id="nfeItemQtd"></span></div>
               <div><span class="text-gray-600">Preço unit.:</span> R$ <span id="nfeItemPreco"></span></div>
-               <div><span class="text-gray-600">Lote:</span> <span id="nfeItemLote"></span></div>
+              <div><span class="text-gray-600">Lote:</span> <span id="nfeItemLote"></span></div>
               <div><span class="text-gray-600">Validade:</span> <span id="nfeItemVal"></span></div>
             </div>
+            <div id="nfeItemCodigo" class="text-xs text-gray-500 mt-2"></div>
           </div>
+          <div id="nfeAviso" class="hidden space-y-1"></div>
         </div>
         <div class="space-y-3">
-          <label class="block text-sm text-gray-700">Sugerido do seu estoque (melhores correspondências):</label>
+          <label for="nfeCandidateSelect" class="block text-sm font-semibold text-gray-700">1. Item do estoque</label>
           <select id="nfeCandidateSelect" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-primary-dark focus:border-primary-dark"></select>
-             <div class="flex gap-2">
-            <input id="nfeNewName" type="text" placeholder="(Opcional) Nome padronizado / novo produto"
-                   class="flex-1 border border-gray-300 rounded-lg p-2 focus:ring-primary-dark focus:border-primary-dark">
-            <select id="nfeNewCategory" class="w-60 border border-gray-300 rounded-lg p-2 focus:ring-primary-dark focus:border-primary-dark">
-              <option value="">Categoria (se novo)</option>
-               <option value="biosseguranca">Biossegurança</option>
-              <option value="brocas">Brocas</option>
-              <option value="cirurgia">Cirurgia</option>
-              <option value="clinica_geral">Clínica Geral</option>
-              <option value="dentistica">Dentística</option>
-              <option value="endodontia">Endodontia</option>
-              <option value="instrumental">Instrumental</option>
-               <option value="material_limpeza">Material de Limpeza</option>
-              <option value="ortodontia">Ortodontia</option>
-              <option value="papelaria">Papelaria</option>
-              <option value="protese">Prótese</option>
-              <option value="implantodontia">Implantodontia</option>
-            </select>
-          </div>
-           <div class="text-xs text-gray-500">
-            Se o sugerido não for o mesmo item, escolha outro no select ou informe nome/categoria para criar um novo.
-         </div>
+          <details id="nfeNovoItemBox" class="text-sm border border-gray-200 rounded-lg p-3">
+            <summary class="cursor-pointer text-primary-dark font-medium">Não está na lista? Criar um item novo</summary>
+            <div class="flex flex-col sm:flex-row gap-2 mt-3">
+              <input id="nfeNewName" type="text" placeholder="Nome do novo item (ex.: Papel Toalha Interfolha)"
+                     class="flex-1 border border-gray-300 rounded-lg p-2 focus:ring-primary-dark focus:border-primary-dark">
+              <select id="nfeNewCategory" class="sm:w-56 border border-gray-300 rounded-lg p-2 focus:ring-primary-dark focus:border-primary-dark">
+                <option value="">Categoria</option>
+                <option value="biosseguranca">Biossegurança</option>
+                <option value="brocas">Brocas</option>
+                <option value="cirurgia">Cirurgia</option>
+                <option value="clinica_geral">Clínica Geral</option>
+                <option value="dentistica">Dentística</option>
+                <option value="endodontia">Endodontia</option>
+                <option value="instrumental">Instrumental</option>
+                <option value="material_limpeza">Material de Limpeza</option>
+                <option value="ortodontia">Ortodontia</option>
+                <option value="papelaria">Papelaria</option>
+                <option value="protese">Prótese</option>
+                <option value="implantodontia">Implantodontia</option>
+              </select>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Escolha a marca/embalagem no passo 2 e clique em "Criar item e registrar".</p>
+            <button id="nfeBtnCriar" class="mt-2 bg-green-600 text-white py-2 px-3 rounded-lg hover:bg-green-700">Criar item e registrar</button>
+          </details>
+          <label class="block text-sm font-semibold text-gray-700">2. Marca / embalagem (variação)</label>
+          <div id="nfeVarBox"></div>
+          <label id="nfeLembrarBox" class="flex items-start gap-2 text-sm text-gray-700">
+            <input type="checkbox" id="nfeLembrar" class="mt-1" checked>
+            <span>Reconhecer este produto automaticamente nas próximas importações</span>
+          </label>
         </div>
-        <div class="flex justify-between items-center mt-6">
-          <div class="text-sm text-gray-600">Ações para este item</div>
-          <div class="flex gap-2">
+        <div class="flex flex-wrap justify-between items-center gap-2 mt-6">
+          <button id="nfeBtnTodos" class="hidden bg-emerald-700 text-white py-2 px-3 rounded-lg hover:bg-emerald-800">
+            Registrar todos os reconhecidos (<span id="nfeQtdReconhecidos">0</span>)
+          </button>
+          <div class="flex gap-2 ml-auto">
             <button id="nfeBtnPular" class="bg-gray-200 text-text-dark py-2 px-3 rounded-lg hover:bg-gray-300">Pular</button>
-            <button id="nfeBtnMesmo" class="bg-primary-dark text-white py-2 px-3 rounded-lg hover:bg-opacity-90">É o mesmo</button>
-            <button id="nfeBtnCriar" class="bg-green-600 text-white py-2 px-3 rounded-lg hover:bg-green-700">Criar novo</button>
-            <button id="nfeBtnAvancar" class="bg-text-dark text-white py-2 px-3 rounded-lg hover:bg-opacity-90">Avançar</button>
+            <button id="nfeBtnMesmo" class="bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 font-semibold">Registrar</button>
           </div>
         </div>
       </div>
     </div>
 
     <div id="compraModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden print:hidden">
-      <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
+      <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[92vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-2xl font-semibold text-primary-dark">Registrar compra</h3>
           <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharCompra">&times;</button>
@@ -296,6 +329,10 @@
         <form id="compraForm" class="space-y-4">
           <input type="hidden" id="compraId">
           <input type="text" id="compraNome" readonly class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100">
+          <div>
+            <label class="block text-xs text-gray-600 mb-1">Marca / embalagem</label>
+            <div id="compraVarBox"></div>
+          </div>
           <input type="date" id="compraData" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
           <input type="number" step="any" min="0" id="compraQtd" placeholder="Quantidade" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
           <input type="number" step="0.01" min="0" id="compraPreco" placeholder="Preço unitário (R$)" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
@@ -311,7 +348,7 @@
     </div>
 
     <div id="historicoModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden print:hidden">
-      <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl mx-4">
+      <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-6xl mx-4">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-2xl font-semibold text-primary-dark">Histórico de compras</h3>
           <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharHistorico">&times;</button>
@@ -322,8 +359,10 @@
              <thead class="bg-secondary-light">
               <tr>
                 <th class="p-2 text-left border">Data</th>
+                <th class="p-2 text-left border">Marca / embalagem</th>
                 <th class="p-2 text-right border">Qtd</th>
                 <th class="p-2 text-right border">Preço unit.</th>
+                <th class="p-2 text-right border" title="Preço dividido pela quantidade que vem na embalagem">Preço/unid.</th>
                 <th class="p-2 text-right border">Total</th>
                 <th class="p-2 text-left border">Lote</th>
                 <th class="p-2 text-left border">Validade</th>
@@ -343,21 +382,88 @@
     </div>
 
     <div id="editarCompraModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden print:hidden">
-      <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
+      <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[92vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-2xl font-semibold text-primary-dark">Editar compra</h3>
           <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharEditarCompra">&times;</button>
          </div>
-        <form id="editarCompraForm" class="space-y-4">
+        <form id="editarCompraForm" class="space-y-3">
+          <div>
+            <label class="block text-xs text-gray-600 mb-1">Marca / embalagem</label>
+            <div id="editCompraVarBox"></div>
+          </div>
+          <label class="block text-xs text-gray-600 -mb-2">Data da compra</label>
           <input type="date" id="editCompraData" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-          <input type="number" step="any" min="0" id="editCompraQtd" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-          <input type="number" step="0.01" min="0" id="editCompraPreco" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="editCompraQtd" class="block text-xs text-gray-600 mb-1">Quantidade</label>
+              <input type="number" step="any" min="0" id="editCompraQtd" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            </div>
+            <div>
+              <label for="editCompraPreco" class="block text-xs text-gray-600 mb-1">Preço unitário (R$)</label>
+              <input type="number" step="any" min="0" id="editCompraPreco" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            </div>
+          </div>
           <input type="text" id="editCompraLote" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Lote (opcional)">
            <input type="date" id="editCompraValidade" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Validade (opcional)">
           <input type="text" id="editCompraLoja" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Loja (opcional)">
           <input type="text" id="editCompraNF" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Número da NF (opcional)">
           <button type="submit" class="w-full bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90">Salvar</button>
         </form>
+      </div>
+    </div>
+
+    <!-- VARIAÇÕES (MARCAS E EMBALAGENS) -->
+    <div id="variacoesModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden print:hidden">
+      <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[92vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-2">
+          <h3 class="text-2xl font-semibold text-primary-dark">Marcas e embalagens</h3>
+          <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharVariacoes">&times;</button>
+        </div>
+        <p id="variacoesTitulo" class="text-sm text-gray-600 mb-4"></p>
+        <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-4 text-sm">
+          <label for="variacoesUnidadeMedida" class="text-gray-700">Unidade do conteúdo (para comparar preços):</label>
+          <input id="variacoesUnidadeMedida" type="text" placeholder="ex.: folha, ml, unidade"
+                 class="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark">
+        </div>
+        <div id="variacoesLista" class="space-y-2 mb-4"></div>
+        <form id="variacaoForm" class="border-t border-gray-200 pt-4 space-y-3">
+          <h4 id="variacaoFormTitulo" class="font-semibold text-text-dark">Nova variação</h4>
+          <input type="hidden" id="variacaoEditId">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <input id="variacaoMarca" type="text" placeholder="Marca (ex.: Softpaper)" class="px-3 py-2 border border-gray-300 rounded-lg">
+            <input id="variacaoDescricao" type="text" placeholder="Embalagem (ex.: pacote 1.250 folhas)" class="px-3 py-2 border border-gray-300 rounded-lg">
+            <input id="variacaoConteudo" type="number" min="0" step="any" placeholder="Qtd na embalagem (ex.: 1250)" class="px-3 py-2 border border-gray-300 rounded-lg">
+          </div>
+          <div class="flex justify-end gap-2">
+            <button type="button" id="btnCancelarVariacao" class="hidden bg-gray-200 text-text-dark py-2 px-3 rounded-lg hover:bg-gray-300">Cancelar edição</button>
+            <button type="submit" id="btnSalvarVariacao" class="bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90">Adicionar variação</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MESCLAR ITENS -->
+    <div id="mesclarModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden print:hidden">
+      <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[92vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-2xl font-semibold text-primary-dark">Mesclar itens</h3>
+          <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharMesclar">&times;</button>
+        </div>
+        <p class="text-sm text-gray-700 mb-4">O item <strong id="mesclarOrigemNome"></strong> (<span id="mesclarOrigemCompras"></span>) vai virar uma marca/embalagem de outro item. Todo o histórico de compras dele é transferido.</p>
+        <label for="mesclarDestino" class="block text-sm font-semibold text-gray-700 mb-1">Juntar dentro de:</label>
+        <select id="mesclarDestino" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-primary-dark focus:border-primary-dark"></select>
+        <label class="block text-sm font-semibold text-gray-700 mt-4 mb-1">Como chamar esta marca/embalagem no item de destino:</label>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <input id="mesclarMarca" type="text" placeholder="Marca" class="px-3 py-2 border border-gray-300 rounded-lg">
+          <input id="mesclarDescricao" type="text" placeholder="Embalagem" class="px-3 py-2 border border-gray-300 rounded-lg">
+          <input id="mesclarConteudo" type="number" min="0" step="any" placeholder="Qtd na embalagem" class="px-3 py-2 border border-gray-300 rounded-lg">
+        </div>
+        <p class="text-xs text-gray-500 mt-2">Deixe marca e embalagem em branco se não quiser criar uma variação. Tudo é gravado de uma vez: se algo falhar no meio, nada é alterado. Faça um backup antes.</p>
+        <div class="flex justify-end gap-2 mt-5">
+          <button id="btnCancelarMesclar" class="bg-gray-200 text-text-dark py-2 px-4 rounded-lg hover:bg-gray-300">Cancelar</button>
+          <button id="btnConfirmarMesclar" class="bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 font-semibold">Mesclar</button>
+        </div>
       </div>
     </div>
 
@@ -417,6 +523,7 @@
           </select>
         </div>
         
+        <p id="confMsgSelecao" class="text-sm text-danger-red mt-3"></p>
         <div class="flex justify-end gap-2 mt-6">
           <button id="btnFecharConf" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm font-medium">Cancelar</button>
           <button id="btnComecarFluxo" class="px-4 py-2 bg-primary-dark text-white rounded hover:opacity-90 text-sm font-medium">Iniciar</button>
@@ -456,6 +563,14 @@
         </div>
 
         <div>
+          <!-- Contagem -->
+          <div class="flex items-center justify-center gap-2 mb-1">
+            <label for="confContagem" class="text-sm text-gray-600 font-medium">Contei:</label>
+            <input id="confContagem" type="number" min="0" step="any" inputmode="decimal"
+                   class="w-28 px-3 py-2 border border-gray-300 rounded-lg text-center text-lg focus:ring-primary-dark focus:border-primary-dark">
+            <span id="confUnidade" class="text-sm text-gray-600">un</span>
+          </div>
+          <p id="confDica" class="text-xs text-center text-gray-500 mb-3 min-h-[1rem]"></p>
           <!-- Botões de Decisão Rápida -->
           <div class="grid grid-cols-2 gap-4 mb-4">
             <button id="btnConfComprar" class="py-3 bg-danger-red text-white font-bold rounded-xl shadow-sm hover:opacity-95 transition-all flex flex-col items-center justify-center gap-1 active:scale-95">
@@ -518,19 +633,28 @@
     const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
+
+    // Aviso de "versão de teste" quando a página aberta é teste.html
+    if (/teste\.html$/i.test(location.pathname)) document.getElementById('bannerTeste').classList.remove('hidden');
+
     // categorias
     const categorias = {
       biosseguranca:"Biossegurança", brocas:"Brocas", cirurgia:"Cirurgia", clinica_geral:"Clínica Geral",
       dentistica:"Dentística", endodontia:"Endodontia", instrumental:"Instrumental", material_limpeza:"Material de Limpeza",
       ortodontia:"Ortodontia", papelaria:"Papelaria", protese:"Prótese", implantodontia:"Implantodontia"
     };
+    const DIAS_ALERTA_VALIDADE = 60;
+
+    let todosMateriais = [];        // cópia local de todos os materiais (evita baixar tudo a cada clique)
     let materiaisFiltrados = [];
     let termoDeBusca = "";
     let categoriaSelecionada = "todos";
+    let filtroEspecial = null;      // 'vencendo' | 'abaixoMinimo' | 'arquivados'
     let isShowingPurchaseList = false;
     // Estado do histórico
-    let historicoContext = { id: null, nome: null, compras: [], editId: null };
-    // utils
+    let historicoContext = { id: null, nome: null, compras: [], editId: null, variacoes: [], unidadeMedida: '' };
+
+    // ---------- UTILITÁRIOS ----------
     function showCustomModal(title, message, type, copyText='') {
       return new Promise((resolve) => {
         const modal = document.getElementById('customModal');
@@ -540,7 +664,7 @@
         modalTitle.textContent = title; modalMessage.innerHTML=''; modalActions.innerHTML='';
         if (type==='alert') {
           modalMessage.textContent = message;
-           const ok=document.createElement('button'); ok.textContent='OK';
+          const ok=document.createElement('button'); ok.textContent='OK';
           ok.className='bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition';
           ok.onclick=()=>{ modal.classList.add('hidden'); resolve(true); }; modalActions.appendChild(ok);
         } else if (type==='confirm') {
@@ -567,48 +691,125 @@
     }
     function converterParaDataURL(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=e=>rej(e);r.readAsDataURL(file);});}
     const fmtMoeda = (v)=> (v==null?'-':Number(v).toFixed(2).replace('.',','));
+    const fmtNum = v => (v === null || v === undefined || v === '') ? '' : Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 3 });
+    function fmtPrecoUnidade(v){
+      if (v === null || v === undefined || !isFinite(v)) return '-';
+      return 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: v < 1 ? 4 : 2 });
+    }
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     function toBRDate(dStr){
       if(!dStr) return 'N/A';
+      const br = String(dStr).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);   // datas já gravadas como DD/MM/AAAA
+      if (br) return `${br[1].padStart(2,'0')}/${br[2].padStart(2,'0')}/${br[3]}`;
       const d = new Date(dStr);
       if(!isNaN(d)) return d.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
-      const p=dStr.split('T')[0];
+      const p=String(dStr).split('T')[0];
       if(p && p.includes('-')){ const [y,m,da]=p.split('-'); return `${da}/${m}/${y}`;}
       return dStr;
     }
-    function toISODateInput(dStr){ if(!dStr) return ''; const d=new Date(dStr); if(!isNaN(d)) return d.toISOString().slice(0,10); const p=dStr.split('T')[0]; return p||'';
+    function toISODateInput(dStr){ if(!dStr) return ''; const d=new Date(dStr); if(!isNaN(d)) return d.toISOString().slice(0,10); const p=String(dStr).split('T')[0]; return p||'';
     }
     const isFuture = (iso)=> iso && new Date(iso).getTime() >= (new Date().setHours(0,0,0,0));
-    
-    // carregar/render
+    function diasAte(dStr){
+      if (!dStr) return null;
+      const dt = new Date(dStr); if (isNaN(dt)) return null;
+      const hoje = new Date();
+      return Math.round((Date.UTC(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate()) - Date.UTC(hoje.getFullYear(), hoje.getMonth(), hoje.getDate())) / 86400000);
+    }
+    // número opcional digitado: '' → null, inválido → NaN
+    function numOpcional(v){
+      const s = String(v ?? '').trim().replace(',', '.');
+      if (s === '') return null;
+      const n = Number(s);
+      return Number.isFinite(n) && n >= 0 ? n : NaN;
+    }
+    const temMinimo = m => m && m.estoqueMinimo !== null && m.estoqueMinimo !== undefined && m.estoqueMinimo !== '';
+    const abaixoDoMinimo = m => temMinimo(m) && m.contagemAtual !== null && m.contagemAtual !== undefined && Number(m.contagemAtual) <= Number(m.estoqueMinimo);
+    const venceEmBreve = m => { const d = diasAte(m.validadeUltimaCompra); return d !== null && d <= DIAS_ALERTA_VALIDADE; };
+    const acharMaterial = id => todosMateriais.find(m => m.id === id);
+    const rotuloVariacao = v => v ? [v.marca, v.descricao].filter(Boolean).join(' · ') : '';
+    const novoIdVariacao = () => 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    const plural = (n, um, varios) => `${n} ${n === 1 ? um : varios}`;
+
+    // Reduz a foto para no máximo 400 px antes de salvar (fica ~20–40 KB em vez de até 500 KB)
+    async function prepararImagem(file){
+      const original = await converterParaDataURL(file);
+      const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('Não foi possível ler esta imagem. Tente uma foto em JPG ou PNG.')); i.src = original; });
+      const MAX = 400;
+      const escala = Math.min(1, MAX / Math.max(img.width, img.height));
+      const w = Math.max(1, Math.round(img.width * escala)), h = Math.max(1, Math.round(img.height * escala));
+      const canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d'); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h); ctx.drawImage(img, 0, 0, w, h);
+      let resultado = canvas.toDataURL('image/jpeg', 0.8);
+      if (resultado.length > original.length) resultado = original;   // a original já era menor
+      if (resultado.length > 700000) throw new Error('A imagem continua grande demais mesmo reduzida.');
+      return resultado;
+    }
+
+    // Campos padrão de um material novo
+    function novoMaterialBase(id, nome, categoria, extra = {}){
+      return {
+        id, nome, categoria,
+        quantidade: 0, imagem: null,
+        ultimaModificacao: new Date().toLocaleString('pt-BR'),
+        marcadoParaCompraEm: null, ultimaCompraEm: null, validadeUltimaCompra: null,
+        precoCompra: null, lojaUltimaCompra: null, nfUltimaCompra: null,
+        variacoes: [], codigos: [], arquivado: false,
+        unidadeContagem: null, estoqueMinimo: null, contagemAtual: null, contagemEm: null,
+        ...extra
+      };
+    }
+
+    // ---------- CARREGAR / FILTRAR / MOSTRAR ----------
     async function carregarMateriais(){
       try{
         const snap = await db.collection('materiais').get();
-        let todos=[]; snap.forEach(doc=>todos.push({ id: doc.id, ...doc.data()}));
-        if(isShowingPurchaseList){
-          materiaisFiltrados = todos.filter(m => !!m.marcadoParaCompraEm);
-          document.getElementById('searchInput').value=''; termoDeBusca=''; categoriaSelecionada='todos';
-        } else {
-          materiaisFiltrados = todos.filter(m => (m.nome||'').toLowerCase().includes(termoDeBusca.toLowerCase()));
-          if(categoriaSelecionada!=='todos'){ materiaisFiltrados = materiaisFiltrados.filter(m=>m.categoria===categoriaSelecionada); }
-        }
-        atualizarLista(materiaisFiltrados);
-        renderizarCategorias(todos);
-        togglePurchaseListActionsVisibility();
+        const todos = []; snap.forEach(doc => todos.push({ id: doc.id, ...doc.data() }));
+        todosMateriais = todos;
+        renderizar();
       }catch(e){ console.error(e); showCustomModal('Erro','Erro ao carregar materiais: '+e.message,'alert');}
+    }
+
+    function materiaisVisiveis(){
+      const verArquivados = filtroEspecial === 'arquivados' && !isShowingPurchaseList;
+      let lista = todosMateriais.filter(m => verArquivados ? !!m.arquivado : !m.arquivado);
+      if (isShowingPurchaseList) return lista.filter(m => !!m.marcadoParaCompraEm);
+      if (filtroEspecial === 'vencendo') lista = lista.filter(venceEmBreve);
+      if (filtroEspecial === 'abaixoMinimo') lista = lista.filter(abaixoDoMinimo);
+      if (categoriaSelecionada !== 'todos') lista = lista.filter(m => m.categoria === categoriaSelecionada);
+      const t = norm(termoDeBusca);
+      if (t) lista = lista.filter(m => norm(m.nome).includes(t) || (m.variacoes || []).some(v => norm(rotuloVariacao(v)).includes(t)));
+      return lista;
+    }
+
+    function renderizar(){
+      materiaisFiltrados = materiaisVisiveis();
+      atualizarLista(materiaisFiltrados);
+      renderizarCategorias(todosMateriais);
+      togglePurchaseListActionsVisibility();
     }
 
     function renderizarCategorias(all){
       const box=document.getElementById('categorySidebar'); box.innerHTML='';
-      const set=new Set(); all.forEach(m=>set.add(m.categoria));
-      const bAll=document.createElement('button');
-      bAll.textContent='Todos';
-      bAll.className=`w-full text-left py-2 px-4 rounded-lg ${categoriaSelecionada==='todos'&&!isShowingPurchaseList ? 'bg-primary-dark text-white':'bg-gray-200 text-text-dark hover:bg-gray-300'}`;
-      bAll.onclick=()=>{categoriaSelecionada='todos'; isShowingPurchaseList=false; carregarMateriais();}; box.appendChild(bAll);
+      const ativos = all.filter(m => !m.arquivado);
+      const set=new Set(); ativos.forEach(m=>set.add(m.categoria));
+      const botao = (texto, ativo, onclick) => {
+        const b=document.createElement('button'); b.textContent=texto;
+        b.className=`w-full text-left py-2 px-4 rounded-lg ${ativo ? 'bg-primary-dark text-white':'bg-gray-200 text-text-dark hover:bg-gray-300'}`;
+        b.onclick=onclick; box.appendChild(b); return b;
+      };
+      const semEspecial = !filtroEspecial && !isShowingPurchaseList;
+      botao('Todos', semEspecial && categoriaSelecionada==='todos', ()=>{ categoriaSelecionada='todos'; filtroEspecial=null; isShowingPurchaseList=false; renderizar(); });
       Array.from(set).sort().forEach(cat=>{
-        const b=document.createElement('button'); b.textContent=categorias[cat]||cat;
-        b.className=`w-full text-left py-2 px-4 rounded-lg ${categoriaSelecionada===cat&&!isShowingPurchaseList ? 'bg-primary-dark text-white':'bg-gray-200 text-text-dark hover:bg-gray-300'}`;
-        b.onclick=()=>{categoriaSelecionada=cat; isShowingPurchaseList=false; carregarMateriais();}; box.appendChild(b);
+        botao(categorias[cat]||cat||'Sem categoria', semEspecial && categoriaSelecionada===cat, ()=>{ categoriaSelecionada=cat; filtroEspecial=null; isShowingPurchaseList=false; renderizar(); });
       });
+      const sep = document.createElement('div');
+      sep.className = 'pt-3 mt-3 border-t border-gray-200 text-xs font-bold uppercase text-gray-500';
+      sep.textContent = 'Atenção'; box.appendChild(sep);
+      const especial = (chave, texto) => botao(texto, filtroEspecial===chave && !isShowingPurchaseList, ()=>{ filtroEspecial=chave; categoriaSelecionada='todos'; isShowingPurchaseList=false; renderizar(); });
+      especial('vencendo', `⏳ Validade em até ${DIAS_ALERTA_VALIDADE} dias (${ativos.filter(venceEmBreve).length})`);
+      especial('abaixoMinimo', `📉 Abaixo do mínimo (${ativos.filter(abaixoDoMinimo).length})`);
+      especial('arquivados', `🗄️ Arquivados (${all.length - ativos.length})`);
     }
     function togglePurchaseListActionsVisibility(){
       const c=document.getElementById('purchaseListActionsContainer'); if(isShowingPurchaseList) c.classList.remove('hidden'); else c.classList.add('hidden');
@@ -618,64 +819,78 @@
     function atualizarLista(mats){
       const lista=document.getElementById('materialList');
       lista.innerHTML='';
-      if(!mats.length){ lista.innerHTML='<p class="text-center text-gray-600 col-span-full">Nenhum material encontrado.</p>'; return; }
-      
-      mats.sort((a,b)=>a.nome.localeCompare(b.nome)).forEach(m=>{
+      const modoArquivados = filtroEspecial === 'arquivados' && !isShowingPurchaseList;
+      if(!mats.length){ lista.innerHTML=`<p class="text-center text-gray-600 col-span-full">${modoArquivados ? 'Nenhum item arquivado.' : 'Nenhum material encontrado.'}</p>`; return; }
+
+      mats.slice().sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR')).forEach(m=>{
         const card=document.createElement('div');
-        // ATUALIZADO: Classes de impressão no card
         card.className=`material-item bg-white rounded-lg shadow-md flex flex-col transition hover:shadow-lg print:shadow-none print:border print:border-gray-300 print:rounded-sm print:flex-row print:items-center print:p-2 print:break-inside-avoid`;
 
-        const imgBox=document.createElement('div'); 
-        // ATUALIZADO: Imagem vira miniatura quadrada na impressão
+        const imgBox=document.createElement('div');
         imgBox.className='w-full h-48 bg-white flex items-center justify-center print:w-12 print:h-12 print:flex-shrink-0 print:border print:border-gray-200 print:rounded';
         const img=document.createElement('img');
         img.src=m.imagem || 'https://placehold.co/300x300/BFBFBF/585856?text=Sem+Imagem';
-        img.alt=`Imagem de ${m.nome}`; 
-        // ATUALIZADO: Tamanho da imagem na impressão
+        img.alt=`Imagem de ${m.nome}`;
         img.className= m.imagem ? 'w-full h-full object-contain print:object-cover' : 'w-24 h-24 object-contain print:w-8 print:h-8';
         img.onerror=()=>{ img.src='https://placehold.co/300x300/BFBFBF/585856?text=Sem+Imagem'; img.className='w-24 h-24 object-contain'; };
         imgBox.appendChild(img); card.appendChild(imgBox);
 
-        const info=document.createElement('div'); 
-        // ATUALIZADO: Informações comprimidas para não quebrar a linha na folha A4
+        const info=document.createElement('div');
         info.className='p-4 flex-grow print:p-2 print:m-0 print:flex print:flex-col print:justify-center';
-        const marcadoEmHtml = m.marcadoParaCompraEm ? `<p class="text-sm text-green-700 font-semibold mt-2">Marcado em: ${toBRDate(m.marcadoParaCompraEm)}</p>` : '';
-        
+        const marcadoEmHtml = m.marcadoParaCompraEm ? `<p class="text-sm text-green-700 font-semibold mt-2">Marcado em: ${esc(toBRDate(m.marcadoParaCompraEm))}</p>` : '';
+
+        const badges = [];
+        if (modoArquivados) badges.push(['bg-gray-200 text-gray-700', `Arquivado em ${toBRDate(m.arquivadoEm)}`]);
+        if (abaixoDoMinimo(m)) badges.push(['bg-red-100 text-red-700', 'Abaixo do mínimo']);
+        const dv = diasAte(m.validadeUltimaCompra);
+        if (dv !== null && dv < 0) badges.push(['bg-red-100 text-red-700', 'Validade vencida']);
+        else if (dv !== null && dv <= DIAS_ALERTA_VALIDADE) badges.push(['bg-amber-100 text-amber-800', dv === 0 ? 'Vence hoje' : `Vence em ${plural(dv, 'dia', 'dias')}`]);
+        const badgesHtml = badges.length ? `<div class="flex flex-wrap gap-1 mb-2 print:hidden">${badges.map(([c,t])=>`<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full ${c}">${esc(t)}</span>`).join('')}</div>` : '';
+
+        const unid = m.unidadeContagem || 'un';
+        const linhas = [
+          ['Última Compra', toBRDate(m.ultimaCompraEm)],
+          ['Qtd Comprada', fmtNum(m.quantidade ?? 0) || '0'],
+          ['Preço Unit.', `R$ ${m.precoCompra!=null ? fmtMoeda(m.precoCompra) : '-'}`]
+        ];
+        if (m.ultimaVariacao) linhas.push(['Marca / emb.', m.ultimaVariacao]);
+        linhas.push(['Validade Próxima', m.validadeUltimaCompra ? toBRDate(m.validadeUltimaCompra) : 'N/A']);
+        if (m.contagemAtual !== null && m.contagemAtual !== undefined) linhas.push(['Estoque contado', `${fmtNum(m.contagemAtual)} ${unid} (${toBRDate(m.contagemEm)})`]);
+        if (temMinimo(m)) linhas.push(['Estoque mínimo', `${fmtNum(m.estoqueMinimo)} ${unid}`]);
+        if (m.melhorPrecoUnidade && m.melhorPrecoUnidade.valor != null) {
+          linhas.push(['Melhor preço', `${fmtPrecoUnidade(m.melhorPrecoUnidade.valor)}${m.unidadeMedida ? ' / ' + m.unidadeMedida : ' / unid.'}${m.melhorPrecoUnidade.loja ? ' · ' + m.melhorPrecoUnidade.loja : ''}`]);
+        }
+        const nVar = (m.variacoes || []).length;
+
         info.innerHTML = `
-          <h3 class="text-lg font-bold text-text-dark mb-1 print:text-xs print:leading-tight print:mb-0 line-clamp-2">${m.nome}</h3>
-          <p class="text-sm text-gray-600 mb-3 print:hidden"><em>${categorias[m.categoria] || m.categoria || '-'}</em></p>
-          
+          ${badgesHtml}
+          <h3 class="text-lg font-bold text-text-dark mb-1 print:text-xs print:leading-tight print:mb-0 line-clamp-2">${esc(m.nome)}</h3>
+          <p class="text-sm text-gray-600 mb-3 print:hidden"><em>${esc(categorias[m.categoria] || m.categoria || '-')}</em>${nVar ? ` · ${plural(nVar, 'variação', 'variações')}` : ''}</p>
           <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-gray-800 print:hidden">
-            <span class="font-semibold text-gray-500">Última Compra:</span>
-            <span>${toBRDate(m.ultimaCompraEm)}</span>
-            <span class="font-semibold text-gray-500">Qtd Comprada:</span>
-            <span class="font-bold">${m.quantidade ?? 0}</span>
-            <span class="font-semibold text-gray-500">Preço Unit.:</span>
-            <span>R$ ${m.precoCompra!=null ? fmtMoeda(m.precoCompra) : '-'}</span>
-            <span class="font-semibold text-gray-500">Validade Próxima:</span>
-            <span>${m.validadeUltimaCompra ? toBRDate(m.validadeUltimaCompra) : 'N/A'}</span>
+            ${linhas.map(([k,v]) => `<span class="font-semibold text-gray-500">${esc(k)}:</span><span class="break-words">${esc(v)}</span>`).join('')}
           </div>
           <div class="print:hidden">${marcadoEmHtml}</div>
         `;
         card.appendChild(info);
 
-        // NOVO: Quadrado em branco para caneta na impressão
+        // Quadrado em branco para caneta na impressão
         const printBox = document.createElement('div');
         printBox.className = 'hidden print:flex print:items-center print:justify-center print:w-12 print:h-10 print:border-2 print:border-gray-500 print:rounded print:ml-auto print:mr-1 print:flex-shrink-0';
         printBox.innerHTML = '<span class="text-gray-300 text-[8px] font-bold">QTD</span>';
         card.appendChild(printBox);
 
-        const controls=document.createElement('div'); 
-        // ATUALIZADO: Esconder botões na impressão
+        const controls=document.createElement('div');
         controls.className='p-4 bg-gray-50 border-t border-gray-100 flex flex-col space-y-3 print:hidden';
-        const btnComprar=document.createElement('button');
-        btnComprar.textContent = m.marcadoParaCompraEm ? 'Na Lista de Compras' : 'Adicionar à Lista';
-        btnComprar.className = `w-full py-2 px-4 rounded-lg font-semibold transition transform hover:scale-105 ${m.marcadoParaCompraEm ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-primary-dark text-white hover:bg-opacity-90'}`;
-        btnComprar.onclick=()=>toggleComprar(m.id); controls.appendChild(btnComprar);
+        if (!modoArquivados) {
+          const btnComprar=document.createElement('button');
+          btnComprar.textContent = m.marcadoParaCompraEm ? 'Na Lista de Compras' : 'Adicionar à Lista';
+          btnComprar.className = `w-full py-2 px-4 rounded-lg font-semibold transition transform hover:scale-105 ${m.marcadoParaCompraEm ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-primary-dark text-white hover:bg-opacity-90'}`;
+          btnComprar.onclick=()=>toggleComprar(m.id); controls.appendChild(btnComprar);
+        }
 
         const options=document.createElement('div'); options.className='relative inline-block text-left w-full';
         const dd=document.createElement('div');
-        dd.className='dropdown-content absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-50';
+        dd.className='dropdown-content absolute right-0 mt-2 w-60 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30';
         dd.onclick=(e)=>e.stopPropagation();
 
         const btnOptions=document.createElement('button');
@@ -684,22 +899,24 @@
         btnOptions.onclick=(e)=>{ e.stopPropagation();
         document.querySelectorAll('.dropdown-content').forEach(d=>{ if(d!==dd && !d.classList.contains('hidden')) d.classList.add('hidden'); }); dd.classList.toggle('hidden'); };
 
-        const bEdit=document.createElement('button'); bEdit.textContent='Editar';
-        bEdit.className='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100';
-        bEdit.onclick=()=>{ abrirModalEditar(m.id); dd.classList.add('hidden'); };
-
-        const bReg=document.createElement('button'); bReg.textContent='Registrar compra';
-        bReg.className='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100';
-        bReg.onclick=()=>{ abrirModalCompra(m.id, m.nome); dd.classList.add('hidden'); };
-        const bHist=document.createElement('button'); bHist.textContent='Histórico de compras';
-        bHist.className='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100';
-        bHist.onclick=()=>{ abrirHistoricoCompras(m.id, m.nome); dd.classList.add('hidden'); };
-
-        const bDel=document.createElement('button'); bDel.textContent='Excluir';
-        bDel.className='block w-full text-left px-4 py-2 text-sm text-danger-red hover:bg-red-100';
-        bDel.onclick=()=>{ confirmarExclusao(m.id); dd.classList.add('hidden'); };
-
-        dd.appendChild(bEdit); dd.appendChild(bReg); dd.appendChild(bHist); dd.appendChild(bDel);
+        const opcao = (texto, acao, perigo=false) => {
+          const b=document.createElement('button'); b.textContent=texto;
+          b.className=`block w-full text-left px-4 py-2 text-sm ${perigo ? 'text-danger-red hover:bg-red-100' : 'text-gray-700 hover:bg-gray-100'}`;
+          b.onclick=()=>{ dd.classList.add('hidden'); acao(); };
+          dd.appendChild(b);
+        };
+        if (modoArquivados) {
+          opcao('Histórico de compras', ()=>abrirHistoricoCompras(m.id, m.nome));
+          opcao('Desarquivar', ()=>arquivarMaterial(m.id, false));
+          opcao('Excluir definitivamente', ()=>excluirDefinitivo(m.id), true);
+        } else {
+          opcao('Editar', ()=>abrirModalEditar(m.id));
+          opcao('Marcas e embalagens', ()=>abrirVariacoes(m.id));
+          opcao('Registrar compra', ()=>abrirModalCompra(m.id, m.nome));
+          opcao('Histórico de compras', ()=>abrirHistoricoCompras(m.id, m.nome));
+          opcao('Mesclar com outro item…', ()=>abrirMesclar(m.id));
+          opcao('Arquivar', ()=>arquivarMaterial(m.id, true), true);
+        }
         options.appendChild(btnOptions);
         options.appendChild(dd);
         controls.appendChild(options);
@@ -710,17 +927,18 @@
     }
 
     // modais básicos
-    function abrirModal(){ document.getElementById('cadastroModal').classList.remove('hidden');
-    }
+    function abrirModal(){ document.getElementById('cadastroModal').classList.remove('hidden'); }
     function fecharModal(){ document.getElementById('cadastroModal').classList.add('hidden'); document.getElementById('materialForm').reset(); }
 
     function abrirModalEditar(id){
-      const m = materiaisFiltrados.find(x=>x.id===id);
+      const m = acharMaterial(id);
       if(!m){ showCustomModal("Erro","Material não encontrado para edição.",'alert'); return; }
       document.getElementById('editId').value = m.id;
       document.getElementById('editNome').value = m.nome;
       document.getElementById('originalNome').value = m.nome;
       document.getElementById('editCategoria').value = m.categoria || '';
+      document.getElementById('editUnidadeContagem').value = m.unidadeContagem || '';
+      document.getElementById('editEstoqueMinimo').value = temMinimo(m) ? m.estoqueMinimo : '';
       document.getElementById('editarModal').classList.remove('hidden');
     }
     function fecharModalEditar(){ document.getElementById('editarModal').classList.add('hidden'); document.getElementById('editarForm').reset(); }
@@ -733,6 +951,8 @@
       const newNome = document.getElementById('editNome').value.trim();
       const novaCategoria = document.getElementById('editCategoria').value;
       const arquivo = document.getElementById('editImagem').files[0];
+      const estoqueMinimo = numOpcional(document.getElementById('editEstoqueMinimo').value);
+      if (Number.isNaN(estoqueMinimo)) { showCustomModal('Aviso','Estoque mínimo inválido.','alert'); return; }
 
       try{
         if (newNome !== originalNome) {
@@ -750,20 +970,16 @@
         let updateData = {
           nome: newNome,
           categoria: novaCategoria,
+          unidadeContagem: document.getElementById('editUnidadeContagem').value.trim() || null,
+          estoqueMinimo,
           ultimaModificacao: new Date().toLocaleString('pt-BR')
-         };
-
-        if (arquivo) {
-          const dataURL = await converterParaDataURL(arquivo);
-          const tamanhoBytes = (dataURL.length * 3) / 4 - 2;
-          if (tamanhoBytes > 500000) { showCustomModal('Aviso','A imagem é muito grande! (< 500 KB)','alert'); return;
-          }
-          updateData.imagem = dataURL;
-        }
+        };
+        if (arquivo) updateData.imagem = await prepararImagem(arquivo);
 
         await docRef.update(updateData);
+        const m = acharMaterial(id); if (m) Object.assign(m, updateData);
         fecharModalEditar();
-        carregarMateriais();
+        renderizar();
       }catch(err){ console.error(err); showCustomModal("Erro","Erro ao atualizar material: "+err.message,'alert');
       }
     });
@@ -777,15 +993,31 @@
     }
     async function copiarListaCompras(){
       const snap=await db.collection('materiais').where("marcadoParaCompraEm","!=",null).get();
-      if (snap.empty){ showCustomModal("Aviso","Nenhum item marcado para compra.",'alert'); return; }
+      const itens=[]; snap.forEach(doc=>{ const m=doc.data(); if(!m.arquivado) itens.push(m); });
+      if (!itens.length){ showCustomModal("Aviso","Nenhum item marcado para compra.",'alert'); return; }
       let grupos={};
-      snap.forEach(doc=>{ const m=doc.data(); const cat=categorias[m.categoria]||"Outros"; (grupos[cat]=grupos[cat]||[]).push(`${m.nome} (Última Qtd: ${m.quantidade || 0})`); });
-      const lista = Object.keys(grupos).sort().map(c=>`🔹 ${c.toUpperCase()}\n- ${grupos[c].sort().join("\n- ")}`).join("\n\n");
+      itens.forEach(m=>{
+        const cat=categorias[m.categoria]||"Outros";
+        const un = m.unidadeContagem || 'un';
+        const det = [];
+        if (m.contagemAtual !== null && m.contagemAtual !== undefined) det.push(`tem ${fmtNum(m.contagemAtual)} ${un}`);
+        const ultima = [];
+        if (m.ultimaVariacao) ultima.push(m.ultimaVariacao);
+        if (m.quantidade) ultima.push(`qtd ${fmtNum(m.quantidade)}`);
+        if (m.precoCompra != null) ultima.push(`R$ ${fmtMoeda(m.precoCompra)}`);
+        if (m.lojaUltimaCompra) ultima.push(m.lojaUltimaCompra);
+        if (ultima.length) det.push(`última: ${ultima.join(', ')}`);
+        (grupos[cat]=grupos[cat]||[]).push(`${m.nome}${det.length ? ' — ' + det.join(' — ') : ''}`);
+      });
+      const lista = Object.keys(grupos).sort().map(c=>`🔹 ${c.toUpperCase()}\n- ${grupos[c].sort((a,b)=>a.localeCompare(b,'pt-BR')).join("\n- ")}`).join("\n\n");
       try{ await navigator.clipboard.writeText(lista);
       showCustomModal("Sucesso","Lista de compras copiada!","alert"); }catch{ showCustomModal("Copiar","Selecione e copie:","copy",lista); }
     }
-    async function buscarMateriais(){ termoDeBusca=document.getElementById('searchInput').value.toLowerCase().trim();
-    isShowingPurchaseList=false; carregarMateriais(); }
+    function buscarMateriais(){
+      termoDeBusca=document.getElementById('searchInput').value.trim();
+      isShowingPurchaseList=false;
+      renderizar();
+    }
     async function gerarRelatorio(){
       const snap=await db.collection('materiais').get();
       if(snap.empty){ showCustomModal("Aviso","Nenhum material encontrado.","alert"); return; }
@@ -795,11 +1027,17 @@
         Categoria: categorias[m.categoria] || m.categoria,
         "Última Qtd Comprada": m.quantidade,
         "Última compra": toBRDate(m.ultimaCompraEm),
+        "Última marca/embalagem": m.ultimaVariacao || '',
         "Validade mais próxima": m.validadeUltimaCompra ? toBRDate(m.validadeUltimaCompra) : 'N/A',
         "Preço de compra (R$)": m.precoCompra != null ? Number(m.precoCompra) : '',
         "Última Loja": m.lojaUltimaCompra || '',
-        "Última NF": m.nfUltimaCompra || ''
+        "Última NF": m.nfUltimaCompra || '',
+        "Estoque contado": (m.contagemAtual ?? '') === '' ? '' : Number(m.contagemAtual),
+        "Contado em": m.contagemEm ? toBRDate(m.contagemEm) : '',
+        "Estoque mínimo": temMinimo(m) ? Number(m.estoqueMinimo) : '',
+        "Arquivado": m.arquivado ? 'Sim' : 'Não'
       });});
+      dados.sort((a,b)=>String(a.Nome||'').localeCompare(String(b.Nome||''),'pt-BR'));
       const ws=XLSX.utils.json_to_sheet(dados); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Estoque"); XLSX.writeFile(wb,"Relatorio_Estoque_Odontologico.xlsx");
     }
     function logout(){ auth.signOut().catch(e=>showCustomModal("Erro",'Falha ao desconectar: '+e.message,'alert'));
@@ -810,166 +1048,862 @@
       const nome=document.getElementById('nome').value.trim();
       const categoria=document.getElementById('categoria').value;
       const arquivo=document.getElementById('imagem').files[0];
+      const estoqueMinimo = numOpcional(document.getElementById('estoqueMinimo').value);
+      if (Number.isNaN(estoqueMinimo)) { showCustomModal('Aviso','Estoque mínimo inválido.','alert'); return; }
 
-      const qSnap = await db.collection('materiais').where('nome', '==', nome).limit(1).get();
-      if(!qSnap.empty){ showCustomModal("Erro",`Já existe um material com o nome "${nome}".`,'alert'); return; }
+      try {
+        const qSnap = await db.collection('materiais').where('nome', '==', nome).limit(1).get();
+        if(!qSnap.empty){ showCustomModal("Erro",`Já existe um material com o nome "${nome}".`,'alert'); return; }
 
-      const newDocRef = db.collection('materiais').doc();
-      const material={
-        id: newDocRef.id,
-        nome,
-        categoria,
-        quantidade: 0,
-        imagem: null,
-        ultimaModificacao: new Date().toLocaleString('pt-BR'),
-        marcadoParaCompraEm: null,
-        ultimaCompraEm: null,
-        validadeUltimaCompra: null,
-        precoCompra: null,
-        lojaUltimaCompra: null,
-        nfUltimaCompra: null
-      };
-      if(arquivo){
-        const dataURL=await converterParaDataURL(arquivo);
-        const tamanhoBytes=(dataURL.length*3)/4-2; if(tamanhoBytes>500000){ showCustomModal('Aviso','Imagem > 500 KB.','alert');
-        return; }
-        material.imagem=dataURL;
-      }
-      await newDocRef.set(material);
-      await carregarMateriais();
-      fecharModal();
+        const newDocRef = db.collection('materiais').doc();
+        const material = novoMaterialBase(newDocRef.id, nome, categoria, {
+          unidadeContagem: document.getElementById('unidadeContagem').value.trim() || null,
+          estoqueMinimo
+        });
+        if(arquivo) material.imagem = await prepararImagem(arquivo);
+        await newDocRef.set(material);
+        fecharModal();
+        await carregarMateriais();
+      } catch (err) { console.error(err); showCustomModal('Erro','Erro ao cadastrar: '+err.message,'alert'); }
     });
 
-    async function confirmarExclusao(id){
-      const ok=await showCustomModal("Confirmar Exclusão",`Excluir este material? Isso também removerá todo o histórico de compras. A ação não pode ser desfeita.`,'confirm'); if(!ok) return;
-      await db.collection('materiais').doc(id).delete();
-      await carregarMateriais();
+    // ---------- ARQUIVAR (em vez de excluir) ----------
+    async function arquivarMaterial(id, arquivar){
+      const m = acharMaterial(id); if (!m) return;
+      if (arquivar) {
+        const ok = await showCustomModal('Arquivar item', `Arquivar "${m.nome}"?\n\nEle sai das listas, da conferência e da ficha impressa, mas todo o histórico de compras continua guardado. Você pode desarquivar quando quiser em "Arquivados".`, 'confirm');
+        if (!ok) return;
+      }
+      const upd = arquivar
+        ? { arquivado: true, arquivadoEm: new Date().toISOString(), marcadoParaCompraEm: null }
+        : { arquivado: false, arquivadoEm: null };
+      try {
+        await db.collection('materiais').doc(id).update(upd);
+        Object.assign(m, upd);
+        renderizar();
+      } catch (err) { console.error(err); showCustomModal('Erro', 'Não foi possível atualizar o item: ' + err.message, 'alert'); }
     }
+
+    async function excluirDefinitivo(id){
+      const m = acharMaterial(id); if (!m) return;
+      try {
+        const compras = await db.collection('materiais').doc(id).collection('compras').get();
+        const ok = await showCustomModal('Excluir definitivamente',
+          `Excluir "${m.nome}" e ${plural(compras.size, 'registro de compra', 'registros de compra')} do histórico?\n\nEssa ação não pode ser desfeita. Se tiver dúvida, faça um backup antes.`, 'confirm');
+        if (!ok) return;
+        const refs = []; compras.forEach(doc => refs.push(doc.ref));
+        refs.push(db.collection('materiais').doc(id));
+        for (let i = 0; i < refs.length; i += 400) {
+          const batch = db.batch();
+          refs.slice(i, i + 400).forEach(r => batch.delete(r));
+          await batch.commit();
+        }
+        todosMateriais = todosMateriais.filter(x => x.id !== id);
+        renderizar();
+      } catch (err) { console.error(err); showCustomModal('Erro', 'Falha ao excluir: ' + err.message, 'alert'); }
+    }
+
     async function toggleComprar(id){
-      const ref=db.collection('materiais').doc(id); const snap=await ref.get();
-      if(!snap.exists) return;
-      const cur=snap.data().marcadoParaCompraEm;
-      await ref.update({marcadoParaCompraEm: cur ? null : new Date().toISOString() });
-      await carregarMateriais();
+      const m = acharMaterial(id); if (!m) return;
+      const novo = m.marcadoParaCompraEm ? null : new Date().toISOString();
+      try {
+        await db.collection('materiais').doc(id).update({ marcadoParaCompraEm: novo });
+        m.marcadoParaCompraEm = novo;
+        renderizar();
+      } catch (err) { console.error(err); showCustomModal('Erro', 'Não foi possível atualizar: ' + err.message, 'alert'); }
+    }
+
+    // ---------- VARIAÇÕES (MARCAS E EMBALAGENS) ----------
+    // Mantém as cópias locais em dia depois de gravar no banco
+    function sincronizarMaterialLocal(materialId, campos){
+      const a = acharMaterial(materialId); if (a) Object.assign(a, campos);
+      const b = materiaisIndex.find(x => x.id === materialId);
+      if (b) { if (campos.variacoes) b.variacoes = campos.variacoes; if (campos.codigos) b.codigos = campos.codigos; if (campos.nome) b.nome = campos.nome; }
+    }
+    function variacoesDoMaterial(materialId){
+      const a = materiaisIndex.find(x => x.id === materialId) || acharMaterial(materialId);
+      return (a && a.variacoes) || [];
+    }
+
+    async function adicionarVariacao(materialId, dados){
+      const ref = db.collection('materiais').doc(materialId);
+      const atual = (await ref.get()).data() || {};
+      const v = { id: novoIdVariacao(), marca: (dados.marca || '').trim(), descricao: (dados.descricao || '').trim(), conteudo: dados.conteudo ?? null, codigos: [] };
+      const variacoes = [...(atual.variacoes || []), v];
+      await ref.update({ variacoes });
+      sincronizarMaterialLocal(materialId, { variacoes });
+      return v;
+    }
+
+    // Escolha feita num seletor → objeto da variação (cria se for nova)
+    async function resolverVariacao(materialId, escolha){
+      if (escolha.nova) return await adicionarVariacao(materialId, escolha.nova);
+      if (!escolha.id) return null;
+      return variacoesDoMaterial(materialId).find(v => v.id === escolha.id) || null;
+    }
+
+    function criarSeletorVariacao(container){
+      container.innerHTML = `
+        <select class="sv-select w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-dark focus:border-primary-dark"></select>
+        <div class="sv-nova hidden grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2 p-3 bg-secondary-light rounded-lg">
+          <input type="text" class="sv-marca px-3 py-2 border border-gray-300 rounded-lg" placeholder="Marca (ex.: Softpaper)">
+          <input type="text" class="sv-desc px-3 py-2 border border-gray-300 rounded-lg" placeholder="Embalagem (ex.: pacote 1.250 folhas)">
+          <input type="number" min="0" step="any" class="sv-cont px-3 py-2 border border-gray-300 rounded-lg" placeholder="Qtd na embalagem (ex.: 1250)">
+        </div>`;
+      const sel = container.querySelector('.sv-select');
+      const box = container.querySelector('.sv-nova');
+      const marca = container.querySelector('.sv-marca'), desc = container.querySelector('.sv-desc'), cont = container.querySelector('.sv-cont');
+      let sugestao = {};
+      const atualizar = () => {
+        const nova = sel.value === '__nova';
+        box.classList.toggle('hidden', !nova);
+        if (nova && !marca.value && !desc.value) { marca.value = sugestao.marca || ''; desc.value = sugestao.descricao || ''; cont.value = sugestao.conteudo ?? ''; }
+      };
+      sel.addEventListener('change', atualizar);
+      return {
+        select: sel,
+        preencher(variacoes, selecionado = '', sug = {}){
+          sugestao = sug || {};
+          marca.value = ''; desc.value = ''; cont.value = '';
+          const vs = variacoes || [];
+          sel.innerHTML = `<option value="">Sem variação (não especificar marca/embalagem)</option>` +
+            vs.map(v => `<option value="${esc(v.id)}">${esc(rotuloVariacao(v) || '(sem nome)')}${v.conteudo ? ` (${esc(fmtNum(v.conteudo))} por embalagem)` : ''}</option>`).join('') +
+            `<option value="__nova">+ Nova marca/embalagem…</option>`;
+          sel.value = (selecionado === '__nova' || vs.some(v => v.id === selecionado)) ? selecionado : '';
+          atualizar();
+        },
+        ler(){
+          if (sel.value === '__nova'){
+            const dados = { marca: marca.value.trim(), descricao: desc.value.trim(), conteudo: numOpcional(cont.value) };
+            if (!dados.marca && !dados.descricao) return { erro: 'Informe a marca ou a embalagem da nova variação.' };
+            if (Number.isNaN(dados.conteudo)) return { erro: 'Quantidade na embalagem inválida.' };
+            return { nova: dados };
+          }
+          return { id: sel.value || null };
+        }
+      };
+    }
+
+    // Rótulo e conteúdo de uma compra (usa a variação atual se existir; senão o que foi gravado na compra)
+    function rotuloDaCompra(c, variacoes){
+      const v = c.variacaoId ? (variacoes || []).find(x => x.id === c.variacaoId) : null;
+      return v ? rotuloVariacao(v) : (c.variacao || '');
+    }
+    function conteudoDaCompra(c, variacoes){
+      const v = c.variacaoId ? (variacoes || []).find(x => x.id === c.variacaoId) : null;
+      const n = Number((v && v.conteudo) ?? c.conteudo);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    // Janela "Marcas e embalagens"
+    const variacoesModal = document.getElementById('variacoesModal');
+    const variacoesTitulo = document.getElementById('variacoesTitulo');
+    const variacoesLista = document.getElementById('variacoesLista');
+    const variacoesUnidadeMedida = document.getElementById('variacoesUnidadeMedida');
+    const variacaoForm = document.getElementById('variacaoForm');
+    const variacaoEditId = document.getElementById('variacaoEditId');
+    const variacaoMarca = document.getElementById('variacaoMarca');
+    const variacaoDescricao = document.getElementById('variacaoDescricao');
+    const variacaoConteudo = document.getElementById('variacaoConteudo');
+    let variacoesCtx = { id: null, uso: {}, semVariacao: 0 };
+
+    function resetFormVariacao(){
+      variacaoForm.reset(); variacaoEditId.value = '';
+      document.getElementById('variacaoFormTitulo').textContent = 'Nova variação';
+      document.getElementById('btnSalvarVariacao').textContent = 'Adicionar variação';
+      document.getElementById('btnCancelarVariacao').classList.add('hidden');
+    }
+    async function abrirVariacoes(id){
+      const m = acharMaterial(id); if (!m) return;
+      variacoesCtx = { id, uso: {}, semVariacao: 0 };
+      variacoesTitulo.textContent = `Item: ${m.nome}`;
+      variacoesUnidadeMedida.value = m.unidadeMedida || '';
+      resetFormVariacao();
+      variacoesLista.innerHTML = '<p class="text-sm text-gray-500">Carregando…</p>';
+      variacoesModal.classList.remove('hidden');
+      try {
+        const snap = await db.collection('materiais').doc(id).collection('compras').get();
+        snap.forEach(doc => { const c = doc.data(); if (c.variacaoId) variacoesCtx.uso[c.variacaoId] = (variacoesCtx.uso[c.variacaoId] || 0) + 1; else variacoesCtx.semVariacao++; });
+      } catch (e) { console.error(e); }
+      renderVariacoesLista();
+    }
+    function renderVariacoesLista(){
+      const m = acharMaterial(variacoesCtx.id); const vs = (m && m.variacoes) || []; const un = (m && m.unidadeMedida) || 'unidades';
+      let html = '';
+      if (!vs.length) html += `<p class="text-sm text-gray-500">Nenhuma variação cadastrada. Cadastre abaixo as marcas/embalagens que você costuma comprar deste item.</p>`;
+      html += vs.map(v => { const uso = variacoesCtx.uso[v.id] || 0; return `
+        <div class="flex items-center justify-between gap-3 p-2 border border-gray-200 rounded-lg">
+          <div class="min-w-0">
+            <div class="font-medium text-text-dark break-words">${esc(rotuloVariacao(v) || '(sem nome)')}</div>
+            <div class="text-xs text-gray-500">${v.conteudo ? `${esc(fmtNum(v.conteudo))} ${esc(un)} por embalagem · ` : ''}${plural(uso, 'compra', 'compras')}${(v.codigos || []).length ? ' · reconhecida nas notas fiscais' : ''}</div>
+          </div>
+          <div class="flex gap-3 text-sm flex-shrink-0">
+            <button type="button" class="text-primary-dark underline" data-acao="editar" data-id="${esc(v.id)}">Editar</button>
+            <button type="button" class="${uso ? 'text-gray-300 cursor-not-allowed' : 'text-danger-red underline'}" data-acao="excluir" data-id="${esc(v.id)}" ${uso ? 'disabled title="Há compras com esta variação"' : ''}>Excluir</button>
+          </div>
+        </div>`; }).join('');
+      if (variacoesCtx.semVariacao) html += `<p class="text-xs text-gray-500 pt-1">${plural(variacoesCtx.semVariacao, 'compra está', 'compras estão')} sem marca/embalagem. Para indicar, abra o Histórico de compras e use Editar.</p>`;
+      variacoesLista.innerHTML = html;
+    }
+    async function alterarVariacoes(materialId, transformar){
+      const ref = db.collection('materiais').doc(materialId);
+      const atual = (await ref.get()).data() || {};
+      const variacoes = transformar(atual.variacoes || []);
+      await ref.update({ variacoes });
+      sincronizarMaterialLocal(materialId, { variacoes });
+      await recomputarAgregados(materialId);
+    }
+    variacoesLista.addEventListener('click', async (e) => {
+      const b = e.target.closest('button[data-acao]'); if (!b || b.disabled) return;
+      const m = acharMaterial(variacoesCtx.id); const v = ((m && m.variacoes) || []).find(x => x.id === b.dataset.id); if (!v) return;
+      if (b.dataset.acao === 'editar') {
+        variacaoEditId.value = v.id; variacaoMarca.value = v.marca || ''; variacaoDescricao.value = v.descricao || ''; variacaoConteudo.value = v.conteudo ?? '';
+        document.getElementById('variacaoFormTitulo').textContent = 'Editar variação';
+        document.getElementById('btnSalvarVariacao').textContent = 'Salvar alterações';
+        document.getElementById('btnCancelarVariacao').classList.remove('hidden');
+        variacaoMarca.focus();
+      } else if (b.dataset.acao === 'excluir') {
+        const ok = await showCustomModal('Excluir variação', `Excluir "${rotuloVariacao(v)}" deste item?`, 'confirm'); if (!ok) return;
+        try { await alterarVariacoes(variacoesCtx.id, vs => vs.filter(x => x.id !== v.id)); renderVariacoesLista(); renderizar(); }
+        catch (err) { console.error(err); showCustomModal('Erro', 'Falha ao excluir: ' + err.message, 'alert'); }
+      }
+    });
+    variacaoForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const dados = { marca: variacaoMarca.value.trim(), descricao: variacaoDescricao.value.trim(), conteudo: numOpcional(variacaoConteudo.value) };
+      if (!dados.marca && !dados.descricao) { showCustomModal('Aviso', 'Informe a marca ou a embalagem.', 'alert'); return; }
+      if (Number.isNaN(dados.conteudo)) { showCustomModal('Aviso', 'Quantidade na embalagem inválida.', 'alert'); return; }
+      const editId = variacaoEditId.value;
+      try {
+        await alterarVariacoes(variacoesCtx.id, vs => editId
+          ? vs.map(v => v.id === editId ? { ...v, ...dados } : v)
+          : [...vs, { id: novoIdVariacao(), ...dados, codigos: [] }]);
+        resetFormVariacao(); renderVariacoesLista(); renderizar();
+      } catch (err) { console.error(err); showCustomModal('Erro', 'Falha ao salvar: ' + err.message, 'alert'); }
+    });
+    document.getElementById('btnCancelarVariacao').addEventListener('click', resetFormVariacao);
+    document.getElementById('btnFecharVariacoes').addEventListener('click', () => { variacoesModal.classList.add('hidden'); renderizar(); });
+    variacoesUnidadeMedida.addEventListener('change', async () => {
+      const unidadeMedida = variacoesUnidadeMedida.value.trim() || null;
+      try {
+        await db.collection('materiais').doc(variacoesCtx.id).update({ unidadeMedida });
+        sincronizarMaterialLocal(variacoesCtx.id, { unidadeMedida });
+        renderVariacoesLista();
+      } catch (err) { console.error(err); }
+    });
+
+    // Grava uma compra no histórico do material
+    async function registrarEntradaEmMaterialExistente(id, item, origem, variacao = null){
+      const ref=db.collection('materiais').doc(id);
+      const agoraISO=new Date().toISOString();
+      const dataCompraISO = item.dataCompra || new Date().toISOString();
+      await ref.collection('compras').add({
+        origem: origem || 'manual',
+        dataCompra: dataCompraISO,
+        qtd: item.qtd || 0,
+        precoUnit: item.preco || 0,
+        total: (item.qtd||0) * (item.preco||0),
+        lote: item.lote || null,
+        validade: item.validade || null,
+        ean: item.ean || null,
+        loja: item.loja || null,
+        numeroNF: item.nf || null,
+        criadoEm: agoraISO,
+        variacaoId: variacao ? variacao.id : null,
+        variacao: variacao ? (rotuloVariacao(variacao) || null) : null,
+        conteudo: variacao && variacao.conteudo != null ? Number(variacao.conteudo) : null,
+        chaveNFe: item.chave || null,
+        nItem: item.nItem || null,
+        codigoProduto: item.cod || null,
+        cnpjEmitente: item.cnpj || null,
+        descricaoNota: origem !== 'manual' ? (item.nome || null) : null,
+        unidadeNota: item.uCom || null
+      });
+    }
+
+    // ---------- COMPRAS MANUAIS ----------
+    const compraModal=document.getElementById('compraModal');
+    const compraForm=document.getElementById('compraForm');
+    const compraId=document.getElementById('compraId');
+    const compraNome=document.getElementById('compraNome');
+    const compraData=document.getElementById('compraData');
+    const compraQtd=document.getElementById('compraQtd');
+    const compraPreco=document.getElementById('compraPreco');
+    const compraLote=document.getElementById('compraLote');
+    const compraValidade=document.getElementById('compraValidade');
+    const compraLoja=document.getElementById('compraLoja');
+    const compraNF=document.getElementById('compraNF');
+    const seletorCompra = criarSeletorVariacao(document.getElementById('compraVarBox'));
+    document.getElementById('btnFecharCompra').addEventListener('click', ()=>compraModal.classList.add('hidden'));
+
+    function abrirModalCompra(id, nome){
+      compraId.value = id;
+      compraNome.value = nome;
+      compraData.value = new Date().toISOString().slice(0,10);
+      compraQtd.value = '';
+      compraPreco.value = '';
+      compraLote.value = '';
+      compraValidade.value = '';
+      compraLoja.value = '';
+      compraNF.value = '';
+      const m = acharMaterial(id);
+      seletorCompra.preencher(m ? m.variacoes : [], m ? (m.ultimaVariacaoId || '') : '');
+      compraModal.classList.remove('hidden');
+    }
+
+    compraForm.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const id=compraId.value;
+      const dataCompraISO = compraData.value ? new Date(compraData.value + "T12:00:00Z").toISOString() : new Date().toISOString();
+      const item={
+        qtd: parseFloat(compraQtd.value || '0'),
+        preco: parseFloat(compraPreco.value || '0'),
+        lote: (compraLote.value || null),
+        validade: (compraValidade.value || null),
+        loja: (compraLoja.value || null),
+        nf: (compraNF.value || null),
+        dataCompra: dataCompraISO
+      };
+
+      if (isNaN(item.qtd) || item.qtd <= 0){ showCustomModal('Aviso','Informe uma quantidade válida.','alert'); return; }
+      if (isNaN(item.preco) || item.preco < 0){ showCustomModal('Aviso','Informe um preço válido.','alert'); return; }
+      const escolha = seletorCompra.ler();
+      if (escolha.erro) { showCustomModal('Aviso', escolha.erro, 'alert'); return; }
+
+      try{
+        const variacao = await resolverVariacao(id, escolha);
+        await registrarEntradaEmMaterialExistente(id, item, 'manual', variacao);
+        compraModal.classList.add('hidden');
+        await recomputarAgregados(id);
+        renderizar();
+        showCustomModal('Sucesso','Compra registrada com sucesso!','alert');
+      }catch(err){ console.error(err); showCustomModal('Erro','Falha ao registrar compra: '+err.message,'alert');
+      }
+    });
+
+    // ---------- HISTÓRICO ----------
+    const historicoModal=document.getElementById('historicoModal');
+    const historicoTitulo=document.getElementById('historicoTitulo');
+    const historicoTabela=document.getElementById('historicoTabela');
+    const btnExportarHistorico=document.getElementById('btnExportarHistorico');
+    document.getElementById('btnFecharHistorico').addEventListener('click', ()=>historicoModal.classList.add('hidden'));
+
+    async function abrirHistoricoCompras(id, nome){
+      const m = acharMaterial(id);
+      historicoContext = { id, nome, compras: [], editId: null, variacoes: (m && m.variacoes) || [], unidadeMedida: (m && m.unidadeMedida) || '' };
+      historicoTitulo.textContent = `Produto: ${nome}` + (historicoContext.unidadeMedida ? ` · Preço/unid. = preço por ${historicoContext.unidadeMedida}` : '');
+      historicoTabela.innerHTML = '<tr><td class="p-2 border text-center text-gray-500" colspan="12">Carregando...</td></tr>';
+      historicoModal.classList.remove('hidden');
+      try{
+        const snap = await db.collection('materiais').doc(id).collection('compras').orderBy('dataCompra','desc').limit(500).get();
+        if (snap.empty){ historicoTabela.innerHTML = '<tr><td class="p-2 border text-center text-gray-500" colspan="12">Sem registros.</td></tr>'; return;
+        }
+        let rows=[]; snap.forEach(doc=>rows.push({ id:doc.id, ...doc.data() }));
+        historicoContext.compras = rows;
+        renderTabelaHistorico(rows);
+      }catch(err){
+        console.error(err);
+        historicoTabela.innerHTML = '<tr><td class="p-2 border text-center text-danger-red" colspan="12">Erro ao carregar.</td></tr>';
+      }
+    }
+
+    function renderTabelaHistorico(rows){
+      const vs = historicoContext.variacoes;
+      const calc = r => {
+        const cont = conteudoDaCompra(r, vs);
+        const preco = Number(r.precoUnit);
+        return { rot: rotuloDaCompra(r, vs), pu: cont > 0 && preco > 0 ? preco / cont : null, total: r.total!=null ? r.total : (r.qtd||0)*(r.precoUnit||0) };
+      };
+      historicoTabela.innerHTML = rows.map(r=>{ const k = calc(r); return `
+        <tr data-id="${esc(r.id)}">
+          <td class="p-2 border">${esc(toBRDate(r.dataCompra))}</td>
+          <td class="p-2 border">${k.rot ? esc(k.rot) : '<span class="text-gray-400">—</span>'}</td>
+          <td class="p-2 border text-right">${esc(fmtNum(r.qtd))}</td>
+          <td class="p-2 border text-right">R$ ${fmtMoeda(r.precoUnit)}</td>
+          <td class="p-2 border text-right">${k.pu != null ? esc(fmtPrecoUnidade(k.pu)) : ''}</td>
+          <td class="p-2 border text-right">R$ ${fmtMoeda(k.total)}</td>
+          <td class="p-2 border">${esc(r.lote || '')}</td>
+          <td class="p-2 border">${r.validade ? esc(toBRDate(r.validade)) : ''}</td>
+          <td class="p-2 border">${esc(r.loja || '')}</td>
+          <td class="p-2 border">${esc(r.numeroNF || '')}</td>
+          <td class="p-2 border">${esc(r.origem || '')}</td>
+          <td class="p-2 border whitespace-nowrap">
+            <button class="text-primary-dark underline mr-2" onclick="window._editarCompra('${esc(r.id)}')">Editar</button>
+            <button class="text-danger-red underline" onclick="window._excluirCompra('${esc(r.id)}')">Excluir</button>
+          </td>
+        </tr>`; }).join('');
+      btnExportarHistorico.onclick = ()=>{
+        const header = 'Data;Marca/embalagem;Qtd;PrecoUnit;PrecoPorUnidade;Total;Lote;Validade;Loja;NF;Origem\n';
+        const csv = header + rows.map(r=>{ const k = calc(r); return [
+          toBRDate(r.dataCompra), k.rot, r.qtd, r.precoUnit, k.pu != null ? k.pu : '', k.total,
+          r.lote||'', (r.validade?toBRDate(r.validade):''), r.loja||'', r.numeroNF||'', r.origem||''
+        ].map(x=>String(x).replaceAll(';',',')).join(';'); }).join('\n');
+        const blob = new Blob(['﻿' + csv], {type:'text/csv;charset=utf-8;'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `historico_${historicoContext.nome}.csv`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
+      };
+    }
+
+    const editarCompraModal = document.getElementById('editarCompraModal');
+    const editarCompraForm  = document.getElementById('editarCompraForm');
+    const editCompraData = document.getElementById('editCompraData');
+    const editCompraQtd = document.getElementById('editCompraQtd');
+    const editCompraPreco = document.getElementById('editCompraPreco');
+    const editCompraLote = document.getElementById('editCompraLote');
+    const editCompraValidade = document.getElementById('editCompraValidade');
+    const editCompraLoja = document.getElementById('editCompraLoja');
+    const editCompraNF = document.getElementById('editCompraNF');
+    const seletorEditCompra = criarSeletorVariacao(document.getElementById('editCompraVarBox'));
+    document.getElementById('btnFecharEditarCompra').addEventListener('click', ()=>editarCompraModal.classList.add('hidden'));
+
+    window._editarCompra = async (id) => {
+      const row = historicoContext.compras.find(x=>x.id===id);
+      if(!row) return;
+      historicoContext.editId = id;
+      seletorEditCompra.preencher(historicoContext.variacoes, row.variacaoId || '');
+      editCompraData.value = toISODateInput(row.dataCompra);
+      editCompraQtd.value = row.qtd;
+      editCompraPreco.value = row.precoUnit;
+      editCompraLote.value = row.lote || '';
+      editCompraValidade.value = toISODateInput(row.validade);
+      editCompraLoja.value = row.loja || '';
+      editCompraNF.value = row.numeroNF || '';
+      editarCompraModal.classList.remove('hidden');
+    };
+    editarCompraForm.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const compraId = historicoContext.editId; if(!compraId) return;
+      const materialId = historicoContext.id;
+      const ref = db.collection('materiais').doc(materialId).collection('compras').doc(compraId);
+
+      const novo = {
+        dataCompra: new Date(editCompraData.value + "T12:00:00Z").toISOString(),
+        qtd: parseFloat(editCompraQtd.value||'0'),
+        precoUnit: parseFloat(editCompraPreco.value||'0'),
+        lote: editCompraLote.value || null,
+        validade: editCompraValidade.value || null,
+        loja: editCompraLoja.value || null,
+        numeroNF: editCompraNF.value || null,
+        total: parseFloat(editCompraQtd.value||'0') * parseFloat(editCompraPreco.value||'0')
+      };
+      if (isNaN(novo.qtd) || novo.qtd <= 0) { showCustomModal('Aviso','Quantidade inválida.','alert'); return; }
+      if (isNaN(novo.precoUnit) || novo.precoUnit < 0) { showCustomModal('Aviso','Preço inválido.','alert'); return; }
+      const escolha = seletorEditCompra.ler();
+      if (escolha.erro) { showCustomModal('Aviso', escolha.erro, 'alert'); return; }
+
+      try {
+        const variacao = await resolverVariacao(materialId, escolha);
+        novo.variacaoId = variacao ? variacao.id : null;
+        novo.variacao = variacao ? (rotuloVariacao(variacao) || null) : null;
+        novo.conteudo = variacao && variacao.conteudo != null ? Number(variacao.conteudo) : null;
+        await ref.update(novo);
+        editarCompraModal.classList.add('hidden');
+        await recomputarAgregados(materialId);
+        await abrirHistoricoCompras(materialId, historicoContext.nome);
+        renderizar();
+        showCustomModal('Sucesso','Compra atualizada.','alert');
+      } catch (err) { console.error(err); showCustomModal('Erro', 'Falha ao salvar: ' + err.message, 'alert'); }
+    });
+    window._excluirCompra = async (compraId)=>{
+      const ok = await showCustomModal('Confirmar','Excluir este registro de compra? A ação não pode ser desfeita.','confirm');
+      if(!ok) return;
+      const materialId = historicoContext.id;
+      const ref = db.collection('materiais').doc(materialId).collection('compras').doc(compraId);
+      await ref.delete();
+
+      await recomputarAgregados(materialId);
+      await abrirHistoricoCompras(materialId, historicoContext.nome);
+      renderizar();
+      showCustomModal('Sucesso','Registro de compra excluído.','alert');
+    };
+
+    // Recalcula os dados de "última compra", validade e melhor preço por unidade
+    async function recomputarAgregados(id){
+      const matRef = db.collection('materiais').doc(id);
+      const [matSnap, compSnap] = await Promise.all([matRef.get(), matRef.collection('compras').orderBy('dataCompra', 'desc').get()]);
+      const variacoes = (matSnap.exists && matSnap.data().variacoes) || [];
+
+      let ultimaCompra = null;
+      let menorValidade = null;
+      let melhor = null;
+
+      compSnap.forEach(doc => {
+        const c = doc.data();
+        if (!ultimaCompra) {
+          ultimaCompra = c;
+        }
+        if(c.validade && isFuture(c.validade)){
+          if(!menorValidade || new Date(c.validade) < new Date(menorValidade)) {
+            menorValidade = c.validade;
+          }
+        }
+        const cont = conteudoDaCompra(c, variacoes);
+        const preco = Number(c.precoUnit);
+        if (cont > 0 && preco > 0) {
+          const pu = preco / cont;
+          if (!melhor || pu < melhor.valor) melhor = { valor: pu, loja: c.loja || null, data: c.dataCompra || null, variacao: rotuloDaCompra(c, variacoes) || null };
+        }
+      });
+
+      const agregados = {
+        quantidade: ultimaCompra ? (ultimaCompra.qtd || 0) : 0,
+        ultimaCompraEm: ultimaCompra ? (ultimaCompra.dataCompra ?? null) : null,
+        precoCompra: ultimaCompra && ultimaCompra.precoUnit != null ? Number(ultimaCompra.precoUnit) : null,
+        lojaUltimaCompra: ultimaCompra ? (ultimaCompra.loja ?? null) : null,
+        nfUltimaCompra: ultimaCompra ? (ultimaCompra.numeroNF ?? null) : null,
+        validadeUltimaCompra: menorValidade || null,
+        ultimaVariacao: ultimaCompra ? (rotuloDaCompra(ultimaCompra, variacoes) || null) : null,
+        ultimaVariacaoId: ultimaCompra ? (ultimaCompra.variacaoId || null) : null,
+        melhorPrecoUnidade: melhor
+      };
+      await matRef.set(agregados, { merge:true });
+      const m = acharMaterial(id); if (m) Object.assign(m, agregados);
+      return agregados;
     }
 
     // ---------- IMPORTAÇÃO COM ASSISTENTE (NF-e e PLANILHA) ----------
     let importQueue = [];
-    let importOrigin = null;
+    let importOrigin = null;          // 'nfe' | 'planilha'
     let importStep = 0;
-    let materiaisIndex = [];
-    
+    let importStats = null;
+    let importRegistroNota = null;    // registro de importação anterior da mesma NF-e
+    let importInicio = null;
+    let materiaisIndex = [];          // materiais ativos (com variações) usados no assistente
+    let indiceCodigos = new Map();    // código do produto → { materialId, variacaoId }
+    let dupToken = 0;
+
     const nfeMatchModal = document.getElementById('nfeMatchModal');
     const btnFecharNfeMatch = document.getElementById('btnFecharNfeMatch');
     const nfeStepIdx = document.getElementById('nfeStepIdx');
     const nfeStepTotal = document.getElementById('nfeStepTotal');
+    const nfeResumoAuto = document.getElementById('nfeResumoAuto');
     const nfeItemNome = document.getElementById('nfeItemNome');
     const nfeItemQtd = document.getElementById('nfeItemQtd');
     const nfeItemPreco = document.getElementById('nfeItemPreco');
     const nfeItemLote = document.getElementById('nfeItemLote');
     const nfeItemVal = document.getElementById('nfeItemVal');
+    const nfeItemCodigo = document.getElementById('nfeItemCodigo');
+    const nfeAviso = document.getElementById('nfeAviso');
     const nfeCandidateSelect = document.getElementById('nfeCandidateSelect');
+    const nfeNovoItemBox = document.getElementById('nfeNovoItemBox');
     const nfeNewName = document.getElementById('nfeNewName');
     const nfeNewCategory = document.getElementById('nfeNewCategory');
+    const nfeLembrar = document.getElementById('nfeLembrar');
+    const nfeLembrarBox = document.getElementById('nfeLembrarBox');
     const nfeBtnMesmo = document.getElementById('nfeBtnMesmo');
     const nfeBtnCriar = document.getElementById('nfeBtnCriar');
-    const nfeBtnAvancar = document.getElementById('nfeBtnAvancar');
     const nfeBtnPular = document.getElementById('nfeBtnPular');
+    const nfeBtnTodos = document.getElementById('nfeBtnTodos');
     const btnImportarNfe = document.getElementById('btnImportarNfe');
     const inputXmlNfe = document.getElementById('inputXmlNfe');
+    const seletorNfe = criarSeletorVariacao(document.getElementById('nfeVarBox'));
 
     btnImportarNfe.addEventListener('click',()=>inputXmlNfe.click());
     inputXmlNfe.addEventListener('change', onPickXmlFile);
 
-    btnFecharNfeMatch.addEventListener('click',()=>nfeMatchModal.classList.add('hidden'));
-    nfeBtnPular.addEventListener('click',()=>avancarItem());
-    nfeBtnAvancar.addEventListener('click',()=>avancarItem());
-
-    nfeBtnMesmo.addEventListener('click', async ()=>{
-      const item=importQueue[importStep];
-      const selectedId=nfeCandidateSelect.value;
-      if(!selectedId){ showCustomModal("Aviso","Selecione um item do estoque ou use 'Criar novo'.","alert"); return; }
-      
-      await registrarEntradaEmMaterialExistente(selectedId,item,importOrigin);
-      await recomputarAgregados(selectedId);
-       avancarItem(true);
+    btnFecharNfeMatch.addEventListener('click',()=>{
+      nfeMatchModal.classList.add('hidden');
+      if (importStats && importStats.registrados) carregarMateriais();
     });
-
-    nfeBtnCriar.addEventListener('click', async ()=>{
-      const item=importQueue[importStep];
-      const nomeNovo=(nfeNewName.value||'').trim();
-      const categoriaNova=nfeNewCategory.value;
-      if(!nomeNovo){ showCustomModal("Aviso","Informe um nome padronizado.","alert"); return; }
-      if(!categoriaNova){ showCustomModal("Aviso","Selecione a categoria.","alert"); return; }
-
-      const qSnap = await db.collection('materiais').where('nome', '==', nomeNovo).limit(1).get();
-      if(!qSnap.empty){
-         showCustomModal("Aviso",`Já existe um material chamado "${nomeNovo}". Use a opção "É o mesmo" para vinculá-lo.`,'alert');
-         return;
+    nfeBtnPular.addEventListener('click',()=>{ importStats.pulados++; avancarItem(); });
+    nfeCandidateSelect.addEventListener('change', () => { atualizarVariacaoNfe(); checarDuplicataNfe(); });
+    nfeNovoItemBox.addEventListener('toggle', () => {
+      const it = importQueue[importStep]; if (!it) return;
+      if (nfeNovoItemBox.open) {
+        dupToken++;
+        nfeCandidateSelect.value = '';
+        seletorNfe.preencher([], '', sugestaoVariacao(it));
+        renderAvisoNfe(false);
+      } else {
+        atualizarVariacaoNfe();
       }
-      
-      const newDocRef = db.collection('materiais').doc();
-      await newDocRef.set({
-        id: newDocRef.id,
-        nome: nomeNovo,
-        categoria: categoriaNova,
-        quantidade: 0,
-        imagem: null,
-        ultimaModificacao: new Date().toLocaleString('pt-BR'),
-        marcadoParaCompraEm: null,
-        ultimaCompraEm: null,
-        validadeUltimaCompra: null,
-        precoCompra: null,
-        lojaUltimaCompra: null,
-        nfUltimaCompra: null
-      });
-      
-      await registrarEntradaEmMaterialExistente(newDocRef.id,item,importOrigin);
-      await recomputarAgregados(newDocRef.id);
-      avancarItem(true);
     });
+
+    function travarNfe(travar){
+      nfeMatchModal.querySelectorAll('button, select, input').forEach(el => { el.disabled = travar; });
+    }
+
+    // Códigos que identificam o produto nas próximas importações
+    function codigosDoItem(it, origem){
+      const cods = [];
+      if (it.cnpj && it.cod) cods.push(`forn:${String(it.cnpj).replace(/\D/g,'')}:${String(it.cod).trim().toUpperCase()}`);
+      if (it.ean && /^\d{8,14}$/.test(it.ean)) cods.push('ean:' + it.ean);
+      if (origem === 'planilha' && it.nome) cods.push('nome:' + norm(it.nome));
+      return cods;
+    }
+    function reconhecer(it){
+      for (const c of codigosDoItem(it, importOrigin)) {
+        const r = indiceCodigos.get(c);
+        if (r && materiaisIndex.some(m => m.id === r.materialId)) {
+          const vs = variacoesDoMaterial(r.materialId);
+          return { materialId: r.materialId, variacaoId: (r.variacaoId && vs.some(v => v.id === r.variacaoId)) ? r.variacaoId : null };
+        }
+      }
+      return null;
+    }
+    function sugestaoVariacao(it){
+      return { marca: it.marca || '', descricao: importOrigin === 'nfe' ? (it.nome || '') : '', conteudo: null };
+    }
+
+    async function carregarMateriaisIndex(){
+      const s=await db.collection('materiais').get();
+      materiaisIndex=[]; indiceCodigos = new Map();
+      s.forEach(doc=>{
+        const d=doc.data();
+        if (d.arquivado) return;
+        const m = { id:doc.id, nome:d.nome||doc.id, categoria:d.categoria||'', variacoes: d.variacoes || [], codigos: d.codigos || [] };
+        materiaisIndex.push(m);
+        m.codigos.forEach(c => indiceCodigos.set(c, { materialId: doc.id, variacaoId: null }));
+        m.variacoes.forEach(v => (v.codigos || []).forEach(c => indiceCodigos.set(c, { materialId: doc.id, variacaoId: v.id })));
+      });
+      materiaisIndex.sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR'));
+    }
+
+    // Liga os códigos ao item/variação escolhido (e tira de onde estavam, se for outro lugar)
+    async function lembrarCodigos(materialId, variacaoId, codigos){
+      if (!codigos.length) return;
+      const set = new Set(codigos);
+      const outros = new Set();
+      codigos.forEach(c => { const dono = indiceCodigos.get(c); if (dono && dono.materialId !== materialId) outros.add(dono.materialId); });
+      const limpar = (d) => ({
+        variacoes: (d.variacoes || []).map(v => ({ ...v, codigos: (v.codigos || []).filter(c => !set.has(c)) })),
+        codigos: (d.codigos || []).filter(c => !set.has(c))
+      });
+      for (const outroId of outros) {
+        const ref = db.collection('materiais').doc(outroId);
+        const snap = await ref.get(); if (!snap.exists) continue;
+        const campos = limpar(snap.data());
+        await ref.update(campos);
+        sincronizarMaterialLocal(outroId, campos);
+      }
+      const ref = db.collection('materiais').doc(materialId);
+      const campos = limpar((await ref.get()).data() || {});
+      if (variacaoId) campos.variacoes = campos.variacoes.map(v => v.id === variacaoId ? { ...v, codigos: [...v.codigos, ...codigos] } : v);
+      else campos.codigos = [...campos.codigos, ...codigos];
+      await ref.update(campos);
+      sincronizarMaterialLocal(materialId, campos);
+      codigos.forEach(c => indiceCodigos.set(c, { materialId, variacaoId: variacaoId || null }));
+    }
+
+    // Já existe esta compra no item? (mesma NF-e e item da nota, ou mesma NF com mesma qtd e preço)
+    async function verificarDuplicata(materialId, it){
+      if (!it.chave && !it.nf) return false;
+      try {
+        const col = db.collection('materiais').doc(materialId).collection('compras');
+        let dup = false;
+        if (it.chave) {
+          const s1 = await col.where('chaveNFe', '==', it.chave).get();
+          s1.forEach(d => { const c = d.data(); if (String(c.nItem ?? '') === String(it.nItem ?? '')) dup = true; });
+          if (dup) return true;
+        }
+        if (it.nf) {
+          const s2 = await col.where('numeroNF', '==', String(it.nf)).get();
+          s2.forEach(d => {
+            const c = d.data();
+            if (c.chaveNFe) return;   // compras com chave já foram conferidas acima
+            if (Math.abs((Number(c.qtd) || 0) - (Number(it.qtd) || 0)) < 1e-6 && Math.abs((Number(c.precoUnit) || 0) - (Number(it.preco) || 0)) < 0.011) dup = true;
+          });
+        }
+        return dup;
+      } catch (e) { console.warn('Não foi possível verificar duplicidade', e); return false; }
+    }
 
     function abrirModalMatching(){
       nfeMatchModal.classList.remove('hidden');
       nfeStepTotal.textContent=importQueue.length;
     }
 
-    function avancarItem(){
-      importStep++;
-      if(importStep>=importQueue.length){
-        nfeMatchModal.classList.add('hidden');
-        carregarMateriais();
-        showCustomModal("Sucesso","Processamento concluído!","alert");
-      } else {
-        renderMatchStep();
-      }
+    function iniciarAssistente(itens, origem){
+      importOrigin = origem;
+      importQueue = itens.map(it => ({ ...it, feito: false, auto: null }));
+      importQueue.forEach(it => { it.auto = reconhecer(it); });
+      importStep = 0;
+      importStats = { registrados: 0, automaticos: 0, pulados: 0, duplicados: 0, novosItens: 0 };
+      importInicio = new Date().toISOString();
+      abrirModalMatching();
+      posicionar();
     }
 
-    async function carregarMateriaisIndex(){
-      const s=await db.collection('materiais').get();
-      materiaisIndex=[];
-      s.forEach(doc=>{
-        const d=doc.data();
-        materiaisIndex.push({id:doc.id,nome:d.nome||doc.id,categoria:d.categoria||''});
-      });
+    function posicionar(){
+      while (importStep < importQueue.length && importQueue[importStep].feito) importStep++;
+      if (importStep >= importQueue.length) finalizarImportacao();
+      else renderMatchStep();
+    }
+    function avancarItem(){
+      if (importQueue[importStep]) importQueue[importStep].feito = true;
+      importStep++;
+      posicionar();
+    }
+    function finalizarImportacao(){
+      nfeMatchModal.classList.add('hidden');
+      carregarMateriais();
+      const s = importStats;
+      const partes = [`${plural(s.registrados, 'compra registrada', 'compras registradas')}`];
+      if (s.automaticos) partes.push(`${plural(s.automaticos, 'reconhecida', 'reconhecidas')} automaticamente`);
+      if (s.novosItens) partes.push(`${plural(s.novosItens, 'item novo criado', 'itens novos criados')}`);
+      if (s.duplicados) partes.push(`${plural(s.duplicados, 'já estava registrada e não foi duplicada', 'já estavam registradas e não foram duplicadas')}`);
+      if (s.pulados) partes.push(`${plural(s.pulados, 'pulada', 'puladas')}`);
+      showCustomModal("Importação concluída", partes.join('\n'), "alert");
     }
 
     function renderMatchStep(){
       const it=importQueue[importStep];
+      travarNfe(false);
       nfeStepIdx.textContent=String(importStep+1);
       nfeItemNome.textContent=it.nome||'-';
-      nfeItemQtd.textContent=it.qtd||0;
+      nfeItemQtd.textContent=`${fmtNum(it.qtd||0)}${it.uCom ? ' ' + it.uCom : ''}`;
       nfeItemPreco.textContent=(it.preco||0).toFixed(2).replace('.',',');
       nfeItemLote.textContent=it.lote||'-';
       nfeItemVal.textContent=it.validade ? toBRDate(it.validade) : '-';
+      const cod = [];
+      if (it.marca) cod.push(`Marca: ${it.marca}`);
+      if (it.cod) cod.push(`Cód. fornecedor: ${it.cod}`);
+      if (it.ean) cod.push(`EAN: ${it.ean}`);
+      nfeItemCodigo.textContent = cod.join(' · ');
 
-      const candidates = sugerirMateriais(it.nome, materiaisIndex, 8);
+      const totalAuto = importQueue.filter(x => x.auto).length;
+      nfeResumoAuto.textContent = totalAuto ? `· ${totalAuto} de ${importQueue.length} reconhecidos automaticamente` : '';
+      const pendentesAuto = importQueue.slice(importStep).filter(x => !x.feito && x.auto).length;
+      document.getElementById('nfeQtdReconhecidos').textContent = pendentesAuto;
+      nfeBtnTodos.classList.toggle('hidden', pendentesAuto === 0);
+
+      const sugestoes = sugerirMateriais(it.nome, materiaisIndex, 8).filter(c => c.score > 0);
+      const ids = new Set(sugestoes.map(c => c.id));
+      if (it.auto && !ids.has(it.auto.materialId)) {
+        const a = materiaisIndex.find(m => m.id === it.auto.materialId);
+        if (a) { sugestoes.unshift(a); ids.add(a.id); }
+      }
       nfeCandidateSelect.innerHTML = '<option value="">— selecione no estoque —</option>' +
-        candidates.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+        (sugestoes.length ? `<optgroup label="Sugestões">${sugestoes.map(c=>`<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join('')}</optgroup>` : '') +
+        `<optgroup label="Todos os itens">${materiaisIndex.filter(m => !ids.has(m.id)).map(c=>`<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join('')}</optgroup>`;
+      nfeCandidateSelect.value = it.auto ? it.auto.materialId : '';
+      nfeNovoItemBox.open = false;
       nfeNewName.value=''; nfeNewCategory.value='';
+      nfeLembrar.checked = true;
+      nfeLembrarBox.classList.toggle('hidden', codigosDoItem(it, importOrigin).length === 0);
+      atualizarVariacaoNfe();
+      checarDuplicataNfe();
     }
 
-    function stripAccents(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+    function atualizarVariacaoNfe(){
+      const it = importQueue[importStep]; if (!it) return;
+      const id = nfeCandidateSelect.value;
+      const vs = id ? variacoesDoMaterial(id) : [];
+      let sel = '';
+      if (it.auto && it.auto.materialId === id) sel = it.auto.variacaoId || '';
+      else if (id && it.marca) { const v = vs.find(v => norm(v.marca) === norm(it.marca)); if (v) sel = v.id; }
+      seletorNfe.preencher(vs, sel, sugestaoVariacao(it));
+    }
+
+    function renderAvisoNfe(duplicado){
+      const it = importQueue[importStep]; if (!it) return;
+      const avisos = [];
+      if (it.auto && nfeCandidateSelect.value === it.auto.materialId) avisos.push('<div class="text-sm rounded-lg p-2 bg-emerald-50 text-emerald-800">✓ Reconhecido automaticamente pelas importações anteriores. Confira e clique em Registrar.</div>');
+      if (duplicado) avisos.push('<div class="text-sm rounded-lg p-2 bg-amber-100 text-amber-900">⚠️ Esta compra parece já estar registrada neste item (mesma nota fiscal). Registrar de novo vai duplicar. O recomendado é <strong>Pular</strong>.</div>');
+      nfeAviso.innerHTML = avisos.join('');
+      nfeAviso.classList.toggle('hidden', avisos.length === 0);
+    }
+    async function checarDuplicataNfe(){
+      const it = importQueue[importStep]; if (!it) return;
+      const id = nfeCandidateSelect.value;
+      const token = ++dupToken;
+      renderAvisoNfe(false);
+      if (!id) return;
+      const dup = await verificarDuplicata(id, it);
+      if (token === dupToken) renderAvisoNfe(dup);
+    }
+
+    async function marcarNotaImportada(it){
+      if (importOrigin !== 'nfe' || !it.chave) return;
+      await db.collection('nfesImportadas').doc(it.chave).set({
+        chave: it.chave, numero: it.nf || null, loja: it.loja || null, cnpj: it.cnpj || null, emissao: it.dataCompra || null,
+        importadaEm: (importRegistroNota && importRegistroNota.importadaEm) || importInicio,
+        ultimaImportacaoEm: new Date().toISOString(),
+        itensRegistrados: ((importRegistroNota && importRegistroNota.itensRegistrados) || 0) + importStats.registrados
+      }, { merge: true });
+    }
+    async function registrarCompraImportada(materialId, variacao, it, automatico){
+      await registrarEntradaEmMaterialExistente(materialId, it, importOrigin, variacao);
+      await recomputarAgregados(materialId);
+      importStats.registrados++;
+      if (automatico) importStats.automaticos++;
+      await marcarNotaImportada(it);
+    }
+
+    nfeBtnMesmo.addEventListener('click', async ()=>{
+      const it=importQueue[importStep];
+      const materialId=nfeCandidateSelect.value;
+      if(!materialId){ showCustomModal("Aviso","Selecione um item do estoque ou crie um item novo.","alert"); return; }
+      const escolha = seletorNfe.ler();
+      if (escolha.erro) { showCustomModal('Aviso', escolha.erro, 'alert'); return; }
+      travarNfe(true);
+      try {
+        const variacao = await resolverVariacao(materialId, escolha);
+        if (nfeLembrar.checked) await lembrarCodigos(materialId, variacao ? variacao.id : null, codigosDoItem(it, importOrigin));
+        const automatico = !!(it.auto && it.auto.materialId === materialId && (it.auto.variacaoId || null) === (variacao ? variacao.id : null));
+        await registrarCompraImportada(materialId, variacao, it, automatico);
+        avancarItem();
+      } catch (e) {
+        console.error(e); travarNfe(false);
+        showCustomModal('Erro', 'Falha ao registrar: ' + e.message, 'alert');
+      }
+    });
+
+    nfeBtnCriar.addEventListener('click', async ()=>{
+      const it=importQueue[importStep];
+      const nomeNovo=(nfeNewName.value||'').trim();
+      const categoriaNova=nfeNewCategory.value;
+      if(!nomeNovo){ showCustomModal("Aviso","Informe o nome do novo item.","alert"); return; }
+      if(!categoriaNova){ showCustomModal("Aviso","Selecione a categoria.","alert"); return; }
+      const escolha = seletorNfe.ler();
+      if (escolha.erro) { showCustomModal('Aviso', escolha.erro, 'alert'); return; }
+
+      travarNfe(true);
+      try {
+        const qSnap = await db.collection('materiais').where('nome', '==', nomeNovo).limit(1).get();
+        if(!qSnap.empty){
+          travarNfe(false);
+          showCustomModal("Aviso",`Já existe um material chamado "${nomeNovo}". Selecione-o na lista do passo 1.`,'alert');
+          return;
+        }
+        const newDocRef = db.collection('materiais').doc();
+        await newDocRef.set(novoMaterialBase(newDocRef.id, nomeNovo, categoriaNova));
+        materiaisIndex.push({ id: newDocRef.id, nome: nomeNovo, categoria: categoriaNova, variacoes: [], codigos: [] });
+        materiaisIndex.sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR'));
+        importStats.novosItens++;
+        const variacao = escolha.nova ? await adicionarVariacao(newDocRef.id, escolha.nova) : null;
+        if (nfeLembrar.checked) await lembrarCodigos(newDocRef.id, variacao ? variacao.id : null, codigosDoItem(it, importOrigin));
+        await registrarCompraImportada(newDocRef.id, variacao, it, false);
+        avancarItem();
+      } catch (e) {
+        console.error(e); travarNfe(false);
+        showCustomModal('Erro', 'Falha ao criar o item: ' + e.message, 'alert');
+      }
+    });
+
+    nfeBtnTodos.addEventListener('click', async () => {
+      travarNfe(true);
+      try {
+        for (let i = importStep; i < importQueue.length; i++) {
+          const it = importQueue[i];
+          if (it.feito || !it.auto) continue;
+          nfeResumoAuto.textContent = `· registrando ${i + 1} de ${importQueue.length}…`;
+          if (await verificarDuplicata(it.auto.materialId, it)) { importStats.duplicados++; it.feito = true; continue; }
+          const variacao = it.auto.variacaoId ? (variacoesDoMaterial(it.auto.materialId).find(v => v.id === it.auto.variacaoId) || null) : null;
+          await registrarCompraImportada(it.auto.materialId, variacao, it, true);
+          it.feito = true;
+        }
+      } catch (e) {
+        console.error(e);
+        showCustomModal('Erro', 'Falha ao registrar: ' + e.message, 'alert');
+      }
+      posicionar();
+    });
+
+    function stripAccents(s){ return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,''); }
     function norm(s){ return stripAccents(String(s||'').toLowerCase()).replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
     }
     function similarity(a,b){ a=norm(a); b=norm(b); if(!a||!b) return 0;
@@ -990,15 +1924,26 @@
         await carregarMateriaisIndex();
         const xmlStr=await file.text();
         const meta = extrairMetaNfe(xmlStr);
-        importQueue = extrairItensDaNfe(xmlStr).map(it => ({
+        const itens = extrairItensDaNfe(xmlStr).map(it => ({
           ...it,
           dataCompra: meta.emissao,
           loja: meta.loja || it.loja || null,
-          nf: meta.numero || it.nf || null
+          nf: meta.numero || it.nf || null,
+          cnpj: meta.cnpj || null,
+          chave: meta.chave || null
         }));
-        if(!importQueue.length){ showCustomModal("Aviso","Não encontrei itens na NF-e.","alert"); return; }
-        importOrigin='nfe'; importStep=0;
-        abrirModalMatching(); renderMatchStep();
+        if(!itens.length){ showCustomModal("Aviso","Não encontrei itens na NF-e.","alert"); return; }
+        importRegistroNota = null;
+        if (meta.chave) {
+          const reg = await db.collection('nfesImportadas').doc(meta.chave).get();
+          if (reg.exists) {
+            importRegistroNota = reg.data();
+            const ok = await showCustomModal('Nota já importada',
+              `A NF ${meta.numero || ''} (${meta.loja || 'fornecedor'}) já foi importada em ${toBRDate(importRegistroNota.importadaEm)}.\n\nSe continuar, os itens que já foram registrados serão avisados para você não duplicar. Continuar?`, 'confirm');
+            if (!ok) return;
+          }
+        }
+        iniciarAssistente(itens, 'nfe');
       }catch(e){ console.error(e); showCustomModal("Erro","Falha ao processar a NF-e: "+e.message,"alert"); }
       finally{ inputXmlNfe.value='';
       }
@@ -1008,12 +1953,19 @@
       const parser=new DOMParser();
       const xml=parser.parseFromString(xmlStr,"text/xml");
       const ns="http://www.portalfiscal.inf.br/nfe";
+      const t=(p,tag)=>{ const el=p && p.getElementsByTagNameNS(ns,tag)[0]; return (el && el.textContent || '').trim() || null; };
       const ide=xml.getElementsByTagNameNS(ns,'ide')[0];
       const emit=xml.getElementsByTagNameNS(ns,'emit')[0];
-      const dh = ide ? (ide.getElementsByTagNameNS(ns,'dhEmi')[0]?.textContent||null) : null;
-      const nNF = ide ? (ide.getElementsByTagNameNS(ns,'nNF')[0]?.textContent||null) : null;
-      const loja = emit ? (emit.getElementsByTagNameNS(ns,'xNome')[0]?.textContent||null) : null;
-      return { emissao: dh, numero: nNF, loja };
+      const inf=xml.getElementsByTagNameNS(ns,'infNFe')[0];
+      let chave = inf ? (inf.getAttribute('Id') || '').replace(/^NFe/i, '') : '';
+      if (!/^\d{44}$/.test(chave)) chave = t(xml, 'chNFe') || null;
+      return {
+        emissao: t(ide,'dhEmi') || t(ide,'dEmi'),
+        numero: t(ide,'nNF'),
+        loja: t(emit,'xNome'),
+        cnpj: t(emit,'CNPJ') || t(emit,'CPF'),
+        chave
+      };
     }
 
     function extrairItensDaNfe(xmlStr){
@@ -1027,237 +1979,14 @@
         if(!prod) continue;
         const xProd=t(prod,'xProd'); const qCom=parseFloat((t(prod,'qCom')||'0').replace(',','.'))||0;
         const vUn=parseFloat((t(prod,'vUnCom')||'0').replace(',','.'))||0; const vProd=parseFloat((t(prod,'vProd')||'0').replace(',','.'))||0;
-        const cProd=t(prod,'cProd'); let ean=t(prod,'cEAN'); if(!ean) ean=t(prod,'cEANTrib');
+        const cProd=t(prod,'cProd'); let ean=t(prod,'cEAN'); if(!ean || !/^\d{8,14}$/.test(ean)) ean=t(prod,'cEANTrib');
+        if (ean && !/^\d{8,14}$/.test(ean)) ean = null;   // "SEM GTIN"
         const r=prod.getElementsByTagNameNS(ns,'rastro')[0]; const nLote=r?t(r,'nLote'):null;
         const dVal=r?t(r,'dVal'):null;
-        itens.push({ cod:cProd, ean:ean, nome:xProd, qtd:qCom,
+        itens.push({ cod:cProd, ean:ean, nome:xProd, qtd:qCom, uCom: t(prod,'uCom'), nItem: det.getAttribute('nItem') || String(i+1),
           preco:(qCom>0? vProd/qCom : vUn)||vUn, lote:nLote, validade:dVal });
       }
       return itens;
-    }
-
-    async function registrarEntradaEmMaterialExistente(id, item, origem){
-      const ref=db.collection('materiais').doc(id);
-      const agoraISO=new Date().toISOString();
-      const dataCompraISO = item.dataCompra || new Date().toISOString();
-
-      await ref.collection('compras').add({
-        origem: origem || 'manual',
-        dataCompra: dataCompraISO,
-        qtd: item.qtd || 0,
-        precoUnit: item.preco || 0,
-        total: (item.qtd||0) * (item.preco||0),
-        lote: item.lote || null,
-        validade: item.validade || null,
-        ean: item.ean || null,
-        loja: item.loja || null,
-        numeroNF: item.nf || null,
-        criadoEm: agoraISO
-      });
-    }
-
-    // ---------- COMPRAS MANUAIS ----------
-    const compraModal=document.getElementById('compraModal');
-    const compraForm=document.getElementById('compraForm');
-    const compraId=document.getElementById('compraId');
-    const compraNome=document.getElementById('compraNome');
-    const compraData=document.getElementById('compraData');
-    const compraQtd=document.getElementById('compraQtd');
-    const compraPreco=document.getElementById('compraPreco');
-    const compraLote=document.getElementById('compraLote');
-    const compraValidade=document.getElementById('compraValidade');
-    const compraLoja=document.getElementById('compraLoja');
-    const compraNF=document.getElementById('compraNF');
-    document.getElementById('btnFecharCompra').addEventListener('click', ()=>compraModal.classList.add('hidden'));
-
-    function abrirModalCompra(id, nome){
-      compraId.value = id;
-      compraNome.value = nome;
-      compraData.value = new Date().toISOString().slice(0,10);
-      compraQtd.value = '';
-      compraPreco.value = '';
-      compraLote.value = '';
-      compraValidade.value = '';
-      compraLoja.value = '';
-      compraNF.value = '';
-      compraModal.classList.remove('hidden');
-    }
-
-    compraForm.addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const id=compraId.value;
-      const dataCompraISO = compraData.value ? new Date(compraData.value + "T12:00:00Z").toISOString() : new Date().toISOString();
-      const item={
-        qtd: parseFloat(compraQtd.value || '0'),
-        preco: parseFloat(compraPreco.value || '0'),
-        lote: (compraLote.value || null),
-        validade: (compraValidade.value || null),
-        loja: (compraLoja.value || null),
-        nf: (compraNF.value || null),
-        dataCompra: dataCompraISO
-      };
-
-      if (isNaN(item.qtd) || item.qtd <= 0){ showCustomModal('Aviso','Informe uma quantidade válida.','alert'); return; }
-      if (isNaN(item.preco) || item.preco < 0){ showCustomModal('Aviso','Informe um preço válido.','alert'); return; }
-
-      try{
-        await registrarEntradaEmMaterialExistente(id, item, 'manual');
-        compraModal.classList.add('hidden');
-        await recomputarAgregados(id);
-        await carregarMateriais();
-        showCustomModal('Sucesso','Compra registrada com sucesso!','alert');
-      }catch(err){ console.error(err); showCustomModal('Erro','Falha ao registrar compra: '+err.message,'alert');
-      }
-    });
-
-    // ---------- HISTÓRICO ----------
-    const historicoModal=document.getElementById('historicoModal');
-    const historicoTitulo=document.getElementById('historicoTitulo');
-    const historicoTabela=document.getElementById('historicoTabela');
-    const btnExportarHistorico=document.getElementById('btnExportarHistorico');
-    document.getElementById('btnFecharHistorico').addEventListener('click', ()=>historicoModal.classList.add('hidden'));
-
-    async function abrirHistoricoCompras(id, nome){
-      historicoContext = { id, nome, compras: [], editId: null };
-      historicoTitulo.textContent = `Produto: ${nome}`;
-      historicoTabela.innerHTML = '<tr><td class="p-2 border text-center text-gray-500" colspan="10">Carregando...</td></tr>';
-      historicoModal.classList.remove('hidden');
-      try{
-        const snap = await db.collection('materiais').doc(id).collection('compras').orderBy('dataCompra','desc').limit(500).get();
-        if (snap.empty){ historicoTabela.innerHTML = '<tr><td class="p-2 border text-center text-gray-500" colspan="10">Sem registros.</td></tr>'; return;
-        }
-        let rows=[]; snap.forEach(doc=>rows.push({ id:doc.id, ...doc.data() }));
-        historicoContext.compras = rows;
-        renderTabelaHistorico(rows);
-      }catch(err){
-        console.error(err);
-        historicoTabela.innerHTML = '<tr><td class="p-2 border text-center text-danger-red" colspan="10">Erro ao carregar.</td></tr>';
-      }
-    }
-
-    function renderTabelaHistorico(rows){
-      historicoTabela.innerHTML = rows.map(r=>`
-        <tr data-id="${r.id}">
-          <td class="p-2 border">${toBRDate(r.dataCompra)}</td>
-          <td class="p-2 border text-right">${r.qtd}</td>
-          <td class="p-2 border text-right">R$ ${fmtMoeda(r.precoUnit)}</td>
-          <td class="p-2 border text-right">R$ ${fmtMoeda(r.total!=null ? r.total : (r.qtd||0)*(r.precoUnit||0))}</td>
-          <td class="p-2 border">${r.lote || ''}</td>
-           <td class="p-2 border">${r.validade ? toBRDate(r.validade) : ''}</td>
-          <td class="p-2 border">${r.loja || ''}</td>
-          <td class="p-2 border">${r.numeroNF || ''}</td>
-          <td class="p-2 border">${r.origem || ''}</td>
-          <td class="p-2 border">
-            <button class="text-primary-dark underline mr-2" onclick="window._editarCompra('${r.id}')">Editar</button>
-            <button class="text-danger-red underline" onclick="window._excluirCompra('${r.id}')">Excluir</button>
-           </td>
-        </tr>
-      `).join('');
-      btnExportarHistorico.onclick = ()=>{
-        const header = 'Data;Qtd;PrecoUnit;Total;Lote;Validade;Loja;NF;Origem\n';
-        const csv = header + rows.map(r=>[
-          toBRDate(r.dataCompra), r.qtd, r.precoUnit, (r.total!=null ? r.total : (r.qtd||0)*(r.precoUnit||0)),
-          r.lote||'', (r.validade?toBRDate(r.validade):''), r.loja||'', r.numeroNF||'', r.origem||''
-        ].map(x=>String(x).replaceAll(';',',')).join(';')).join('\n');
-        const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = `historico_${historicoContext.nome}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-      };
-    }
-
-    const editarCompraModal = document.getElementById('editarCompraModal');
-    const editarCompraForm  = document.getElementById('editarCompraForm');
-    const editCompraData = document.getElementById('editCompraData');
-    const editCompraQtd = document.getElementById('editCompraQtd');
-    const editCompraPreco = document.getElementById('editCompraPreco');
-    const editCompraLote = document.getElementById('editCompraLote');
-    const editCompraValidade = document.getElementById('editCompraValidade');
-    const editCompraLoja = document.getElementById('editCompraLoja');
-    const editCompraNF = document.getElementById('editCompraNF');
-    document.getElementById('btnFecharEditarCompra').addEventListener('click', ()=>editarCompraModal.classList.add('hidden'));
-
-    window._editarCompra = async (id) => {
-      const row = historicoContext.compras.find(x=>x.id===id);
-      if(!row) return;
-      historicoContext.editId = id;
-      editCompraData.value = toISODateInput(row.dataCompra);
-      editCompraQtd.value = row.qtd;
-      editCompraPreco.value = row.precoUnit;
-      editCompraLote.value = row.lote || '';
-      editCompraValidade.value = toISODateInput(row.validade);
-      editCompraLoja.value = row.loja || '';
-      editCompraNF.value = row.numeroNF || '';
-      editarCompraModal.classList.remove('hidden');
-    };
-    editarCompraForm.addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const compraId = historicoContext.editId; if(!compraId) return;
-      const materialId = historicoContext.id;
-      const ref = db.collection('materiais').doc(materialId).collection('compras').doc(compraId);
-      
-      const novo = {
-        dataCompra: new Date(editCompraData.value + "T12:00:00Z").toISOString(),
-        qtd: parseFloat(editCompraQtd.value||'0'),
-        precoUnit: parseFloat(editCompraPreco.value||'0'),
-        lote: editCompraLote.value || null,
-         validade: editCompraValidade.value || null,
-        loja: editCompraLoja.value || null,
-        numeroNF: editCompraNF.value || null,
-        total: parseFloat(editCompraQtd.value||'0') * parseFloat(editCompraPreco.value||'0')
-      };
-      if (isNaN(novo.qtd) || novo.qtd <= 0) { showCustomModal('Aviso','Quantidade inválida.','alert'); return; }
-      if (isNaN(novo.precoUnit) || novo.precoUnit < 0) { showCustomModal('Aviso','Preço inválido.','alert'); return; }
-
-      await ref.update(novo);
-      editarCompraModal.classList.add('hidden');
-      await recomputarAgregados(materialId);
-      await abrirHistoricoCompras(materialId, historicoContext.nome);
-      await carregarMateriais();
-      showCustomModal('Sucesso','Compra atualizada.','alert');
-    });
-    window._excluirCompra = async (compraId)=>{
-      const ok = await showCustomModal('Confirmar','Excluir este registro de compra? A ação não pode ser desfeita.','confirm');
-      if(!ok) return;
-      const materialId = historicoContext.id;
-      const ref = db.collection('materiais').doc(materialId).collection('compras').doc(compraId);
-      await ref.delete();
-
-      await recomputarAgregados(materialId);
-      await abrirHistoricoCompras(materialId, historicoContext.nome);
-      await carregarMateriais();
-      showCustomModal('Sucesso','Registro de compra excluído.','alert');
-    };
-
-    async function recomputarAgregados(id){
-      const matRef = db.collection('materiais').doc(id);
-      const compSnap = await matRef.collection('compras').orderBy('dataCompra', 'desc').get();
-      
-      let ultimaCompra = null;
-      let menorValidade = null;
-
-      compSnap.forEach(doc => {
-        const c = doc.data();
-        if (!ultimaCompra) {
-          ultimaCompra = c;
-        }
-        if(c.validade && isFuture(c.validade)){
-          if(!menorValidade || new Date(c.validade) < new Date(menorValidade)) {
-            menorValidade = c.validade;
-          }
-        }
-      });
-      
-      await matRef.set({
-        quantidade: ultimaCompra ? (ultimaCompra.qtd || 0) : 0,
-        ultimaCompraEm: ultimaCompra ? ultimaCompra.dataCompra : null,
-        precoCompra: ultimaCompra && ultimaCompra.precoUnit != null ? Number(ultimaCompra.precoUnit) : null,
-        lojaUltimaCompra: ultimaCompra ? ultimaCompra.loja : null,
-        nfUltimaCompra: ultimaCompra ? ultimaCompra.numeroNF : null,
-        validadeUltimaCompra: menorValidade || null
-      }, { merge:true });
     }
 
     // ---------- IMPORTAÇÃO POR PLANILHA (XLSX/CSV) ----------
@@ -1302,16 +2031,12 @@
       const n = Number(s);
       return isNaN(n) ? NaN : n;
     }
+    // Procura a coluna: primeiro nome exato, depois nome que contém o termo
     function getCell(row, candidates){
       const keys = Object.keys(row);
-      const norm = (s)=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
-      for (const k of keys){
-        const nk = norm(k);
-        for (const c of candidates){
-          const nc = norm(c);
-          if (nk === nc || nk.includes(nc)) return row[k];
-        }
-      }
+      const nrm = (s)=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+      for (const c of candidates){ const nc = nrm(c); for (const k of keys){ if (nrm(k) === nc) return row[k]; } }
+      for (const c of candidates){ const nc = nrm(c); for (const k of keys){ if (nrm(k).includes(nc)) return row[k]; } }
       return '';
     }
 
@@ -1325,7 +2050,8 @@
       if (!rows.length) return;
 
       await carregarMateriaisIndex();
-      importQueue = rows.map(r => ({
+      importRegistroNota = null;
+      iniciarAssistente(rows.map(r => ({
         nome: r.nome,
         qtd: r.qtd,
         preco: r.preco,
@@ -1333,12 +2059,9 @@
         validade: r.validade || null,
         loja: r.loja || null,
         nf: r.nf || null,
+        marca: r.marca || null,
         dataCompra: r.dataCompra || null
-      }));
-      importOrigin = 'manual';
-      importStep = 0;
-      abrirModalMatching();
-      renderMatchStep();
+      })), 'planilha');
     }
 
     inputPlanilha.addEventListener('change', async (e)=>{
@@ -1353,11 +2076,11 @@
           let delim = text.includes(';') ? ';' : ',';
           const lines = text.split(/\r?\n/).filter(l => l.trim().length);
           if (!lines.length) throw new Error('CSV vazio');
-          const header = lines[0].split(delim).map(h => h.trim());
+          const header = lines[0].replace(/^﻿/, '').split(delim).map(h => h.trim());
           for (let i=1; i<lines.length; i++){
             const cols = lines[i].split(delim);
             let row = {};
-             header.forEach((h,idx)=> row[h] = (cols[idx]||'').trim());
+            header.forEach((h,idx)=> row[h] = (cols[idx]||'').trim());
             rows.push(row);
           }
         } else {
@@ -1365,7 +2088,7 @@
           const wb = XLSX.read(data, { type:'array', cellDates:true, raw:false });
           let ws = null;
           for (const name of wb.SheetNames){
-             const sheet = wb.Sheets[name];
+            const sheet = wb.Sheets[name];
             const json = XLSX.utils.sheet_to_json(sheet, { defval:'' });
             if (json && json.length){ ws = sheet; break; }
           }
@@ -1378,13 +2101,14 @@
           const nomeItem = String(getCell(raw, ['Nome do item','Nome','Produto','Item'])).trim();
           if (!nomeItem) continue;
 
-          const dataCompraRaw = getCell(raw, ['Data de compra','Data','Data_compra']);
+          const dataCompraRaw = getCell(raw, ['Data de compra','Data da compra','Data_compra','Data']);
           const qtdRaw        = getCell(raw, ['Quantidade','Qtd','Qte']);
-          const precoRaw      = getCell(raw, ['Preço','Preco','Preço unitário','Preco unitario','Preço unit','Valor unitário','Valor']);
+          const precoRaw      = getCell(raw, ['Preço unitário','Preco unitario','Preço unit','Preço','Preco','Valor unitário','Valor']);
           const validadeRaw   = getCell(raw, ['Validade','Vencimento','Data de validade']);
           const loteRaw       = getCell(raw, ['Lote','Lote/Batch']);
           const lojaRaw       = getCell(raw, ['Loja','Estabelecimento','Fornecedor']);
           const nfRaw         = getCell(raw, ['Número da Nota Fiscal','Numero da Nota Fiscal','NF','NFe','Numero NF','Chave']);
+          const marcaRaw      = getCell(raw, ['Marca','Fabricante']);
           const qtd   = parseNumberFlexible(qtdRaw);
           const preco = parseNumberFlexible(precoRaw);
           const dataCompra = parseDateFlexible(dataCompraRaw);
@@ -1398,8 +2122,9 @@
             dataCompra,
             validade,
             lote: (loteRaw || '').toString().trim() || null,
-             loja: (lojaRaw || '').toString().trim() || null,
-            nf: (nfRaw || '').toString().trim() || null
+            loja: (lojaRaw || '').toString().trim() || null,
+            nf: (nfRaw || '').toString().trim() || null,
+            marca: (marcaRaw || '').toString().trim() || null
           });
         }
 
@@ -1411,6 +2136,299 @@
         e.target.value='';
       }
     });
+
+    // ---------- MESCLAR ITENS ----------
+    const mesclarModal = document.getElementById('mesclarModal');
+    const mesclarDestino = document.getElementById('mesclarDestino');
+    let mesclarCtx = { origemId: null, nCompras: 0 };
+
+    async function abrirMesclar(id){
+      const m = acharMaterial(id); if (!m) return;
+      mesclarCtx = { origemId: id, nCompras: 0 };
+      document.getElementById('mesclarOrigemNome').textContent = m.nome;
+      document.getElementById('mesclarOrigemCompras').textContent = 'contando compras…';
+      const outros = todosMateriais.filter(x => !x.arquivado && x.id !== id);
+      const sugestoes = sugerirMateriais(m.nome, outros, 5).filter(c => c.score > 0);
+      const ids = new Set(sugestoes.map(c => c.id));
+      mesclarDestino.innerHTML = '<option value="">— escolha o item que vai ficar —</option>' +
+        (sugestoes.length ? `<optgroup label="Parecidos">${sugestoes.map(c => `<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join('')}</optgroup>` : '') +
+        `<optgroup label="Todos os itens">${outros.filter(x => !ids.has(x.id)).sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR')).map(c => `<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join('')}</optgroup>`;
+      document.getElementById('mesclarMarca').value = '';
+      document.getElementById('mesclarDescricao').value = m.nome;
+      document.getElementById('mesclarConteudo').value = '';
+      mesclarModal.classList.remove('hidden');
+      try {
+        const snap = await db.collection('materiais').doc(id).collection('compras').get();
+        mesclarCtx.nCompras = snap.size;
+        document.getElementById('mesclarOrigemCompras').textContent = plural(snap.size, 'compra registrada', 'compras registradas');
+      } catch (e) { console.error(e); document.getElementById('mesclarOrigemCompras').textContent = 'não foi possível contar as compras'; }
+    }
+
+    async function confirmarMesclar(){
+      const origemId = mesclarCtx.origemId;
+      const destinoId = mesclarDestino.value;
+      if (!destinoId) { showCustomModal('Aviso', 'Escolha o item de destino.', 'alert'); return; }
+      const marca = document.getElementById('mesclarMarca').value.trim();
+      const descricao = document.getElementById('mesclarDescricao').value.trim();
+      const conteudo = numOpcional(document.getElementById('mesclarConteudo').value);
+      if (Number.isNaN(conteudo)) { showCustomModal('Aviso', 'Quantidade na embalagem inválida.', 'alert'); return; }
+      const origem = acharMaterial(origemId), destino = acharMaterial(destinoId);
+      const ok = await showCustomModal('Confirmar mesclagem',
+        `"${origem.nome}" será incorporado a "${destino.nome}".\n\n${plural(mesclarCtx.nCompras, 'compra será transferida', 'compras serão transferidas')} e "${origem.nome}" deixa de existir como item separado. Continuar?`, 'confirm');
+      if (!ok) return;
+
+      const btn = document.getElementById('btnConfirmarMesclar'); btn.disabled = true;
+      try {
+        const origemRef = db.collection('materiais').doc(origemId);
+        const destinoRef = db.collection('materiais').doc(destinoId);
+        const [oSnap, dSnap, comprasSnap] = await Promise.all([origemRef.get(), destinoRef.get(), origemRef.collection('compras').get()]);
+        if (!oSnap.exists || !dSnap.exists) throw new Error('Um dos itens não foi encontrado. Recarregue a página.');
+        const o = oSnap.data(), d = dSnap.data();
+
+        const novaVar = (marca || descricao) ? { id: novoIdVariacao(), marca, descricao, conteudo, codigos: [...(o.codigos || [])] } : null;
+        const upd = {
+          variacoes: [...(d.variacoes || []), ...(o.variacoes || []), ...(novaVar ? [novaVar] : [])],
+          codigos: novaVar ? (d.codigos || []) : [...new Set([...(d.codigos || []), ...(o.codigos || [])])],
+          ultimaModificacao: new Date().toLocaleString('pt-BR')
+        };
+        if (!d.imagem && o.imagem) upd.imagem = o.imagem;
+        if (!d.marcadoParaCompraEm && o.marcadoParaCompraEm) upd.marcadoParaCompraEm = o.marcadoParaCompraEm;
+
+        const copias = [], apagar = [];
+        comprasSnap.forEach(doc => {
+          const c = doc.data();
+          const nova = { ...c, mescladoDe: origemId, mescladoDeNome: o.nome || null };
+          if (!c.variacaoId && novaVar) { nova.variacaoId = novaVar.id; nova.variacao = rotuloVariacao(novaVar) || null; nova.conteudo = novaVar.conteudo ?? null; }
+          copias.push([destinoRef.collection('compras').doc(doc.id), nova]);
+          apagar.push(doc.ref);
+        });
+
+        const totalOps = 2 + copias.length * 2;
+        if (totalOps <= 490) {
+          // Tudo de uma vez: ou grava tudo, ou nada
+          const batch = db.batch();
+          batch.update(destinoRef, upd);
+          copias.forEach(([ref, dados]) => batch.set(ref, dados));
+          apagar.forEach(ref => batch.delete(ref));
+          batch.delete(origemRef);
+          await batch.commit();
+        } else {
+          // Muitos registros: primeiro copia, confere, e só então apaga o original
+          for (let i = 0; i < copias.length; i += 400) {
+            const batch = db.batch();
+            copias.slice(i, i + 400).forEach(([ref, dados]) => batch.set(ref, dados));
+            await batch.commit();
+          }
+          const conferencia = await destinoRef.collection('compras').where('mescladoDe', '==', origemId).get();
+          if (conferencia.size < copias.length) throw new Error('A cópia do histórico não conferiu. Nada foi apagado do item original.');
+          await destinoRef.update(upd);
+          const refs = [...apagar, origemRef];
+          for (let i = 0; i < refs.length; i += 400) {
+            const batch = db.batch();
+            refs.slice(i, i + 400).forEach(ref => batch.delete(ref));
+            await batch.commit();
+          }
+        }
+        mesclarModal.classList.add('hidden');
+        await recomputarAgregados(destinoId);
+        await carregarMateriais();
+        showCustomModal('Itens mesclados', `"${o.nome}" agora faz parte de "${d.nome}".`, 'alert');
+      } catch (err) {
+        console.error(err);
+        showCustomModal('Erro', 'Falha ao mesclar: ' + err.message, 'alert');
+      } finally { btn.disabled = false; }
+    }
+    document.getElementById('btnFecharMesclar').addEventListener('click', () => mesclarModal.classList.add('hidden'));
+    document.getElementById('btnCancelarMesclar').addEventListener('click', () => mesclarModal.classList.add('hidden'));
+    document.getElementById('btnConfirmarMesclar').addEventListener('click', confirmarMesclar);
+
+    // Auth + listeners
+    document.getElementById('loginForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      const email=document.getElementById('email').value; const password=document.getElementById('password').value;
+      auth.signInWithEmailAndPassword(email,password)
+        .catch(err=>showCustomModal("Erro de Autenticação",'Falha ao autenticar: '+err.message,'alert'));
+    });
+    auth.onAuthStateChanged(user=>{
+      if(user){ document.getElementById('loginContainer').classList.add('hidden'); document.getElementById('mainContainer').classList.remove('hidden'); carregarMateriais(); }
+      else { document.getElementById('loginContainer').classList.remove('hidden'); document.getElementById('mainContainer').classList.add('hidden'); }
+    });
+
+    // === Modo Conferência ===
+    let itensParaConferir = [];
+    let respostasConferencia = [];
+    let indexItemAtual = 0;
+    const confContagem = document.getElementById('confContagem');
+    const confDica = document.getElementById('confDica');
+
+    function abrirModalConferencia() {
+      document.getElementById('modalConferencia').classList.remove('hidden');
+      document.getElementById('confMsgSelecao').textContent = '';
+      alternarTelasConferencia('selecao');
+    }
+    function fecharModalConferencia() {
+      document.getElementById('modalConferencia').classList.add('hidden');
+      itensParaConferir = [];
+      respostasConferencia = [];
+      indexItemAtual = 0;
+    }
+    function alternarTelasConferencia(tela) {
+      document.getElementById('confTelaSelecao').classList.toggle('hidden', tela !== 'selecao');
+      document.getElementById('confTelaCard').classList.toggle('hidden', tela !== 'card');
+      document.getElementById('confTelaResumo').classList.toggle('hidden', tela !== 'resumo');
+    }
+
+    async function iniciarFluxoConferencia() {
+      const cat = document.getElementById('confSelectCategoria').value;
+      const btn = document.getElementById('btnComecarFluxo'); btn.disabled = true;
+      try {
+        await carregarMateriais();
+        itensParaConferir = todosMateriais
+          .filter(m => !m.arquivado && (cat === 'todos' || m.categoria === cat))
+          .sort((a,b) => String(a.nome||'').localeCompare(String(b.nome||''), 'pt-BR'));
+        if (itensParaConferir.length === 0) {
+          document.getElementById('confMsgSelecao').textContent = 'Nenhum item nesta categoria.';
+          return;
+        }
+        indexItemAtual = 0;
+        respostasConferencia = [];
+        alternarTelasConferencia('card');
+        renderizarItemAtual();
+      } finally { btn.disabled = false; }
+    }
+
+    function lerContagem(){
+      if (confContagem.validity && confContagem.validity.badInput) return NaN;
+      return numOpcional(confContagem.value);
+    }
+    function atualizarDicaContagem(){
+      const item = itensParaConferir[indexItemAtual]; if (!item) return;
+      const n = lerContagem();
+      let txt, cls = 'text-gray-500';
+      if (n === null) txt = temMinimo(item) ? 'Digite a quantidade contada e tecle Enter, ou escolha abaixo.' : 'Digite a quantidade contada (opcional) e escolha abaixo.';
+      else if (Number.isNaN(n)) { txt = 'Quantidade inválida.'; cls = 'text-danger-red font-semibold'; }
+      else if (!temMinimo(item)) txt = 'Este item não tem estoque mínimo definido: escolha Falta ou OK.';
+      else if (n <= Number(item.estoqueMinimo)) { txt = `Igual ou abaixo do mínimo (${fmtNum(item.estoqueMinimo)}): vai para a lista de compras. Tecle Enter.`; cls = 'text-red-700 font-semibold'; }
+      else { txt = `Acima do mínimo (${fmtNum(item.estoqueMinimo)}): estoque OK. Tecle Enter.`; cls = 'text-emerald-700 font-semibold'; }
+      confDica.textContent = txt;
+      confDica.className = `text-xs text-center mb-3 min-h-[1rem] ${cls}`;
+    }
+
+    function renderizarItemAtual() {
+      if (indexItemAtual >= itensParaConferir.length) {
+        exibirResumoConferencia();
+        return;
+      }
+      const item = itensParaConferir[indexItemAtual];
+      const un = item.unidadeContagem || 'un';
+      document.getElementById('confBadgeCategoria').innerText = categorias[item.categoria] || item.categoria || 'Geral';
+      document.getElementById('confNomeItem').innerText = item.nome;
+      const info = [item.contagemAtual !== null && item.contagemAtual !== undefined
+        ? `Última contagem: ${fmtNum(item.contagemAtual)} ${un} em ${toBRDate(item.contagemEm)}`
+        : 'Ainda não contado'];
+      if (temMinimo(item)) info.push(`mínimo: ${fmtNum(item.estoqueMinimo)} ${un}`);
+      document.getElementById('confInfoEstoque').innerText = info.join(' · ');
+      document.getElementById('confUnidade').textContent = un;
+      const resp = respostasConferencia[indexItemAtual];
+      confContagem.value = resp && resp.contagem !== null && resp.contagem !== undefined ? resp.contagem : '';
+      atualizarDicaContagem();
+
+      const imgPlaceholder = 'https://placehold.co/300x300/BFBFBF/585856?text=Sem+Imagem';
+      document.getElementById('confImgItem').src = item.imagem || imgPlaceholder;
+
+      const total = itensParaConferir.length;
+      const atual = indexItemAtual + 1;
+      document.getElementById('confProgressoTexto').innerText = `Item ${atual} de ${total}`;
+      const porcentagem = (atual / total) * 100;
+      document.getElementById('confBarraProgresso').style.width = `${porcentagem}%`;
+      document.getElementById('btnConfVoltar').disabled = (indexItemAtual === 0);
+      if (!window.matchMedia || !window.matchMedia('(pointer: coarse)').matches) setTimeout(() => confContagem.focus(), 30);
+    }
+
+    function registrarDecisao(precisaComprar) {
+      const item = itensParaConferir[indexItemAtual];
+      if (!item) return;
+      const contagem = lerContagem();
+      if (Number.isNaN(contagem)) { atualizarDicaContagem(); return; }
+      respostasConferencia[indexItemAtual] = { id: item.id, nome: item.nome, precisaComprar, contagem, unidade: item.unidadeContagem || 'un' };
+      indexItemAtual++;
+      renderizarItemAtual();
+    }
+    function pularItem() {
+      indexItemAtual++;
+      renderizarItemAtual();
+    }
+    function voltarItem() {
+      if (indexItemAtual > 0) {
+        indexItemAtual--;
+        renderizarItemAtual();
+      }
+    }
+    confContagem.addEventListener('input', atualizarDicaContagem);
+    confContagem.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const item = itensParaConferir[indexItemAtual];
+      const n = lerContagem();
+      if (!item || n === null || Number.isNaN(n) || !temMinimo(item)) { atualizarDicaContagem(); return; }
+      registrarDecisao(n <= Number(item.estoqueMinimo));
+    });
+
+    function exibirResumoConferencia() {
+      alternarTelasConferencia('resumo');
+      const containerResumo = document.getElementById('confListaResumo');
+      containerResumo.innerHTML = '';
+      let itensContabilizados = 0;
+      respostasConferencia.forEach(resp => {
+        if (!resp) return;
+        const row = document.createElement('div');
+        row.className = 'flex justify-between items-center gap-2 p-2 bg-white rounded border border-gray-100 shadow-sm text-xs font-medium';
+        const tag = resp.precisaComprar
+          ? '<span class="px-2 py-0.5 rounded bg-red-100 text-red-700 font-bold uppercase text-[10px] flex-shrink-0">Falta / Comprar</span>'
+          : '<span class="px-2 py-0.5 rounded bg-green-100 text-green-700 font-bold uppercase text-[10px] flex-shrink-0">OK</span>';
+        const cont = resp.contagem !== null && resp.contagem !== undefined ? ` <span class="text-gray-500">(contado: ${esc(fmtNum(resp.contagem))} ${esc(resp.unidade)})</span>` : '';
+        row.innerHTML = `<span class="text-text-dark">${esc(resp.nome)}${cont}</span> ${tag}`;
+        containerResumo.appendChild(row);
+        itensContabilizados++;
+      });
+      if (itensContabilizados === 0) {
+        containerResumo.innerHTML = '<p class="text-gray-400 text-center py-4 text-xs">Nenhum item recebeu nova marcação.</p>';
+      }
+    }
+
+    async function salvarDadosConferencia() {
+      const agora = new Date().toISOString();
+      const atualizacoes = [];
+      respostasConferencia.forEach(resp => {
+        if (!resp) return;
+        const m = acharMaterial(resp.id);
+        const upd = { marcadoParaCompraEm: resp.precisaComprar ? ((m && m.marcadoParaCompraEm) || agora) : null };
+        if (resp.contagem !== null && resp.contagem !== undefined) { upd.contagemAtual = resp.contagem; upd.contagemEm = agora; }
+        atualizacoes.push([resp.id, upd]);
+      });
+      if (atualizacoes.length === 0) {
+        fecharModalConferencia();
+        return;
+      }
+      const btn = document.getElementById('btnConfSalvar'); btn.disabled = true;
+      try {
+        for (let i = 0; i < atualizacoes.length; i += 400) {
+          const batch = db.batch();
+          atualizacoes.slice(i, i + 400).forEach(([id, upd]) => batch.update(db.collection('materiais').doc(id), upd));
+          await batch.commit();
+        }
+        atualizacoes.forEach(([id, upd]) => { const m = acharMaterial(id); if (m) Object.assign(m, upd); });
+        const nComprar = atualizacoes.filter(([, u]) => u.marcadoParaCompraEm).length;
+        const nContados = atualizacoes.filter(([, u]) => u.contagemAtual !== undefined).length;
+        fecharModalConferencia();
+        renderizar();
+        showCustomModal('Conferência gravada',
+          `${plural(atualizacoes.length, 'item atualizado', 'itens atualizados')}${nContados ? ` (${nContados} com contagem)` : ''}.\n${plural(nComprar, 'item está', 'itens estão')} na lista de compras.`, 'alert');
+      } catch (error) {
+        console.error("Erro ao gravar a conferência:", error);
+        showCustomModal('Erro', 'Ocorreu um erro ao gravar a conferência: ' + error.message, 'alert');
+      } finally { btn.disabled = false; }
+    }
 
     // ---------- BACKUP COMPLETO ----------
     // Apenas LÊ o banco de dados: nada é alterado ou apagado.
@@ -1479,6 +2497,13 @@
         }
       }
 
+      const nfesImportadas = [];
+      try {
+        avisar('Lendo registro de notas importadas…');
+        const s = await db.collection('nfesImportadas').get();
+        s.forEach(doc => nfesImportadas.push({ id: doc.id, dados: paraJSONSeguro(doc.data()) }));
+      } catch (e) { console.warn('Não foi possível ler nfesImportadas', e); }
+
       const maisRecentePrimeiro = (a, b) => String(b.dados.dataCompra || '').localeCompare(String(a.dados.dataCompra || ''));
       materiais.sort((a, b) => String(a.dados.nome || '').localeCompare(String(b.dados.nome || ''), 'pt-BR'));
       materiais.forEach(m => m.compras.sort(maisRecentePrimeiro));
@@ -1486,17 +2511,21 @@
 
       return {
         tipo: 'backup-controle-estoque',
-        versaoFormato: 1,
+        versaoFormato: 2,
         projetoFirebase: firebaseConfig.projectId,
         geradoEm: new Date().toISOString(),
         totais: {
           materiais: materiais.length,
+          materiaisArquivados: materiais.filter(m => !!m.dados.arquivado).length,
           materiaisComFoto: materiais.filter(m => !!m.dados.imagem).length,
+          variacoes: materiais.reduce((s, m) => s + ((m.dados.variacoes || []).length), 0),
           compras: materiais.reduce((s, m) => s + m.compras.length, 0),
-          comprasDeItensExcluidos: comprasDeItensExcluidos.length
+          comprasDeItensExcluidos: comprasDeItensExcluidos.length,
+          nfesImportadas: nfesImportadas.length
         },
         materiais,
-        comprasDeItensExcluidos
+        comprasDeItensExcluidos,
+        nfesImportadas
       };
     }
 
@@ -1523,54 +2552,67 @@
     const textoPlanilha = v => (v === null || v === undefined || v === '') ? null : String(v);
     const FMT_DATA = 'dd/mm/yyyy';
     const FMT_MOEDA = '#,##0.00';
+    const FMT_PRECO_UNID = '#,##0.0000';
 
     function linhasDaPlanilha(dados){
       const nomeCat = c => categorias[c] || c || null;
-      const cabCompra = ['Data da compra','Qtd','Preço unit. (R$)','Total (R$)','Lote','Validade','Loja','NF','Origem','EAN'];
-      const linhaCompra = c => {
+      const cabCompra = ['Data da compra','Marca / embalagem','Qtd','Preço unit. (R$)','Qtd na embalagem','Preço por unidade (R$)','Total (R$)','Lote','Validade','Loja','NF','Origem','EAN'];
+      const fmtCompra = { 'Data da compra': FMT_DATA, 'Preço unit. (R$)': FMT_MOEDA, 'Preço por unidade (R$)': FMT_PRECO_UNID, 'Total (R$)': FMT_MOEDA, 'Validade': FMT_DATA };
+      const linhaCompra = (c, variacoes) => {
         const d = c.dados;
         const qtd = numeroPlanilha(d.qtd), preco = numeroPlanilha(d.precoUnit);
         let total = numeroPlanilha(d.total);
         if (total === null && typeof qtd === 'number' && typeof preco === 'number') total = qtd * preco;
-        return [dataParaExcel(d.dataCompra), qtd, preco, total, textoPlanilha(d.lote), dataParaExcel(d.validade),
-                textoPlanilha(d.loja), textoPlanilha(d.numeroNF), textoPlanilha(d.origem), textoPlanilha(d.ean)];
+        const cont = conteudoDaCompra(d, variacoes);
+        const pu = cont > 0 && typeof preco === 'number' && preco > 0 ? preco / cont : null;
+        return [dataParaExcel(d.dataCompra), textoPlanilha(rotuloDaCompra(d, variacoes)), qtd, preco, cont > 0 ? cont : null, pu, total,
+                textoPlanilha(d.lote), dataParaExcel(d.validade), textoPlanilha(d.loja), textoPlanilha(d.numeroNF), textoPlanilha(d.origem), textoPlanilha(d.ean)];
       };
 
       const materiais = {
         cabecalho: ['Nome','Categoria','Compras registradas','Última compra','Qtd da última compra','Preço unit. (R$)',
-                    'Validade mais próxima','Última loja','Última NF','Na lista de compras','Marcado em','Tem foto','ID do material'],
-        formatos: { 3: FMT_DATA, 5: FMT_MOEDA, 6: FMT_DATA, 10: FMT_DATA },
+                    'Validade mais próxima','Última loja','Última NF','Última marca / embalagem','Variações','Estoque contado','Contado em',
+                    'Estoque mínimo','Contar em','Na lista de compras','Marcado em','Arquivado','Tem foto','ID do material'],
+        formatos: { 'Última compra': FMT_DATA, 'Preço unit. (R$)': FMT_MOEDA, 'Validade mais próxima': FMT_DATA, 'Contado em': FMT_DATA, 'Marcado em': FMT_DATA },
         linhas: dados.materiais.map(m => {
           const d = m.dados;
           return [textoPlanilha(d.nome), nomeCat(d.categoria), m.compras.length, dataParaExcel(d.ultimaCompraEm),
                   numeroPlanilha(d.quantidade), numeroPlanilha(d.precoCompra), dataParaExcel(d.validadeUltimaCompra),
-                  textoPlanilha(d.lojaUltimaCompra), textoPlanilha(d.nfUltimaCompra), d.marcadoParaCompraEm ? 'Sim' : 'Não',
-                  dataParaExcel(d.marcadoParaCompraEm), d.imagem ? 'Sim' : 'Não', m.id];
+                  textoPlanilha(d.lojaUltimaCompra), textoPlanilha(d.nfUltimaCompra), textoPlanilha(d.ultimaVariacao), (d.variacoes || []).length,
+                  numeroPlanilha(d.contagemAtual), dataParaExcel(d.contagemEm), numeroPlanilha(d.estoqueMinimo), textoPlanilha(d.unidadeContagem),
+                  d.marcadoParaCompraEm ? 'Sim' : 'Não', dataParaExcel(d.marcadoParaCompraEm), d.arquivado ? 'Sim' : 'Não', d.imagem ? 'Sim' : 'Não', m.id];
         })
       };
 
-      const compras = {
-        cabecalho: ['Material','Categoria', ...cabCompra, 'ID do material','ID da compra'],
-        formatos: { 2: FMT_DATA, 4: FMT_MOEDA, 5: FMT_MOEDA, 7: FMT_DATA },
+      const compras = { cabecalho: ['Material','Categoria', ...cabCompra, 'ID do material','ID da compra'], formatos: fmtCompra, linhas: [] };
+      dados.materiais.forEach(m => m.compras.forEach(c => {
+        compras.linhas.push([textoPlanilha(m.dados.nome), nomeCat(m.dados.categoria), ...linhaCompra(c, m.dados.variacoes), m.id, c.id]);
+      }));
+
+      const variacoes = {
+        cabecalho: ['Material','Marca','Embalagem','Qtd na embalagem','Unidade','Reconhecida nas notas','ID do material','ID da variação'],
+        formatos: {},
         linhas: []
       };
-      dados.materiais.forEach(m => m.compras.forEach(c => {
-        compras.linhas.push([textoPlanilha(m.dados.nome), nomeCat(m.dados.categoria), ...linhaCompra(c), m.id, c.id]);
+      dados.materiais.forEach(m => (m.dados.variacoes || []).forEach(v => {
+        variacoes.linhas.push([textoPlanilha(m.dados.nome), textoPlanilha(v.marca), textoPlanilha(v.descricao), numeroPlanilha(v.conteudo),
+                               textoPlanilha(m.dados.unidadeMedida), (v.codigos || []).length ? 'Sim' : 'Não', m.id, v.id]);
       }));
 
       const excluidos = {
         cabecalho: ['ID do material (excluído)', ...cabCompra, 'ID da compra'],
-        formatos: { 1: FMT_DATA, 3: FMT_MOEDA, 4: FMT_MOEDA, 6: FMT_DATA },
-        linhas: dados.comprasDeItensExcluidos.map(c => [c.materialId, ...linhaCompra(c), c.id])
+        formatos: fmtCompra,
+        linhas: dados.comprasDeItensExcluidos.map(c => [c.materialId, ...linhaCompra(c, []), c.id])
       };
-      return { materiais, compras, excluidos };
+      return { materiais, compras, variacoes, excluidos };
     }
 
     function montarAba({ cabecalho, linhas, formatos }){
       const ws = XLSX.utils.aoa_to_sheet([cabecalho, ...linhas]);
+      const colFmt = cabecalho.map(h => formatos[h]).map((f, c) => [c, f]).filter(([, f]) => f);
       linhas.forEach((linha, i) => {
-        Object.entries(formatos).forEach(([col, fmt]) => {
-          const cel = ws[XLSX.utils.encode_cell({ r: i + 1, c: Number(col) })];
+        colFmt.forEach(([col, fmt]) => {
+          const cel = ws[XLSX.utils.encode_cell({ r: i + 1, c: col })];
           if (cel && cel.t === 'n') cel.z = fmt;
         });
       });
@@ -1590,6 +2632,7 @@
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, montarAba(abas.materiais), 'Materiais');
       XLSX.utils.book_append_sheet(wb, montarAba(abas.compras), 'Compras');
+      if (abas.variacoes.linhas.length) XLSX.utils.book_append_sheet(wb, montarAba(abas.variacoes), 'Marcas e embalagens');
       if (abas.excluidos.linhas.length) XLSX.utils.book_append_sheet(wb, montarAba(abas.excluidos), 'Compras de itens excluídos');
       XLSX.writeFile(wb, `backup-estoque_${backup.carimbo}.xlsx`);
     }
@@ -1627,7 +2670,8 @@
         backup = { dados, json, carimbo: carimboAgora() };
         const t = dados.totais;
         backupResumo.innerHTML = `
-          <div><strong>${t.materiais}</strong> materiais (${t.materiaisComFoto} com foto)</div>
+          <div><strong>${t.materiais}</strong> materiais (${t.materiaisComFoto} com foto${t.materiaisArquivados ? `, ${t.materiaisArquivados} arquivados` : ''})</div>
+          ${t.variacoes ? `<div><strong>${t.variacoes}</strong> marcas/embalagens cadastradas</div>` : ''}
           <div><strong>${t.compras}</strong> registros de compra</div>
           ${t.comprasDeItensExcluidos ? `<div><strong>${t.comprasDeItensExcluidos}</strong> ${t.comprasDeItensExcluidos === 1 ? 'compra de um item que já foi excluído' : 'compras de itens que já foram excluídos'} <span class="text-gray-600">(continuavam guardadas no banco e também entram no backup)</span></div>` : ''}
           <div class="text-gray-600">Tamanho do arquivo: ${tamanhoLegivel(new Blob([json]).size)}</div>`;
@@ -1660,177 +2704,34 @@
       }
     });
 
-    // Auth + listeners
-    document.getElementById('loginForm').addEventListener('submit', function(e){
-      e.preventDefault();
-      const email=document.getElementById('email').value; const password=document.getElementById('password').value;
-      auth.signInWithEmailAndPassword(email,password)
-        .then(()=>{ document.getElementById('loginContainer').classList.add('hidden'); document.getElementById('mainContainer').classList.remove('hidden'); carregarMateriais(); })
-        .catch(err=>showCustomModal("Erro de Autenticação",'Falha ao autenticar: '+err.message,'alert'));
-    });
-    auth.onAuthStateChanged(user=>{
-      if(user){ document.getElementById('loginContainer').classList.add('hidden'); document.getElementById('mainContainer').classList.remove('hidden'); carregarMateriais(); }
-      else { document.getElementById('loginContainer').classList.remove('hidden'); document.getElementById('mainContainer').classList.add('hidden'); }
-    });
-
-    // === Variáveis e Lógica do Modo Conferência ===
-    let itensParaConferir = [];
-    let respostasConferencia = []; 
-    let indexItemAtual = 0;
-
-    function abrirModalConferencia() {
-      document.getElementById('modalConferencia').classList.remove('hidden');
-      alternarTelasConferencia('selecao');
-    }
-
-    function fecharModalConferencia() {
-      document.getElementById('modalConferencia').classList.add('hidden');
-      itensParaConferir = [];
-      respostasConferencia = [];
-      indexItemAtual = 0;
-    }
-
-    function alternarTelasConferencia(tela) {
-      document.getElementById('confTelaSelecao').classList.toggle('hidden', tela !== 'selecao');
-      document.getElementById('confTelaCard').classList.toggle('hidden', tela !== 'card');
-      document.getElementById('confTelaResumo').classList.toggle('hidden', tela !== 'resumo');
-    }
-
-    async function iniciarFluxoConferencia() {
-      const categoriaSelecionada = document.getElementById('confSelectCategoria').value;
-      let query = db.collection('materiais'); 
-      if (categoriaSelecionada !== 'todos') {
-        query = query.where('categoria', '==', categoriaSelecionada);
-      }
-      try {
-        const snapshot = await query.get();
-        itensParaConferir = [];
-        snapshot.forEach(doc => {
-          itensParaConferir.push({ id: doc.id, ...doc.data() });
-        });
-        if (itensParaConferir.length === 0) {
-          alert('Nenhum item localizado sob esta categoria específica.');
-          return;
-        }
-        indexItemAtual = 0;
-        respostasConferencia = [];
-        alternarTelasConferencia('card');
-        renderizarItemAtual();
-      } catch (error) {
-        console.error("Erro ao coletar lista para conferência:", error);
-        alert("Falha na comunicação ao estruturar a lista de verificação.");
-      }
-    }
-
-    function renderizarItemAtual() {
-      if (indexItemAtual >= itensParaConferir.length) {
-        exibirResumoConferencia();
-        return;
-      }
-      const item = itensParaConferir[indexItemAtual];
-      document.getElementById('confBadgeCategoria').innerText = item.categoria || 'Geral';
-      document.getElementById('confNomeItem').innerText = item.nome;
-      document.getElementById('confInfoEstoque').innerText = `Quantidade atual: ${item.quantidade || 0} ${item.unidade || 'un'}`;
-      
-      const imgPlaceholder = 'https://placehold.co/300x300/BFBFBF/585856?text=Sem+Imagem';
-      document.getElementById('confImgItem').src = item.imagem || imgPlaceholder;
-      
-      const total = itensParaConferir.length;
-      const atual = indexItemAtual + 1;
-      document.getElementById('confProgressoTexto').innerText = `Item ${atual} de ${total}`;
-      const porcentagem = (atual / total) * 100;
-      document.getElementById('confBarraProgresso').style.width = `${porcentagem}%`;
-      document.getElementById('btnConfVoltar').disabled = (indexItemAtual === 0);
-    }
-
-    function registrarDecisao(precisaComprar) {
-      const item = itensParaConferir[indexItemAtual];
-      respostasConferencia[indexItemAtual] = { id: item.id, nome: item.nome, precisaComprar: precisaComprar };
-      indexItemAtual++;
-      renderizarItemAtual();
-    }
-
-    function pularItem() {
-      indexItemAtual++;
-      renderizarItemAtual();
-    }
-
-    function voltarItem() {
-      if (indexItemAtual > 0) {
-        indexItemAtual--;
-        renderizarItemAtual();
-      }
-    }
-
-    function exibirResumoConferencia() {
-      alternarTelasConferencia('resumo');
-      const containerResumo = document.getElementById('confListaResumo');
-      containerResumo.innerHTML = '';
-      let itensContabilizados = 0;
-      respostasConferencia.forEach(resp => {
-        if (!resp) return;
-        const row = document.createElement('div');
-        row.className = 'flex justify-between items-center p-2 bg-white rounded border border-gray-100 shadow-sm text-xs font-medium';
-        const tag = resp.precisaComprar 
-          ? '<span class="px-2 py-0.5 rounded bg-red-100 text-red-700 font-bold uppercase text-[10px]">Falta / Comprar</span>' 
-          : '<span class="px-2 py-0.5 rounded bg-green-100 text-green-700 font-bold uppercase text-[10px]">OK</span>';
-        row.innerHTML = `<span class="text-text-dark">${resp.nome}</span> ${tag}`;
-        containerResumo.appendChild(row);
-        itensContabilizados++;
-      });
-      if (itensContabilizados === 0) {
-        containerResumo.innerHTML = '<p class="text-gray-400 text-center py-4 text-xs">Nenhum item recebeu nova marcação.</p>';
-      }
-    }
-
-    async function salvarDadosConferencia() {
-      const batch = db.batch();
-      let alteracoes = 0;
-      respostasConferencia.forEach(resp => {
-        if (!resp) return;
-        const docRef = db.collection('materiais').doc(resp.id);
-        // Atualizando a propriedade nativa usada na aplicação para mostrar na lista de compras
-        const atualizacao = resp.precisaComprar 
-            ? { marcadoParaCompraEm: new Date().toLocaleString('pt-BR') } 
-            : { marcadoParaCompraEm: null };
-        batch.update(docRef, atualizacao);
-        alteracoes++;
-      });
-      if (alteracoes === 0) {
-        fecharModalConferencia();
-        return;
-      }
-      try {
-        await batch.commit();
-        alert('Conferência finalizada! O status da lista de compras foi sincronizado.');
-        fecharModalConferencia();
-        if (typeof carregarMateriais === 'function') {
-          carregarMateriais();
-        }
-      } catch (error) {
-        console.error("Erro ao consolidar lote de alterações:", error);
-        alert("Ocorreu um erro ao atualizar os registros no Firebase.");
-      }
-    }
-    // ============================================
-
     // UI listeners
     document.getElementById('btnAbrirModal').addEventListener('click', abrirModal);
     document.getElementById('btnFecharModal').addEventListener('click', fecharModal);
     document.getElementById('btnFecharModalEditar').addEventListener('click', fecharModalEditar);
     document.getElementById('btnLogout').addEventListener('click', logout);
     document.getElementById('btnLimparMarcacoes').addEventListener('click', limparMarcacoes);
-    document.getElementById('btnListaCompras').addEventListener('click', ()=>{ isShowingPurchaseList=true; carregarMateriais(); });
-    document.getElementById('btnMostrarTodos').addEventListener('click', ()=>{ isShowingPurchaseList=false; document.getElementById('searchInput').value=''; termoDeBusca=''; categoriaSelecionada='todos'; carregarMateriais(); });
+    document.getElementById('btnListaCompras').addEventListener('click', ()=>{
+      isShowingPurchaseList=true; filtroEspecial=null; categoriaSelecionada='todos';
+      document.getElementById('searchInput').value=''; termoDeBusca='';
+      carregarMateriais();
+    });
+    document.getElementById('btnMostrarTodos').addEventListener('click', ()=>{ isShowingPurchaseList=false; filtroEspecial=null; document.getElementById('searchInput').value=''; termoDeBusca=''; categoriaSelecionada='todos'; renderizar(); });
     document.getElementById('btnCopiarLista').addEventListener('click', copiarListaCompras);
     document.getElementById('btnBuscar').addEventListener('click', buscarMateriais);
+    let buscaTimer = null;
+    document.getElementById('searchInput').addEventListener('input', () => { clearTimeout(buscaTimer); buscaTimer = setTimeout(buscarMateriais, 200); });
+    document.getElementById('searchInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { clearTimeout(buscaTimer); buscarMateriais(); } });
     document.getElementById('btnGerarRelatorio').addEventListener('click', gerarRelatorio);
     document.getElementById('btnAdvancedOptions').addEventListener('click', ()=>document.getElementById('advancedOptionsContainer').classList.toggle('hidden'));
 
-    // NOVO: Ação do botão de imprimir
+    // Imprimir ficha
     document.getElementById('btnImprimirFicha').addEventListener('click', () => {
-      const catName = categoriaSelecionada === 'todos' ? 'Todas as Categorias' : (categorias[categoriaSelecionada] || categoriaSelecionada);
-      document.getElementById('printTitle').innerText = `Contagem: ${catName}`;
+      let titulo = categoriaSelecionada === 'todos' ? 'Todas as Categorias' : (categorias[categoriaSelecionada] || categoriaSelecionada);
+      if (isShowingPurchaseList) titulo = 'Lista de Compras';
+      else if (filtroEspecial === 'vencendo') titulo = `Validade em até ${DIAS_ALERTA_VALIDADE} dias`;
+      else if (filtroEspecial === 'abaixoMinimo') titulo = 'Abaixo do mínimo';
+      else if (filtroEspecial === 'arquivados') titulo = 'Arquivados';
+      document.getElementById('printTitle').innerText = `Contagem: ${titulo}`;
       window.print();
     });
 
@@ -1842,12 +2743,13 @@
     document.getElementById('btnConfOk').addEventListener('click', () => registrarDecisao(false));
     document.getElementById('btnConfPular').addEventListener('click', pularItem);
     document.getElementById('btnConfVoltar').addEventListener('click', voltarItem);
-    document.getElementById('btnConfRefazer').addEventListener('click', () => alternarTelasConferencia('card'));
+    document.getElementById('btnConfRefazer').addEventListener('click', () => { indexItemAtual = Math.max(0, Math.min(indexItemAtual, itensParaConferir.length - 1)); alternarTelasConferencia('card'); renderizarItemAtual(); });
     document.getElementById('btnConfSalvar').addEventListener('click', salvarDadosConferencia);
     document.getElementById('btnConfInterromper').addEventListener('click', exibirResumoConferencia);
 
     document.addEventListener('click', (e)=>{ document.querySelectorAll('.dropdown-content').forEach(d=>{ if(!d.classList.contains('hidden') && !d.parentElement.contains(e.target)) d.classList.add('hidden'); }); });
   });
+
   </script>
 </body>
 </html>
