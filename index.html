@@ -99,6 +99,10 @@
               class="flex-1 min-w-[150px] bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 focus:ring-2 focus:ring-text-dark transition">
         Gerar Relatório
       </button>
+      <button id="btnBackup"
+              class="flex-1 min-w-[170px] bg-emerald-700 text-white py-2 px-4 rounded-lg hover:bg-emerald-800 focus:ring-2 focus:ring-emerald-600 transition">
+        💾 Backup completo
+      </button>
       <button id="btnLogout"
               class="flex-1 min-w-[100px] bg-danger-red text-white py-2 px-4 rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 transition">
         Sair
@@ -354,6 +358,32 @@
           <input type="text" id="editCompraNF" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Número da NF (opcional)">
           <button type="submit" class="w-full bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90">Salvar</button>
         </form>
+      </div>
+    </div>
+
+    <!-- BACKUP COMPLETO -->
+    <div id="backupModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden print:hidden">
+      <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-2xl font-semibold text-primary-dark">Backup completo</h3>
+          <button class="text-gray-500 hover:text-gray-700 text-2xl" id="btnFecharBackup">&times;</button>
+        </div>
+        <p id="backupStatus" class="text-sm text-gray-700 mb-4">Preparando…</p>
+        <div id="backupResumo" class="hidden text-sm bg-secondary-light rounded-lg p-3 mb-4 space-y-1"></div>
+        <div id="backupAcoes" class="hidden space-y-3">
+          <div>
+            <button id="btnBaixarBackupJson" class="w-full bg-emerald-700 text-white py-2 px-4 rounded-lg hover:bg-emerald-800 transition font-semibold">
+              Baixar backup completo (.json)
+            </button>
+            <p class="text-xs text-gray-500 mt-1">Tudo o que está no banco, inclusive as fotos. É este arquivo que permite restaurar os dados.</p>
+          </div>
+          <div>
+            <button id="btnBaixarBackupXlsx" class="w-full bg-text-dark text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition">
+              Baixar planilha para consulta (.xlsx)
+            </button>
+            <p class="text-xs text-gray-500 mt-1">Materiais e todo o histórico de compras, para abrir no Excel (sem as fotos).</p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1381,6 +1411,255 @@
         e.target.value='';
       }
     });
+
+    // ---------- BACKUP COMPLETO ----------
+    // Apenas LÊ o banco de dados: nada é alterado ou apagado.
+    const backupModal = document.getElementById('backupModal');
+    const backupStatus = document.getElementById('backupStatus');
+    const backupResumo = document.getElementById('backupResumo');
+    const backupAcoes = document.getElementById('backupAcoes');
+    const btnBaixarBackupJson = document.getElementById('btnBaixarBackupJson');
+    const btnBaixarBackupXlsx = document.getElementById('btnBaixarBackupXlsx');
+    let backup = null;              // { dados, json, carimbo }
+    let backupEmAndamento = false;
+
+    // Converte tipos especiais do Firestore (datas, referências) para algo que cabe num JSON
+    function paraJSONSeguro(v){
+      if (v === null || v === undefined) return null;
+      if (Array.isArray(v)) return v.map(paraJSONSeguro);
+      if (typeof v === 'object'){
+        if (typeof v.toDate === 'function' && typeof v.seconds === 'number') return { __tipo: 'timestamp', iso: v.toDate().toISOString() };
+        if (typeof v.latitude === 'number' && typeof v.longitude === 'number') return { __tipo: 'geopoint', latitude: v.latitude, longitude: v.longitude };
+        if (typeof v.path === 'string' && v.firestore) return { __tipo: 'referencia', caminho: v.path };
+        const out = {};
+        Object.keys(v).forEach(k => { out[k] = paraJSONSeguro(v[k]); });
+        return out;
+      }
+      return v;
+    }
+
+    async function coletarBackup(avisar){
+      avisar('Lendo materiais…');
+      const matSnap = await db.collection('materiais').get();
+      const materiais = [];
+      const porId = new Map();
+      matSnap.forEach(doc => {
+        const m = { id: doc.id, dados: paraJSONSeguro(doc.data()), compras: [] };
+        materiais.push(m);
+        porId.set(doc.id, m);
+      });
+
+      let comprasDeItensExcluidos = [];
+      try {
+        // Uma única leitura de todas as compras (inclui compras de itens que já foram excluídos)
+        avisar('Lendo histórico de compras…');
+        const grupo = await db.collectionGroup('compras').get();
+        grupo.forEach(doc => {
+          const pai = doc.ref.parent.parent;
+          if (!pai || pai.parent.id !== 'materiais') return;
+          const reg = { id: doc.id, dados: paraJSONSeguro(doc.data()) };
+          const m = porId.get(pai.id);
+          if (m) m.compras.push(reg);
+          else comprasDeItensExcluidos.push({ materialId: pai.id, ...reg });
+        });
+      } catch (e) {
+        // Se a leitura em grupo não for permitida, lê item por item (10 de cada vez)
+        console.warn('Leitura em grupo indisponível; lendo item por item.', e);
+        comprasDeItensExcluidos = [];
+        let feitos = 0;
+        for (let i = 0; i < materiais.length; i += 10){
+          const lote = materiais.slice(i, i + 10);
+          await Promise.all(lote.map(async m => {
+            const s = await db.collection('materiais').doc(m.id).collection('compras').get();
+            m.compras = [];
+            s.forEach(doc => m.compras.push({ id: doc.id, dados: paraJSONSeguro(doc.data()) }));
+          }));
+          feitos += lote.length;
+          avisar(`Lendo histórico de compras: ${feitos} de ${materiais.length} itens…`);
+        }
+      }
+
+      const maisRecentePrimeiro = (a, b) => String(b.dados.dataCompra || '').localeCompare(String(a.dados.dataCompra || ''));
+      materiais.sort((a, b) => String(a.dados.nome || '').localeCompare(String(b.dados.nome || ''), 'pt-BR'));
+      materiais.forEach(m => m.compras.sort(maisRecentePrimeiro));
+      comprasDeItensExcluidos.sort(maisRecentePrimeiro);
+
+      return {
+        tipo: 'backup-controle-estoque',
+        versaoFormato: 1,
+        projetoFirebase: firebaseConfig.projectId,
+        geradoEm: new Date().toISOString(),
+        totais: {
+          materiais: materiais.length,
+          materiaisComFoto: materiais.filter(m => !!m.dados.imagem).length,
+          compras: materiais.reduce((s, m) => s + m.compras.length, 0),
+          comprasDeItensExcluidos: comprasDeItensExcluidos.length
+        },
+        materiais,
+        comprasDeItensExcluidos
+      };
+    }
+
+    // Datas do banco (ISO, AAAA-MM-DD ou DD/MM/AAAA) → data do Excel (mesmo dia mostrado no site)
+    function dataParaExcel(valor){
+      if (valor === null || valor === undefined || valor === '') return null;
+      if (typeof valor === 'object' && valor.iso) valor = valor.iso;
+      const s = String(valor).trim();
+      let y, m, d, x;
+      if ((x = s.match(/^(\d{4})-(\d{2})-(\d{2})$/))) { y = +x[1]; m = +x[2]; d = +x[3]; }
+      else if ((x = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/))) { d = +x[1]; m = +x[2]; y = +x[3]; }
+      else {
+        const dt = new Date(s);
+        if (isNaN(dt)) return s; // mantém o texto original se não reconhecer
+        y = dt.getUTCFullYear(); m = dt.getUTCMonth() + 1; d = dt.getUTCDate();
+      }
+      return (Date.UTC(y, m - 1, d) - Date.UTC(1899, 11, 30)) / 86400000;
+    }
+    function numeroPlanilha(v){
+      if (v === null || v === undefined || v === '') return null;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : String(v);
+    }
+    const textoPlanilha = v => (v === null || v === undefined || v === '') ? null : String(v);
+    const FMT_DATA = 'dd/mm/yyyy';
+    const FMT_MOEDA = '#,##0.00';
+
+    function linhasDaPlanilha(dados){
+      const nomeCat = c => categorias[c] || c || null;
+      const cabCompra = ['Data da compra','Qtd','Preço unit. (R$)','Total (R$)','Lote','Validade','Loja','NF','Origem','EAN'];
+      const linhaCompra = c => {
+        const d = c.dados;
+        const qtd = numeroPlanilha(d.qtd), preco = numeroPlanilha(d.precoUnit);
+        let total = numeroPlanilha(d.total);
+        if (total === null && typeof qtd === 'number' && typeof preco === 'number') total = qtd * preco;
+        return [dataParaExcel(d.dataCompra), qtd, preco, total, textoPlanilha(d.lote), dataParaExcel(d.validade),
+                textoPlanilha(d.loja), textoPlanilha(d.numeroNF), textoPlanilha(d.origem), textoPlanilha(d.ean)];
+      };
+
+      const materiais = {
+        cabecalho: ['Nome','Categoria','Compras registradas','Última compra','Qtd da última compra','Preço unit. (R$)',
+                    'Validade mais próxima','Última loja','Última NF','Na lista de compras','Marcado em','Tem foto','ID do material'],
+        formatos: { 3: FMT_DATA, 5: FMT_MOEDA, 6: FMT_DATA, 10: FMT_DATA },
+        linhas: dados.materiais.map(m => {
+          const d = m.dados;
+          return [textoPlanilha(d.nome), nomeCat(d.categoria), m.compras.length, dataParaExcel(d.ultimaCompraEm),
+                  numeroPlanilha(d.quantidade), numeroPlanilha(d.precoCompra), dataParaExcel(d.validadeUltimaCompra),
+                  textoPlanilha(d.lojaUltimaCompra), textoPlanilha(d.nfUltimaCompra), d.marcadoParaCompraEm ? 'Sim' : 'Não',
+                  dataParaExcel(d.marcadoParaCompraEm), d.imagem ? 'Sim' : 'Não', m.id];
+        })
+      };
+
+      const compras = {
+        cabecalho: ['Material','Categoria', ...cabCompra, 'ID do material','ID da compra'],
+        formatos: { 2: FMT_DATA, 4: FMT_MOEDA, 5: FMT_MOEDA, 7: FMT_DATA },
+        linhas: []
+      };
+      dados.materiais.forEach(m => m.compras.forEach(c => {
+        compras.linhas.push([textoPlanilha(m.dados.nome), nomeCat(m.dados.categoria), ...linhaCompra(c), m.id, c.id]);
+      }));
+
+      const excluidos = {
+        cabecalho: ['ID do material (excluído)', ...cabCompra, 'ID da compra'],
+        formatos: { 1: FMT_DATA, 3: FMT_MOEDA, 4: FMT_MOEDA, 6: FMT_DATA },
+        linhas: dados.comprasDeItensExcluidos.map(c => [c.materialId, ...linhaCompra(c), c.id])
+      };
+      return { materiais, compras, excluidos };
+    }
+
+    function montarAba({ cabecalho, linhas, formatos }){
+      const ws = XLSX.utils.aoa_to_sheet([cabecalho, ...linhas]);
+      linhas.forEach((linha, i) => {
+        Object.entries(formatos).forEach(([col, fmt]) => {
+          const cel = ws[XLSX.utils.encode_cell({ r: i + 1, c: Number(col) })];
+          if (cel && cel.t === 'n') cel.z = fmt;
+        });
+      });
+      ws['!cols'] = cabecalho.map((h, c) => {
+        let largura = String(h).length;
+        linhas.forEach(l => { if (l[c] !== null && l[c] !== undefined) largura = Math.max(largura, String(l[c]).length); });
+        return { wch: Math.min(Math.max(largura + 2, 12), 50) };
+      });
+      if (linhas.length) {
+        ws['!autofilter'] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: linhas.length, c: cabecalho.length - 1 } }) };
+      }
+      return ws;
+    }
+
+    function baixarPlanilhaBackup(){
+      const abas = linhasDaPlanilha(backup.dados);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, montarAba(abas.materiais), 'Materiais');
+      XLSX.utils.book_append_sheet(wb, montarAba(abas.compras), 'Compras');
+      if (abas.excluidos.linhas.length) XLSX.utils.book_append_sheet(wb, montarAba(abas.excluidos), 'Compras de itens excluídos');
+      XLSX.writeFile(wb, `backup-estoque_${backup.carimbo}.xlsx`);
+    }
+
+    function baixarArquivo(conteudo, nome, tipo){
+      const blob = new Blob([conteudo], { type: tipo });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = nome;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    }
+    function carimboAgora(){
+      const d = new Date(), p = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}_${p(d.getHours())}h${p(d.getMinutes())}`;
+    }
+    function tamanhoLegivel(bytes){
+      if (bytes < 1048576) return Math.max(1, Math.round(bytes / 1024)) + ' KB';
+      return (bytes / 1048576).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' MB';
+    }
+
+    async function abrirBackup(){
+      backupModal.classList.remove('hidden');
+      if (backupEmAndamento) return;
+      backupEmAndamento = true;
+      backup = null;
+      backupStatus.className = 'text-sm text-gray-700 mb-4';
+      backupStatus.textContent = 'Preparando…';
+      backupResumo.classList.add('hidden');
+      backupAcoes.classList.add('hidden');
+      btnBaixarBackupJson.textContent = 'Baixar backup completo (.json)';
+      try {
+        const dados = await coletarBackup(msg => { backupStatus.textContent = msg; });
+        const json = JSON.stringify(dados, null, 2);
+        backup = { dados, json, carimbo: carimboAgora() };
+        const t = dados.totais;
+        backupResumo.innerHTML = `
+          <div><strong>${t.materiais}</strong> materiais (${t.materiaisComFoto} com foto)</div>
+          <div><strong>${t.compras}</strong> registros de compra</div>
+          ${t.comprasDeItensExcluidos ? `<div><strong>${t.comprasDeItensExcluidos}</strong> ${t.comprasDeItensExcluidos === 1 ? 'compra de um item que já foi excluído' : 'compras de itens que já foram excluídos'} <span class="text-gray-600">(continuavam guardadas no banco e também entram no backup)</span></div>` : ''}
+          <div class="text-gray-600">Tamanho do arquivo: ${tamanhoLegivel(new Blob([json]).size)}</div>`;
+        backupStatus.textContent = 'Backup pronto. Baixe o arquivo completo e guarde uma cópia fora deste computador (Google Drive, pendrive ou e-mail).';
+        backupResumo.classList.remove('hidden');
+        backupAcoes.classList.remove('hidden');
+      } catch (e) {
+        console.error(e);
+        backupStatus.textContent = 'Não foi possível montar o backup: ' + (e && e.message ? e.message : e);
+        backupStatus.className = 'text-sm text-danger-red mb-4';
+      } finally {
+        backupEmAndamento = false;
+      }
+    }
+
+    document.getElementById('btnBackup').addEventListener('click', abrirBackup);
+    document.getElementById('btnFecharBackup').addEventListener('click', () => backupModal.classList.add('hidden'));
+    btnBaixarBackupJson.addEventListener('click', () => {
+      if (!backup) return;
+      baixarArquivo(backup.json, `backup-estoque_${backup.carimbo}.json`, 'application/json');
+      btnBaixarBackupJson.textContent = '✓ Backup baixado (clique para baixar de novo)';
+    });
+    btnBaixarBackupXlsx.addEventListener('click', () => {
+      if (!backup) return;
+      try { baixarPlanilhaBackup(); }
+      catch (e) {
+        console.error(e);
+        backupStatus.textContent = 'Falha ao gerar a planilha: ' + (e && e.message ? e.message : e);
+        backupStatus.className = 'text-sm text-danger-red mb-4';
+      }
+    });
+
     // Auth + listeners
     document.getElementById('loginForm').addEventListener('submit', function(e){
       e.preventDefault();
